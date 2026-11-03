@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thông tin giáo viên</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    margin: 0;
+    padding: 24px 12px 60px;
+    background: #f7f7f8;
+    color: #222;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; }
+
+  .header {
+    background: #7a4a2f;
+    color: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .header.with-photo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+  }
+  .header .ten {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .header .label { font-size: 0.8rem; opacity: 0.85; }
+  .header .anh {
+    display: none;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    margin: 6px auto 2px;
+    flex-shrink: 0;
+  }
+  .header.with-photo .anh {
+    width: 64px;
+    height: 64px;
+    margin: 0;
+  }
+
+  .summary {
+    background: #fff;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  .summary .num { font-size: 1.8rem; font-weight: 700; color: #0a7a3d; }
+  .summary .cap { font-size: 0.75rem; color: #777; }
+
+  .khoa-card {
+    background: #fff;
+    margin-top: 14px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .khoa-title {
+    background: #f6d98b;
+    padding: 10px 16px;
+    font-weight: 700;
+    color: #5c4300;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-top: 1px solid #f0f0f0;
+    gap: 12px;
+  }
+  .row .k { color: #2e7d4f; font-weight: 600; font-size: 0.92rem; }
+  .row .v { text-align: right; font-size: 0.92rem; }
+  .row.clickable { cursor: pointer; }
+  .row.clickable:active { background: #fafafa; }
+  .hint { font-size: 0.72rem; color: #999; }
+
+  .detail {
+    display: none;
+    padding: 4px 16px 14px;
+    border-top: 1px solid #f0f0f0;
+  }
+  .detail.open { display: block; }
+
+  .hv-list { list-style: none; margin: 8px 0 0; padding: 0; }
+  .hv-list li {
+    padding: 6px 10px;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.9rem;
+  }
+  .hv-list li:before { content: counter(hv) ". "; counter-increment: hv; color: #999; }
+  .hv-list { counter-reset: hv; }
+
+  table.lich { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem; }
+  table.lich th, table.lich td { border: 1px solid #eee; padding: 5px 6px; text-align: center; }
+  table.lich th { background: #fafafa; }
+
+  .empty { text-align: center; color: #888; padding: 40px 16px; }
+  .updated { text-align: center; color: #999; font-size: 0.75rem; margin-top: 18px; }
+  .error { color: #c0392b; text-align: center; padding: 40px 16px; }
+
+  .file-embed { margin-top: 10px; }
+  .file-embed iframe {
+    width: 100%;
+    height: 420px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+  .file-embed .open-link { text-align: center; margin-top: 8px; }
+  .file-embed .open-link a {
+    color: #0a5fa8;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .file-embed .open-link a:hover { text-decoration: underline; }
+
+  .ext-link { margin-top: 8px; }
+  .ext-link a { color: #0a5fa8; font-size: 0.9rem; text-decoration: none; }
+  .ext-link a:hover { text-decoration: underline; }
+
+  .hoso-card .khoa-title { background: #e3e0ff; color: #3b2f7a; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header" id="header">
+      <img class="anh" id="anh-gv" alt="Ảnh giáo viên">
+      <div class="header-text">
+        <div class="label">GIÁO VIÊN</div>
+        <div class="ten" id="ten">Đang tải...</div>
+      </div>
+    </div>
+    <div class="summary" id="summary" style="display:none;">
+      <div>
+        <div class="num" id="tong-hv">0</div>
+        <div class="cap">học viên đang học</div>
+      </div>
+      <div>
+        <div class="num" id="so-khoa">0</div>
+        <div class="cap">khóa đang đào tạo</div>
+      </div>
+    </div>
+    <div id="khoa-container"></div>
+    <div class="updated" id="capnhat"></div>
+  </div>
+
+<script>
+const id = new URLSearchParams(window.location.search).get("id");
+const container = document.getElementById("khoa-container");
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function row(label, value, hint) {
+  const d = document.createElement("div");
+  d.className = "row";
+  d.innerHTML = `<div class="k">${esc(label)}</div><div class="v">${esc(value)}${hint ? `<div class="hint">${esc(hint)}</div>` : ""}</div>`;
+  return d;
+}
+
+function clickableRow(label, value, hint, onToggle) {
+  const d = document.createElement("div");
+  d.className = "row clickable";
+  d.innerHTML = `<div class="k">${esc(label)}</div><div class="v">${esc(value)}<div class="hint">${esc(hint)}</div></div>`;
+  const detail = document.createElement("div");
+  detail.className = "detail";
+  d.addEventListener("click", () => {
+    if (!detail.dataset.filled) {
+      onToggle(detail);
+      detail.dataset.filled = "1";
+    }
+    detail.classList.toggle("open");
+  });
+  return [d, detail];
+}
+
+function fileEmbedHtml(relPath) {
+  const absUrl = new URL(relPath, window.location.href).href;
+  const ext = relPath.split(".").pop().toLowerCase();
+  // Không nhúng PDF trực tiếp bằng iframe: nhiều trình duyệt ẩn trong app
+  // (Zalo/Messenger/Facebook... khi mở link từ quét QR) không có sẵn trình
+  // xem PDF nên khung sẽ trống. Dùng PDF.js (Mozilla) để xem được ở mọi nơi,
+  // giống cách đang dùng Office Viewer cho file Word.
+  const src =
+    ext === "pdf"
+      ? "https://mozilla.github.io/pdf.js/web/viewer.html?file=" + encodeURIComponent(absUrl)
+      : "https://view.officeapps.live.com/op/embed.aspx?src=" + encodeURIComponent(absUrl);
+  return `
+    <div class="file-embed">
+      <iframe src="${esc(src)}" loading="lazy"></iframe>
+      <div class="open-link"><a href="${esc(relPath)}" target="_blank" rel="noopener">Mở / tải file gốc ↗</a></div>
+    </div>`;
+}
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function unlockFile(detail, relPath, expectedHash) {
+  if (sessionStorage.getItem("hoso_unlocked") === "1") {
+    detail.innerHTML = fileEmbedHtml(relPath);
+    return;
+  }
+  const pass = prompt("Nhập mật khẩu để xem hồ sơ cá nhân:");
+  if (pass === null) return;
+  const hash = await sha256Hex(pass);
+  if (hash === expectedHash) {
+    sessionStorage.setItem("hoso_unlocked", "1");
+    detail.innerHTML = fileEmbedHtml(relPath);
+  } else {
+    alert("Sai mật khẩu.");
+  }
+}
+
+function renderLichHoc(days) {
+  if (!days || !days.length) return "<p style='color:#999;font-size:0.85rem;'>Chưa có lịch.</p>";
+  let html = "<table class='lich'><tr><th>Ngày</th><th>Thứ</th><th>Sáng</th><th>Chiều</th><th>Tối</th></tr>";
+  for (const d of days) {
+    const ngay = d.label ? `${d.label} (${d.date})` : d.date;
+    html += `<tr><td>${ngay}</td><td>${d.thu}</td><td>${d.sang || "-"}</td><td>${d.chieu || "-"}</td><td>${d.toi || "-"}</td></tr>`;
+  }
+  html += "</table>";
+  return html;
+}
+
+fetch("public_data.json", { cache: "no-store" })
+  .then(r => r.json())
+  .then(data => {
+    const gv = id ? data.teachers[id] : null;
+    if (!gv) {
+      document.getElementById("ten").textContent = "Không tìm thấy mã giáo viên";
+      container.innerHTML = '<div class="error">Mã QR không hợp lệ hoặc đã hết hạn.</div>';
+      return;
+    }
+
+    document.getElementById("ten").textContent = gv.ten;
+    document.getElementById("capnhat").textContent = "Cập nhật: " + data.generated_at;
+
+    if (gv.anh_file) {
+      const anhEl = document.getElementById("anh-gv");
+      anhEl.src = gv.anh_file;
+      anhEl.style.display = "block";
+      document.getElementById("header").classList.add("with-photo");
+    }
+
+    if (gv.ten || gv.dien_thoai || gv.ngay_sinh || gv.dia_chi || gv.hang_lai_xe) {
+      const infoCard = document.createElement("div");
+      infoCard.className = "khoa-card";
+      infoCard.innerHTML = `<div class="khoa-title">Thông tin giáo viên</div>`;
+      const infoRows = [
+        ["Họ và tên", gv.ten],
+        ["Số điện thoại", gv.dien_thoai],
+        ["Ngày tháng năm sinh", gv.ngay_sinh],
+        ["Địa chỉ thường trú", gv.dia_chi],
+        ["Hạng lái xe dạy", gv.hang_lai_xe],
+      ];
+      infoRows.forEach(([label, value]) => {
+        if (!value) return;
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `<div class="k">${esc(label)}</div><div class="v">${esc(value)}</div>`;
+        infoCard.appendChild(row);
+      });
+      container.appendChild(infoCard);
+    }
+
+    if (gv.ho_so_file && data.ho_so_password_hash) {
+      const hosoCard = document.createElement("div");
+      hosoCard.className = "khoa-card hoso-card";
+      hosoCard.innerHTML = `<div class="khoa-title">Hồ sơ cá nhân giáo viên</div>`;
+
+      const hosoRow = document.createElement("div");
+      hosoRow.className = "row clickable";
+      hosoRow.innerHTML = `<div class="k">Hồ sơ cá nhân</div><div class="v">Xem<div class="hint">(cần mật khẩu)</div></div>`;
+
+      const hosoDetail = document.createElement("div");
+      hosoDetail.className = "detail";
+
+      hosoRow.addEventListener("click", async () => {
+        const alreadyShown = hosoDetail.classList.contains("open") && hosoDetail.dataset.unlocked === "1";
+        if (alreadyShown) {
+          hosoDetail.classList.remove("open");
+          return;
+        }
+        await unlockFile(hosoDetail, gv.ho_so_file, data.ho_so_password_hash);
+        if (hosoDetail.innerHTML.trim()) {
+          hosoDetail.dataset.unlocked = "1";
+          hosoDetail.classList.add("open");
+        }
+      });
+
+      hosoCard.appendChild(hosoRow);
+      hosoCard.appendChild(hosoDetail);
+      container.appendChild(hosoCard);
+    }
+
+    const khoaList = gv.khoa_dang_day || [];
+    if (!khoaList.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "Hiện không đang dạy khóa nào.";
+      container.appendChild(empty);
+      return;
+    }
+
+    document.getElementById("summary").style.display = "flex";
+    document.getElementById("so-khoa").textContent = khoaList.length;
+    document.getElementById("tong-hv").textContent =
+      khoaList.reduce((s, k) => s + k.so_hoc_vien, 0);
+
+    khoaList.forEach((k, idx) => {
+      const card = document.createElement("div");
+      card.className = "khoa-card";
+
+      const title = document.createElement("div");
+      title.className = "khoa-title";
+      title.textContent = `${idx + 1}. Khóa ${k.ma_khoa} (${k.lop})`;
+      card.appendChild(title);
+
+      card.appendChild(row("📅 Thời gian đào tạo", `${k.tu_ngay} → ${k.den_ngay}`));
+
+      const [xeRow, xeDetail] = clickableRow(
+        "🚗 Xe tập lái", k.xe, "(bấm để xem giấy tờ xe)",
+        (detail) => {
+          if (k.giay_to_xe_link && /^https?:\/\//i.test(k.giay_to_xe_link)) {
+            detail.innerHTML = `<div class="ext-link"><a href="${esc(k.giay_to_xe_link)}" target="_blank" rel="noopener noreferrer">Bấm để xem thông tin xe tập lái ↗</a></div>`;
+          } else {
+            detail.innerHTML = `<p style="color:#999;">Chưa có thông tin giấy tờ xe.</p>`;
+          }
+        }
+      );
+      card.appendChild(xeRow);
+      card.appendChild(xeDetail);
+
+      const [hvRow, hvDetail] = clickableRow(
+        "👥 Số lượng học viên", k.so_hoc_vien, "(bấm để xem danh sách)",
+        (detail) => {
+          const ul = document.createElement("ul");
+          ul.className = "hv-list";
+          k.hoc_vien.forEach(hv => {
+            const li = document.createElement("li");
+            li.textContent = hv.ket_qua_thi
+              ? `${hv.ten} - ${hv.ket_qua_thi}${hv.ngay_tot_nghiep ? " (" + hv.ngay_tot_nghiep + ")" : ""}`
+              : hv.ten;
+            ul.appendChild(li);
+          });
+          detail.appendChild(ul);
+        }
+      );
+      card.appendChild(hvRow);
+      card.appendChild(hvDetail);
+
+      const [lhRow, lhDetail] = clickableRow(
+        "📖 Lịch học", "Xem", "(bấm để xem lịch)",
+        (detail) => {
+          detail.innerHTML = renderLichHoc(k.lich_hoc);
+          if (k.lich_hoc_pdf) {
+            detail.innerHTML += `<p style="margin-top:8px;font-weight:600;">File lịch học gốc (PDF):</p>` + fileEmbedHtml(k.lich_hoc_pdf);
+          }
+        }
+      );
+      card.appendChild(lhRow);
+      card.appendChild(lhDetail);
+
+      container.appendChild(card);
+    });
+  })
+  .catch(() => {
+    document.getElementById("ten").textContent = "Không tải được dữ liệu";
+    container.innerHTML = '<div class="error">Vui lòng thử lại sau.</div>';
+  });
+</script>
+</body>
+</html>

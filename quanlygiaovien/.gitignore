@@ -1,0 +1,19 @@
+# Dữ liệu nhạy cảm / sinh ra từ Excel - KHÔNG đưa lên GitHub (public)
+data.json
+*.xlsx
+*.xls
+
+# Mã QR in cho giáo viên - chỉ cần lưu local để in lại khi cần
+qr_codes/
+
+# Ảnh đại diện giáo viên (bản gốc đã resize) - bản public nằm ở docs/files/anh_gv
+anh_gv/
+
+# Đường dẫn các nguồn dữ liệu đã chọn - đặc thù theo máy, không cần public
+data_sources.json
+
+# Mật khẩu xem hồ sơ cá nhân (chỉ lưu hash trong docs/public_data.json)
+app_settings.json
+
+__pycache__/
+*.pyc
