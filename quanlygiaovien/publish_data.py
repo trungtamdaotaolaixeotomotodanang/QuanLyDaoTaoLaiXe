@@ -55,7 +55,7 @@ PHOTOS_DIR = APP_DIR / "anh_gv"  # ảnh đại diện giáo viên - lưu local,
 GV_EXTRA_FILE = APP_DIR / "giao_vien_extra.json"  # hạng lái xe dạy - tách khỏi DSGV, lưu local theo MaGV
 XE_EXTRA_FILE = APP_DIR / "xe_extra.json"  # link giấy tờ xe (nhập tay) - lưu local theo biển số chuẩn hoá
 
-BASE_URL = "https://luantt94.github.io/GTCC/gv.html"
+BASE_URL = "https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html"
 
 DEFAULT_XE_FOLDER_NAME = "Xe tập lái"
 DEFAULT_HO_SO_FOLDER_NAME = "HO SO GV (2026_GTCC)"

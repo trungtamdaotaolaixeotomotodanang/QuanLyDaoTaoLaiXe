@@ -1,9 +1,10 @@
 # Cài app lên máy khác & cấp quyền cập nhật dữ liệu (hướng dẫn Git)
 
 Tài liệu này dành cho người đang **quản lý/sở hữu** repo GitHub của app
-(hiện là tài khoản `luantt94`), muốn cài app này cho một máy khác (đồng
-nghiệp, máy ở văn phòng...) và cho phép người dùng máy đó tự cập nhật dữ
-liệu lên trang web công khai.
+(hiện thuộc tổ chức `trungtamdaotaolaixeotomotodanang`, repo
+`QuanLyDaoTaoLaiXe`), muốn cài app này cho một máy khác (đồng nghiệp,
+máy ở văn phòng...) và cho phép người dùng máy đó tự cập nhật dữ liệu
+lên trang web công khai.
 
 Người **dùng app hàng ngày** (chỉ cập nhật Excel/XML rồi bấm nút) không
 cần đọc file này — xem mục "3. Quy trình cập nhật web hàng ngày/hàng tuần"
@@ -13,7 +14,8 @@ app lên 1 máy mới**.
 ## Vì sao app cần tới Git?
 
 Trang web công khai (`gv.html`, `public_data.json`...) nằm trong thư mục
-`docs/` của repo GitHub `luantt94/GTCC`, host bằng GitHub Pages. Mỗi lần
+`docs/` của repo GitHub `trungtamdaotaolaixeotomotodanang/QuanLyDaoTaoLaiXe`,
+host bằng GitHub Pages. Mỗi lần
 bạn bấm **"Cập nhật && Đăng lên web"**, app tự chạy `git add` → `git
 commit` → `git push` dữ liệu mới vào `docs/` (xem `git_publish.py`) —
 người dùng không cần gõ lệnh git nào cả. Nhưng máy nào muốn bấm nút đó
@@ -34,13 +36,14 @@ thư mục, và (2) tài khoản GitHub đang đăng nhập trên máy đó có 
 
 ### Bước 2 — Tải mã nguồn (clone repo)
 
-Mở PowerShell hoặc Git Bash, chạy (có thể đổi `D:\GTCC` thành đường dẫn
-khác tuỳ ý — app tự tính đường dẫn theo vị trí file, không bắt buộc phải
-đúng y hệt `D:\GTCC`, miễn giữ nguyên cấu trúc `docs/` và `quanlygiaovien/`
-nằm cùng cấp như khi clone bình thường):
+Mở PowerShell hoặc Git Bash, chạy (có thể đổi `D:\QuanLyDaoTaoLaiXe`
+thành đường dẫn khác tuỳ ý — app tự tính đường dẫn theo vị trí file,
+không bắt buộc phải đúng y hệt `D:\QuanLyDaoTaoLaiXe`, miễn giữ nguyên
+cấu trúc `docs/` và `quanlygiaovien/` nằm cùng cấp như khi clone bình
+thường):
 
 ```
-git clone https://github.com/luantt94/GTCC.git D:\GTCC
+git clone https://github.com/trungtamdaotaolaixeotomotodanang/QuanLyDaoTaoLaiXe.git D:\QuanLyDaoTaoLaiXe
 ```
 
 Nếu repo đang để **public** thì clone không cần đăng nhập gì cả. Nếu repo
@@ -50,7 +53,7 @@ mục B) *trước* khi clone được.
 ### Bước 3 — Cài thư viện Python
 
 ```
-cd D:\GTCC\quanlygiaovien
+cd D:\QuanLyDaoTaoLaiXe\quanlygiaovien
 pip install -r requirements.txt
 ```
 
@@ -72,7 +75,7 @@ thư mục `quanlygiaovien/` trên máy mới:
 | `data_sources.json` | Đường dẫn các file đã chọn (đường dẫn tuyệt đối) | **Không nên chép** — xem lưu ý dưới |
 
 > **Lưu ý về `data_sources.json`:** file này lưu đường dẫn **tuyệt đối**
-> theo máy cũ (vd `D:\GTCC\quanlygiaovien\data\DSGV_...xml`). Nếu máy mới
+> theo máy cũ (vd `D:\QuanLyDaoTaoLaiXe\quanlygiaovien\data\DSGV_...xml`). Nếu máy mới
 > cài khác đường dẫn, chép file này qua sẽ khiến app hiện đường dẫn sai.
 > Cách đơn giản nhất: **đừng chép** `data_sources.json` — chỉ cần chép
 > nguyên thư mục `data/` qua, lần đầu mở app sẽ **tự quét lại** `data/` và
@@ -96,8 +99,8 @@ Chọn 1 trong 2 cách:
 
 1. Người dùng máy mới cần có **tài khoản GitHub riêng** (miễn phí, tự đăng
    ký tại github.com nếu chưa có).
-2. Chủ repo (`luantt94`) vào
-   `https://github.com/luantt94/GTCC/settings/access` → **Add people** →
+2. Chủ repo (tổ chức `trungtamdaotaolaixeotomotodanang`) vào
+   `https://github.com/trungtamdaotaolaixeotomotodanang/QuanLyDaoTaoLaiXe/settings/access` → **Add people** →
    nhập username hoặc email người đó → gửi lời mời.
 3. Người được mời mở email hoặc thông báo trên GitHub, bấm **Accept
    invitation**.
@@ -133,7 +136,7 @@ App hiện **không tự `git pull`** trước khi đăng (xem `git_publish.py`)
 Nếu 2 máy cùng bấm "Cập nhật && Đăng lên web" gần nhau, máy bấm **sau** có
 thể bị GitHub từ chối push (lỗi "rejected - non-fast-forward" hiện trong
 hộp thoại lỗi) vì máy đó đang giữ bản cũ hơn máy kia vừa đẩy lên. Cách xử
-lý: mở Git Bash tại thư mục gốc (`D:\GTCC`) và chạy:
+lý: mở Git Bash tại thư mục gốc (`D:\QuanLyDaoTaoLaiXe`) và chạy:
 
 ```
 git pull
@@ -148,8 +151,8 @@ HỌC) hoặc cập nhật ảnh/hạng/link riêng lẻ khi thật sự cần.
 
 | Vấn đề | Cách xử lý |
 |---|---|
-| Bấm nút đăng web, trình duyệt không tự mở để đăng nhập GitHub | Kiểm tra đã cài Git for Windows (có Git Credential Manager) chưa; thử mở Git Bash gõ `git push` tại `D:\GTCC` để xem lỗi chi tiết |
+| Bấm nút đăng web, trình duyệt không tự mở để đăng nhập GitHub | Kiểm tra đã cài Git for Windows (có Git Credential Manager) chưa; thử mở Git Bash gõ `git push` tại `D:\QuanLyDaoTaoLaiXe` để xem lỗi chi tiết |
 | Lỗi "Permission denied" / "403" khi đăng | Tài khoản GitHub đang đăng nhập trên máy đó **chưa được** thêm làm Collaborator — làm theo mục B |
-| Lỗi "rejected - non-fast-forward" | Máy khác vừa đăng trước — chạy `git pull` ở `D:\GTCC` rồi bấm lại nút trong app (xem mục D) |
+| Lỗi "rejected - non-fast-forward" | Máy khác vừa đăng trước — chạy `git pull` ở `D:\QuanLyDaoTaoLaiXe` rồi bấm lại nút trong app (xem mục D) |
 | Muốn đổi sang tài khoản GitHub khác trên máy đang dùng | Mở **Windows Credential Manager** (gõ "Credential Manager" trong Start Menu) → mục Windows Credentials → tìm `git:https://github.com` → **Remove** → lần bấm nút đăng web kế tiếp app sẽ hỏi đăng nhập lại |
 | Repo chuyển private, máy cũ bỗng không clone/pull được nữa | Phải được thêm làm Collaborator trước (xem mục B) |

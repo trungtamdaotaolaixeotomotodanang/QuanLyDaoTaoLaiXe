@@ -223,9 +223,9 @@ Nếu đây là máy mới hoàn toàn chưa từng đăng nhập GitHub, lần 
 
 ### Bật GitHub Pages (chỉ làm 1 lần cho repo)
 
-1. Vào `https://github.com/luantt94/GTCC/settings/pages`
+1. Vào `https://github.com/trungtamdaotaolaixeotomotodanang/QuanLyDaoTaoLaiXe/settings/pages`
 2. **Source**: "Deploy from a branch" → Branch: `main`, thư mục `/docs` → **Save**.
-3. Sau 1–2 phút, trang chạy tại: `https://luantt94.github.io/GTCC/gv.html?id=<mã GV>`
+3. Sau 1–2 phút, trang chạy tại: `https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html?id=<mã GV>`
 
 ## 7. Xử lý sự cố thường gặp
 

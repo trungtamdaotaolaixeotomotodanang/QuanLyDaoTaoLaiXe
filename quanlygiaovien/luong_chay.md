@@ -8,7 +8,7 @@ thực tế chưa.
 ## 1. Cấu trúc tổng thể
 
 ```
-D:\GTCC\                        <-- git repo gốc (remote: github.com/luantt94/GTCC)
+D:\QuanLyDaoTaoLaiXe\          <-- git repo gốc (remote: github.com/trungtamdaotaolaixeotomotodanang/QuanLyDaoTaoLaiXe)
 ├── docs/                       <-- public, GitHub Pages phục vụ trực tiếp từ đây
 │   ├── gv.html                 (trang xem thông tin giáo viên, tĩnh)
 │   ├── public_data.json        (dữ liệu công khai, app tự sinh + git push)
@@ -31,7 +31,7 @@ D:\GTCC\                        <-- git repo gốc (remote: github.com/luantt94/
     └── data/                   (Excel/XML/PDF/Word nguồn - .gitignore, KHÔNG public)
 ```
 
-Điểm mấu chốt: **git root là `D:\GTCC`, không phải `quanlygiaovien`**.
+Điểm mấu chốt: **git root là `D:\QuanLyDaoTaoLaiXe`, không phải `quanlygiaovien`**.
 `publish_data.py` tính `REPO_ROOT = APP_DIR.parent` nên `docs/` luôn nằm
 ngoài thư mục app một cấp — đây là lý do GitHub Pages phục vụ được từ
 nhánh `main`, thư mục `/docs`.
@@ -56,7 +56,7 @@ nhánh `main`, thư mục `/docs`.
                                                         │
                                           GitHub Pages tự build lại (~1-2 phút)
                                                         │
-                        https://luantt94.github.io/GTCC/gv.html?id=<MaGV>
+                        https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html?id=<MaGV>
                                                         │
                         Giáo viên quét QR (cố định, in 1 lần) -> xem dữ liệu mới nhất
 ```
@@ -115,7 +115,7 @@ main.py khởi động
 
 ```
 Giáo viên mở camera, quét mã QR in sẵn
-  → mở https://luantt94.github.io/GTCC/gv.html?id=<MaGV>  (link cố định, không đổi)
+  → mở https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html?id=<MaGV>  (link cố định, không đổi)
   → gv.html (trang tĩnh) fetch docs/public_data.json (no-store, luôn lấy bản mới nhất)
   → tìm teachers[id]; không có -> "Mã QR không hợp lệ"
   → render: tên, số khóa đang dạy, tổng học viên
@@ -133,6 +133,12 @@ Giáo viên mở camera, quét mã QR in sẵn
 `public_data.json` đang **chạy thật trên Internet**, có 64 giáo viên,
 dữ liệu mới nhất cập nhật lúc `2026-10-28T21:24:36` — tức là app đã
 được dùng và đăng dữ liệu thành công ít nhất 1 lần trong thực tế.
+
+**Cập nhật 2026-11-04**: repo đã chuyển sang GitHub tổ chức
+`trungtamdaotaolaixeotomotodanang/QuanLyDaoTaoLaiXe`. `BASE_URL` trong
+`publish_data.py` và toàn bộ mã QR giáo viên (`qr_codes/*.png`) đã được
+cập nhật lại sang `https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html?id=<MaGV>`,
+đã kiểm tra trang này trả về HTTP 200 (đang chạy).
 
 ## 5. App đã sẵn sàng dùng thực tế chưa?
 
