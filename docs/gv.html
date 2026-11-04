@@ -339,7 +339,7 @@ fetch("public_data.json", { cache: "no-store" })
       card.appendChild(row("📅 Thời gian đào tạo", `${k.tu_ngay} → ${k.den_ngay}`));
 
       const [xeRow, xeDetail] = clickableRow(
-        "🚗 Xe tập lái", k.xe, "(bấm để xem giấy tờ xe)",
+        "🚗 Xe tập lái", k.xe, "(bấm để xem thông tin xe tập lái)",
         (detail) => {
           if (k.giay_to_xe_link && /^https?:\/\//i.test(k.giay_to_xe_link)) {
             detail.innerHTML = `<div class="ext-link"><a href="${esc(k.giay_to_xe_link)}" target="_blank" rel="noopener noreferrer">Bấm để xem thông tin xe tập lái ↗</a></div>`;
