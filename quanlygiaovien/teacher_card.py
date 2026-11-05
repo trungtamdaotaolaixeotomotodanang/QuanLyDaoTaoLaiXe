@@ -15,8 +15,10 @@ cách chính thức do người dùng cung cấp):
   - Họ tên giáo viên - Times New Roman in hoa, đậm, cỡ chữ 14.
   - Hạng giấy phép lái xe dạy lái - Times New Roman in hoa, đậm, cỡ chữ 14.
 - Mã QR tra cứu thông tin (bổ sung theo yêu cầu, không nằm trong Mẫu số 01
-  gốc) đặt trong khung riêng, có chú thích "QUÉT QR TRA CỨU THÔNG TIN",
-  dùng chung link với mã QR đã phát cho giáo viên.
+  gốc) đặt trong khung riêng, không có chú thích (đã bỏ chữ "QUÉT QR TRA CỨU
+  THÔNG TIN" để phóng to hẳn mã QR cho dễ quét), dùng chung link với mã QR
+  đã phát cho giáo viên. Có thể bật/tắt hiện ảnh giáo viên ở giữa mã QR (xem
+  CardData.show_photo_in_qr).
 - Xuất PDF tối đa 8 thẻ/trang giấy (xem CARDS_PER_PAGE).
 
 Dữ liệu ảnh + hạng lái xe dạy lấy từ giao_vien_extra.json / anh_gv/ (xem
@@ -44,6 +46,14 @@ BG_PATH_PHOTO = APP_DIR / "data" / "khunganhnen_co_anh.jpg"
 # nếu đổi ảnh nền) để tạo BG_PATH_PHOTO.
 _BG_ERASE_BOX = (30, 192, 388, 728)
 _BG_PAPER_COLOR = (253, 249, 238)
+# Ảnh nền 1280x768 có viền trắng thừa xung quanh khung bo góc xanh (đo trực
+# tiếp: trái 8px, trên 15px, phải 6px, dưới 14px) - nếu resize thẳng cả ảnh
+# (kể cả viền trắng này) về đúng khổ thẻ 85x50mm rồi in/cắt theo khung xanh
+# thì thẻ cắt ra sẽ NHỎ HƠN 85x50mm (thiếu đúng phần viền trắng này, quy đổi
+# ra mm). Nên luôn crop bỏ viền trắng này (xem _BG_CONTENT_BBOX) TRƯỚC khi
+# resize về khổ thẻ cuối cùng, để khung xanh luôn chạm sát 2 mép thẻ, cắt ra
+# đúng 85x50mm. Phải đo lại bbox này nếu đổi ảnh nền.
+_BG_CONTENT_BBOX = (8, 15, 1274, 754)
 
 DPI = 300
 _MM_TO_PX = DPI / 25.4
@@ -52,7 +62,7 @@ _PT_TO_PX = DPI / 72
 CARD_W_MM, CARD_H_MM = 85, 50
 PHOTO_W_MM, PHOTO_H_MM = 30, 40
 PAGE_W_MM, PAGE_H_MM = 210, 297  # A4 dọc
-GRID_COLS, GRID_ROWS = 2, 4
+GRID_COLS, GRID_ROWS = 2, 4  # tối đa 8 thẻ/trang (yêu cầu)
 CARDS_PER_PAGE = GRID_COLS * GRID_ROWS
 
 # Cỡ chữ (pt) đúng theo quy cách Mẫu số 01 - dùng khi KHÔNG có ảnh nền
@@ -69,10 +79,24 @@ FONT_PT_HANG = 14  # hạng lái xe dạy
 # đúng vùng trống, không còn viền xanh để lo che/lệch.
 _BG_PHOTO_BOX = (48, 223, 378, 718)  # x0,y0,x1,y1 - khung dán ảnh giáo viên
 PHOTO_CROP_RATIO = 3 / 4  # ảnh thẻ chuẩn "3x4" (rộng:cao) - luôn crop đúng tỉ lệ này trước khi dán
-_BG_QR_BOX = (1068, 506, 1222, 638)  # khung mã QR
+# _BG_PHOTO_BOX không đúng hẳn tỉ lệ 3:4 (khung đo trên ảnh nền ~2:3) - nếu
+# dán ảnh đã crop 3:4 bằng cách kéo giãn vừa khít khung này thì ảnh sẽ bị
+# méo. Dùng _fit_photo_contain (giữ nguyên tỉ lệ, canh giữa, có thể dư viền
+# giấy trắng trên/dưới hoặc 2 bên) thay vì kéo giãn vừa khít khung.
+
+# Khung mã QR: vùng vuông trắng + khung xanh gốc trên ảnh nền CHỈ 154x132px,
+# bên dưới có chú thích "QUÉT QR TRA CỨU THÔNG TIN" in sẵn trong ảnh nền -
+# theo yêu cầu, bỏ chữ chú thích + bỏ luôn khung viền, phóng to hẳn mã QR cho
+# dễ quét: tô lại (xoá) toàn bộ vùng khung vuông cũ + chú thích bằng màu giấy
+# nền rồi dán mã QR to (không viền) vào gần hết khoảng trống đó. Viền ngoài
+# cùng của thẻ (khung bo góc xanh) nằm ở x>=1266/y>=746 - ERASE/BOX phải
+# dừng lại TRƯỚC mốc này (có chừa lề an toàn), nếu không sẽ đè mất 1 đoạn
+# viền ngoài (lỗi trước đây: ERASE rộng tới x=1278 nên cắt mất 1 đoạn viền).
+_BG_QR_OLD_AREA_ERASE = (966, 466, 1260, 740)  # xoá khung QR cũ + chữ chú thích cũ
+_BG_QR_BOX = (980, 478, 1240, 738)  # vùng dán mã QR (không viền) - to hơn, lệch trái + lên trên
 _BG_HANG_VALUE_X = 850  # bắt đầu vẽ giá trị hạng, ngay sau chữ "Dạy lái xe hạng:"
 _BG_HANG_VALUE_Y = (598, 658)
-_BG_HANG_RIGHT = 1250
+_BG_HANG_RIGHT = 965  # phải dừng trước mép trái mã QR (_BG_QR_BOX) - tránh chữ "hạng" đè lên mã QR
 # Khoảng trống dưới tiêu đề "GIÁO VIÊN DẠY LÁI XE" để ghi họ tên, căn giữa.
 _BG_FIELDS_AREA = (418, 352, 1236, 596)
 _BG_FIELDS_COLOR = "black"
@@ -116,6 +140,7 @@ class CardData:
     url: str
     ngay_sinh: str = ""
     dia_chi: str = ""
+    show_photo_in_qr: bool = True  # checkbox "Hiện ảnh giáo viên trong mã QR"
 
 
 def _font_times_px(size_px, bold=False):
@@ -307,6 +332,20 @@ def _fit_photo(photo_path, box_w, box_h, crop_ratio=None):
     return photo.resize((box_w, box_h), Image.LANCZOS)
 
 
+def _fit_photo_contain(photo_path, box_w, box_h, ratio):
+    """Như _fit_photo nhưng GIỮ NGUYÊN đúng tỉ lệ `ratio` ở ảnh kết quả (chỉ
+    crop, không kéo giãn) rồi canh giữa vừa trong khung (box_w, box_h) - dùng
+    khi khung trên ảnh nền không đúng hẳn tỉ lệ `ratio` nên không thể vừa
+    khít cả 2 chiều mà không méo ảnh. Trả về (ảnh, lệch_x, lệch_y) để dán
+    canh giữa khung."""
+    if box_w / box_h > ratio:
+        out_h, out_w = box_h, round(box_h * ratio)
+    else:
+        out_w, out_h = box_w, round(box_w / ratio)
+    photo = _fit_photo(photo_path, out_w, out_h, crop_ratio=ratio)
+    return photo, (box_w - out_w) // 2, (box_h - out_h) // 2
+
+
 def _generate_card_image_from_background(data: CardData) -> Image.Image:
     """Dùng ảnh nền đã thiết kế sẵn (data/khunganhnen.jpg) làm thẻ, chỉ dán
     đè ảnh giáo viên + mã QR + ghi họ tên/ngày sinh/địa chỉ/hạng vào đúng
@@ -337,14 +376,21 @@ def _generate_card_image_from_background(data: CardData) -> Image.Image:
 
     if has_photo:
         px0, py0, px1, py1 = _BG_PHOTO_BOX
-        photo = _fit_photo(data.photo_path, px1 - px0, py1 - py0, crop_ratio=PHOTO_CROP_RATIO)
-        img.paste(photo, (px0, py0))
+        photo, ox, oy = _fit_photo_contain(
+            data.photo_path, px1 - px0, py1 - py0, PHOTO_CROP_RATIO
+        )
+        img.paste(photo, (px0 + ox, py0 + oy))
 
+    # Xoá khung QR nhỏ + chữ "QUÉT QR TRA CỨU THÔNG TIN" in sẵn trên ảnh nền
+    # rồi dán mã QR to, không viền, vào gần hết khoảng trống đó (theo yêu
+    # cầu: bỏ chữ chú thích + bỏ khung viền, phóng to mã QR cho dễ quét).
+    draw.rectangle(_BG_QR_OLD_AREA_ERASE, fill=_BG_PAPER_COLOR)
     qx0, qy0, qx1, qy1 = _BG_QR_BOX
-    qr_size = min(qx1 - qx0, qy1 - qy0) - _mm(0.8)
+    qr_photo = data.photo_path if data.show_photo_in_qr else None
+    qr_size = min(qx1 - qx0, qy1 - qy0)
     qr_x = qx0 + (qx1 - qx0 - qr_size) // 2
     qr_y = qy0 + (qy1 - qy0 - qr_size) // 2
-    img.paste(_make_qr(data.url, qr_size, data.photo_path), (qr_x, qr_y))
+    img.paste(_make_qr(data.url, qr_size, qr_photo), (qr_x, qr_y))
 
     if data.hang:
         hang_w = _BG_HANG_RIGHT - _BG_HANG_VALUE_X
@@ -369,6 +415,10 @@ def _generate_card_image_from_background(data: CardData) -> Image.Image:
     name_y = fy0 + _mm(2)
     draw.text(((fx0 + fx1) / 2 - name_w / 2, name_y), name_text, font=name_font, fill=_BG_FIELDS_COLOR)
 
+    # Bỏ viền trắng thừa quanh khung xanh trước khi resize (xem _BG_CONTENT_BBOX)
+    # để khung xanh chạm sát mép thẻ, cắt ra đúng 85x50mm (không bị hụt kích
+    # thước do còn sót viền trắng ngoài khung).
+    img = img.crop(_BG_CONTENT_BBOX)
     card_w, card_h = _mm(CARD_W_MM), _mm(CARD_H_MM)
     return img.resize((card_w, card_h), Image.LANCZOS)
 
@@ -413,26 +463,14 @@ def _generate_card_image_procedural(data: CardData) -> Image.Image:
         [photo_x, photo_y, photo_x + photo_w, photo_y + photo_h], outline="black", width=1
     )
 
-    # Khung "QR tra cứu" - mã QR nằm TRONG khung, chú thích đầy đủ bên dưới
-    # (bổ sung theo yêu cầu, không thuộc Mẫu số 01 gốc).
-    qr_pad = _mm(1.2)
-    qr_size = _mm(15)
-    qr_cap_max_h = max((h - pad) - (content_top + qr_pad + qr_size + _mm(0.8) + qr_pad), _mm(4))
-    qr_cap_blocks = [("QUÉT QR TRA CỨU THÔNG TIN", 6.5, False)]
-    qr_cap_rendered = _fit_blocks(draw, qr_cap_blocks, qr_size, qr_cap_max_h)
-
-    qr_box_w = qr_size + 2 * qr_pad
-    qr_box_x = w - pad - qr_box_w
+    # Mã QR - không có khung viền/chú thích bên dưới nữa (theo yêu cầu: bỏ
+    # chữ "QUÉT QR TRA CỨU THÔNG TIN" + bỏ khung viền để phóng to hẳn mã QR
+    # cho dễ quét), chiếm trọn chiều cao còn lại bên phải, cạnh ảnh giáo viên.
+    qr_size = round((h - pad) - content_top)
+    qr_box_x = w - pad - qr_size
     qr_box_y = content_top
-    qr_x = qr_box_x + qr_pad
-    qr_y = qr_box_y + qr_pad
-    img.paste(_make_qr(data.url, qr_size, data.photo_path), (qr_x, qr_y))
-    cap_y = qr_y + qr_size + _mm(0.8)
-    cap_h = _draw_rendered_blocks(draw, qr_cap_rendered, cap_y, cx=qr_box_x + qr_box_w / 2)
-    qr_box_h = qr_pad + qr_size + _mm(0.8) + cap_h + qr_pad
-    draw.rectangle(
-        [qr_box_x, qr_box_y, qr_box_x + qr_box_w, qr_box_y + qr_box_h], outline="black", width=1
-    )
+    qr_photo = data.photo_path if data.show_photo_in_qr else None
+    img.paste(_make_qr(data.url, qr_size, qr_photo), (qr_box_x, qr_box_y))
 
     text_x = photo_x + photo_w + _mm(2)
     text_right = qr_box_x - _mm(2)

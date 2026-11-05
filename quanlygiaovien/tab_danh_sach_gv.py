@@ -17,6 +17,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QColor, QGuiApplication, QPixmap
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QFileDialog,
@@ -48,6 +49,7 @@ CAC_HANG_LAI_XE = ["B", "C1", "C", "D1", "D2", "CE"]
 import detail_dialog
 import publish_data
 import roster_xml
+from photo_crop_dialog import PhotoCropDialog
 from style import icon as _icon
 
 
@@ -154,7 +156,21 @@ class DanhSachGiaoVienTab(QWidget):
         )
         self.btn_remove_photo.clicked.connect(self._on_remove_photo)
         photo_row.addWidget(self.btn_remove_photo)
+        self.btn_edit_photo = QPushButton(
+            _icon(self, QStyle.StandardPixmap.SP_DialogResetButton), "Chỉnh sửa ảnh thẻ..."
+        )
+        self.btn_edit_photo.setToolTip(
+            "Kéo/phóng để chọn lại đúng vùng ảnh (tỉ lệ 3x4) - khắc phục ảnh bị\n"
+            "crop lệch hoặc hơi méo khi app tự động crop giữa ảnh gốc."
+        )
+        self.btn_edit_photo.clicked.connect(self._on_edit_photo)
+        photo_row.addWidget(self.btn_edit_photo)
         right_layout.addLayout(photo_row)
+
+        self.chk_qr_photo = QCheckBox("Hiện ảnh giáo viên trong mã QR")
+        self.chk_qr_photo.setChecked(publish_data.get_qr_show_photo())
+        self.chk_qr_photo.toggled.connect(self._on_qr_photo_toggled)
+        right_layout.addWidget(self.chk_qr_photo)
 
         hang_row = QHBoxLayout()
         hang_row.addWidget(QLabel("Dạy lái xe hạng:"))
@@ -197,7 +213,7 @@ class DanhSachGiaoVienTab(QWidget):
     def _set_detail_enabled(self, enabled):
         for w in (
             self.btn_choose_photo, self.btn_paste_photo, self.btn_remove_photo,
-            self.txt_hang, self.btn_save_hang, self.btn_export_one,
+            self.btn_edit_photo, self.txt_hang, self.btn_save_hang, self.btn_export_one,
         ):
             w.setEnabled(enabled)
 
@@ -432,6 +448,39 @@ class DanhSachGiaoVienTab(QWidget):
                         pass
 
         self._run_photo_action(fn)
+
+    def _on_edit_photo(self):
+        if not self._current_ma_gv:
+            return
+        ma_gv = self._current_ma_gv
+        src = publish_data.teacher_photo_path(ma_gv)
+        if not src:
+            path, _ = QFileDialog.getOpenFileName(
+                self, "Chọn ảnh giáo viên", "", "Ảnh (*.png *.jpg *.jpeg)"
+            )
+            if not path:
+                return
+            src = path
+        try:
+            dialog = PhotoCropDialog(src, self)
+        except Exception as exc:  # báo lỗi rõ ràng, không để app crash
+            QMessageBox.warning(self, "Không mở được ảnh", str(exc))
+            return
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        img = dialog.result_image()
+        if img is None:
+            return
+        tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+        tmp_path = tmp.name
+        tmp.close()
+        img.save(tmp_path, "JPEG", quality=95)
+        self._apply_photo(tmp_path, cleanup=True)
+
+    def _on_qr_photo_toggled(self, checked):
+        publish_data.set_qr_show_photo(checked)
+        if self._current_ma_gv:
+            self._refresh_preview(hang_override=self.txt_hang.currentText())
 
     def _on_remove_photo(self):
         if not self._current_ma_gv:

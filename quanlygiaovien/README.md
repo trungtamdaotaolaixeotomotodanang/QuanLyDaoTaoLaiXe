@@ -89,6 +89,14 @@ xuất file ra mới xem được.
 - **Dán ảnh (Ctrl+V)**: dán ảnh đang copy trong clipboard (vd chụp màn
   hình, hoặc copy từ phần mềm quét/máy scan) — không cần lưu file ra trước.
 - **Xóa ảnh**: gỡ ảnh khỏi trang web.
+- **Chỉnh sửa ảnh thẻ...**: mở ảnh đang dùng (hoặc cho chọn ảnh mới nếu
+  giáo viên chưa có ảnh) trong 1 cửa sổ cho **kéo để di chuyển + cuộn chuột
+  (hoặc kéo thanh trượt) để phóng to/thu nhỏ**, khung crop luôn cố định
+  đúng tỉ lệ **3x4** — dùng khi ảnh tự động crop giữa bị lệch mặt/méo, bấm
+  **Lưu ảnh thẻ** để áp dụng (đăng lên web như khi chọn ảnh thường).
+
+Checkbox **"Hiện ảnh giáo viên trong mã QR"** (bật/tắt áp dụng cho mọi thẻ):
+tắt đi nếu muốn mã QR trên thẻ "sạch" không có ảnh giáo viên ở giữa.
 
 Dù chọn file hay dán, ảnh đều được tự resize nhỏ lại rồi **đăng lên web
 ngay lập tức** (không cần bấm "Cập nhật && Đăng lên web"), hiện ngay trên
@@ -108,7 +116,7 @@ nhập tên cơ quan chủ quản + tên cơ sở đào tạo in ở đầu mỗ
 dùng chung cho mọi thẻ).
 
 Bấm **"Xuất thẻ GV này (PDF)"** để xuất thẻ của 1 giáo viên đang chọn, hoặc
-**"Xuất tất cả giáo viên (PDF)"** để xuất toàn bộ (tối đa 8 thẻ/trang A4,
+**"Xuất tất cả giáo viên (PDF)"** để xuất toàn bộ (tối đa **8 thẻ/trang A4**,
 tự ngắt trang). Đây là tính năng **in cục bộ, không đăng lên web** - không
 cần Internet. Phần mềm không tự đóng dấu giáp lai lên ảnh thẻ, cần đóng
 dấu tay sau khi in như quy định.

@@ -113,6 +113,19 @@ def save_giao_vien_extra(data):
     )
 
 
+def get_qr_show_photo():
+    """Checkbox "Hiện ảnh giáo viên trong mã QR" ở tab DANH SÁCH GIÁO VIÊN -
+    áp dụng cho mã QR trên THẺ giáo viên (teacher_card.py), lưu chung cho cả
+    app (không theo từng giáo viên). Mặc định bật (giữ hành vi trước đây)."""
+    return bool(load_app_settings().get("qr_show_photo", True))
+
+
+def set_qr_show_photo(value):
+    settings = load_app_settings()
+    settings["qr_show_photo"] = bool(value)
+    save_app_settings(settings)
+
+
 def get_hang_lai_xe(ma_gv):
     return load_giao_vien_extra().get(ma_gv, {}).get("hang", "")
 
@@ -639,6 +652,7 @@ def build_card_data(ma_gv, rec, hang_override=None):
         url=f"{BASE_URL}?id={ma_gv}",
         ngay_sinh=rec.get("ngay_sinh", ""),
         dia_chi=rec.get("dia_chi", ""),
+        show_photo_in_qr=get_qr_show_photo(),
     )
 
 
