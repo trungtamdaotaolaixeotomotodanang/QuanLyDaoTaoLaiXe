@@ -149,6 +149,7 @@ class TraCuuXeTab(QWidget):
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setSortingEnabled(True)
         splitter.addWidget(self.table)
 
         xml_info_box = QWidget()
@@ -420,6 +421,7 @@ class TraCuuXeTab(QWidget):
                         }
                     )
 
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(len(rows))
         for row_idx, r in enumerate(rows):
             values = [
@@ -433,6 +435,7 @@ class TraCuuXeTab(QWidget):
             ]
             for col, val in enumerate(values):
                 self.table.setItem(row_idx, col, QTableWidgetItem(val))
+        self.table.setSortingEnabled(True)
         self.table.resizeColumnsToContents()
         self.table.horizontalHeader().setStretchLastSection(True)
 

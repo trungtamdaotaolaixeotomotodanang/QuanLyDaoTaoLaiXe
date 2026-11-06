@@ -24,7 +24,6 @@ class TraCuuTab(QWidget):
     def __init__(self, model, parent=None):
         super().__init__(parent)
         self.model = model
-        self.current_rows = []
         self._build_ui()
         self._load_filters()
 
@@ -61,6 +60,7 @@ class TraCuuTab(QWidget):
         self.tbl_hang.setEditTriggers(QTableWidget.NoEditTriggers)
         self.tbl_hang.setMaximumHeight(140)
         self.tbl_hang.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tbl_hang.setSortingEnabled(True)
         hang_layout.addWidget(self.tbl_hang)
         outer.addWidget(hang_box)
 
@@ -74,6 +74,7 @@ class TraCuuTab(QWidget):
         self.table.setAlternatingRowColors(True)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table.itemSelectionChanged.connect(self._on_row_selected)
+        self.table.setSortingEnabled(True)
         splitter.addWidget(self.table)
 
         detail_widget = QWidget()
@@ -88,6 +89,7 @@ class TraCuuTab(QWidget):
         self.tbl_hoc_vien.setHorizontalHeaderLabels(["Stt", "Họ và tên", "Ngày sinh", "Địa chỉ"])
         self.tbl_hoc_vien.setEditTriggers(QTableWidget.NoEditTriggers)
         self.tbl_hoc_vien.horizontalHeader().setStretchLastSection(True)
+        self.tbl_hoc_vien.setSortingEnabled(True)
         self.detail_tabs.addTab(self.tbl_hoc_vien, "Danh sách học viên")
 
         detail_layout.addWidget(self.detail_tabs)
@@ -149,7 +151,10 @@ class TraCuuTab(QWidget):
         self._show_rows(rows, f"Kết quả tra cứu theo khóa '{ma_khoa}': {len(rows)} giáo viên/xe")
 
     def _show_rows(self, rows, summary_text):
-        self.current_rows = rows
+        # Tắt sort trong lúc đổ dữ liệu (tránh dòng bị xáo lúc đang điền từng
+        # ô), bật lại sau - mỗi dòng mang theo dict gốc (UserRole ở cột 0) để
+        # _on_row_selected lấy đúng chi tiết dù người dùng đã bấm sort cột.
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(len(rows))
         for row_idx, r in enumerate(rows):
             thoi_gian = f"{r['tu_ngay']} → {r['den_ngay']}"
@@ -164,7 +169,11 @@ class TraCuuTab(QWidget):
                 r["status"],
             ]
             for col, val in enumerate(values):
-                self.table.setItem(row_idx, col, QTableWidgetItem(val))
+                item = QTableWidgetItem(val)
+                if col == 0:
+                    item.setData(Qt.ItemDataRole.UserRole, r)
+                self.table.setItem(row_idx, col, item)
+        self.table.setSortingEnabled(True)
         self._render_hang_summary(rows)
         self.lbl_detail.setText(summary_text)
         if rows:
@@ -178,30 +187,34 @@ class TraCuuTab(QWidget):
 
     def _render_hang_summary(self, rows):
         summary = self.model.summarize_by_hang(rows)
+        self.tbl_hang.setSortingEnabled(False)
         self.tbl_hang.setRowCount(len(summary))
         for row_idx, (hang, so_hv) in enumerate(summary):
             self.tbl_hang.setItem(row_idx, 0, QTableWidgetItem(hang))
             item_so_hv = QTableWidgetItem(str(so_hv))
             item_so_hv.setTextAlignment(Qt.AlignCenter)
             self.tbl_hang.setItem(row_idx, 1, item_so_hv)
+        self.tbl_hang.setSortingEnabled(True)
 
     def _on_row_selected(self):
         selected = self.table.selectedItems()
         if not selected:
             return
-        row_idx = selected[0].row()
-        if row_idx >= len(self.current_rows):
-            return
-        self._render_detail(self.current_rows[row_idx])
+        item0 = self.table.item(selected[0].row(), 0)
+        r = item0.data(Qt.ItemDataRole.UserRole) if item0 else None
+        if r is not None:
+            self._render_detail(r)
 
     def _render_detail(self, r):
         self._render_hoc_vien(r["group"])
 
     def _render_hoc_vien(self, group):
         hoc_vien = group.get("hoc_vien", [])
+        self.tbl_hoc_vien.setSortingEnabled(False)
         self.tbl_hoc_vien.setRowCount(len(hoc_vien))
         for row, hv in enumerate(hoc_vien):
             values = [str(hv["stt"]), hv["ho_ten"], hv.get("ngay_sinh", ""), hv.get("dia_chi", "")]
             for col, val in enumerate(values):
                 self.tbl_hoc_vien.setItem(row, col, QTableWidgetItem(val))
+        self.tbl_hoc_vien.setSortingEnabled(True)
         self.tbl_hoc_vien.resizeColumnsToContents()

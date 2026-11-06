@@ -47,6 +47,7 @@ class PhanXeTab(QWidget):
         )
         self.tree.setColumnHidden(6, True)
         self.tree.setAlternatingRowColors(True)
+        self.tree.setSortingEnabled(True)
         layout.addWidget(self.tree)
 
     def _load_courses(self):
@@ -73,10 +74,14 @@ class PhanXeTab(QWidget):
         self._render_course(ma_khoa)
 
     def _render_course(self, ma_khoa):
+        # Tắt sort trong lúc dựng lại cây (tránh top_item.addChild() bị ảnh
+        # hưởng bởi sort giữa đường), bật lại ở cuối.
+        self.tree.setSortingEnabled(False)
         self.tree.clear()
         course = self.model.find_course(ma_khoa)
         if not course:
             self.lbl_summary.setText("")
+            self.tree.setSortingEnabled(True)
             return
 
         self.lbl_summary.setText(
@@ -109,5 +114,6 @@ class PhanXeTab(QWidget):
 
             top_item.setExpanded(True)
 
+        self.tree.setSortingEnabled(True)
         for col in range(6):
             self.tree.resizeColumnToContents(col)

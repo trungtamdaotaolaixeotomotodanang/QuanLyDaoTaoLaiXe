@@ -83,7 +83,8 @@ class DataModel:
 
     # ---- truy cập cơ bản ----
     def all_courses(self):
-        return self.courses
+        """Danh sách khóa, đã sắp xếp theo mã khóa (để hiện trong combobox)."""
+        return sorted(self.courses, key=lambda c: c.get("ma_khoa", ""))
 
     def course_codes(self):
         return [c["ma_khoa"] for c in self.courses]
