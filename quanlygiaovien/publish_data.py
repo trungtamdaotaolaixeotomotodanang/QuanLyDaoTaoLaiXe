@@ -362,6 +362,13 @@ def run_pipeline(sources=None):
         else {}
     )
 
+    # Đồng bộ với bản mới nhất trên GitHub trước khi xây lại docs/ - để biết
+    # ảnh/dữ liệu mà máy khác vừa đăng (xem phần backup anh_file dưới), tránh
+    # pipeline này ghi đè mất chúng.
+    ok, err = git_publish.sync_from_remote()
+    if not ok:
+        raise RuntimeError(err)
+
     data_json_path = APP_DIR / "data.json"
     data, overwritten = convert_excel_to_json.build_data(bien_che_files, ket_qua_thi=ket_qua_thi)
     data_json_path.write_text(
@@ -384,6 +391,18 @@ def run_pipeline(sources=None):
     name_to_magv = {attach_files.normalize_name(rec["ten"]): magv for magv, rec in dsgv.items()}
 
     warnings = []
+
+    # Sao lưu ảnh đại diện giáo viên ĐÃ ĐĂNG trước khi xoá sạch docs/files/ -
+    # để không mất ảnh của giáo viên mà máy này không có file ảnh gốc cục bộ
+    # (anh_gv/<MaGV>.jpg - vd ảnh do máy khác thêm trực tiếp lên web, máy này
+    # chưa từng tải ảnh gốc về). Đã sync_from_remote() ở trên nên đây là bản
+    # mới nhất.
+    prev_anh_file_bytes = {}
+    for ma_gv, rec in _load_public_data().get("teachers", {}).items():
+        anh_file = rec.get("anh_file")
+        src = DOCS_DIR / anh_file if anh_file else None
+        if src and src.exists():
+            prev_anh_file_bytes[ma_gv] = src.read_bytes()
 
     # Dọn sạch file public cũ (PDF/Word) trước khi gắn lại cho đúng danh sách
     # giáo viên/khóa đang active hiện tại (tránh file cũ của khóa/giáo viên
@@ -496,7 +515,17 @@ def run_pipeline(sources=None):
         ho_so_src = attach_files.find_ho_so_gv(rec["ten"], ho_so_folder)
         ho_so_file = _copy_public_file(ho_so_src, "ho_so_gv", ma_gv)
         anh_src = PHOTOS_DIR / f"{ma_gv}.jpg"
-        anh_file = _copy_public_file(anh_src, ANH_GV_SUBDIR, ma_gv) if anh_src.exists() else None
+        if anh_src.exists():
+            anh_file = _copy_public_file(anh_src, ANH_GV_SUBDIR, ma_gv)
+        elif ma_gv in prev_anh_file_bytes:
+            # Không có ảnh gốc cục bộ trên máy này nhưng đã có ảnh đăng từ
+            # trước (xem backup phía trên) - giữ lại, không xoá mất.
+            dest_dir = FILES_OUT_DIR / ANH_GV_SUBDIR
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            (dest_dir / f"{ma_gv}.jpg").write_bytes(prev_anh_file_bytes[ma_gv])
+            anh_file = f"files/{ANH_GV_SUBDIR}/{ma_gv}.jpg"
+        else:
+            anh_file = None
         teachers_out[ma_gv] = {
             "ten": rec["ten"],
             "dien_thoai": teacher_phone.get(ma_gv) or rec.get("dien_thoai", ""),
@@ -590,6 +619,12 @@ def teacher_photo_path(ma_gv):
 def add_teacher_photo(ma_gv, ten, src_path):
     """Thêm/đổi ảnh đại diện 1 giáo viên và đăng ngay lên web.
     Trả về (ok: bool, message: str)."""
+    # Đồng bộ với bản mới nhất trên GitHub trước khi sửa - để không vô tình
+    # đọc/ghi đè lên dữ liệu mà máy khác vừa đăng (vd thêm ảnh giáo viên khác).
+    ok, err = git_publish.sync_from_remote()
+    if not ok:
+        return False, err
+
     PHOTOS_DIR.mkdir(exist_ok=True)
     local_path = PHOTOS_DIR / f"{ma_gv}.jpg"
     _save_resized_photo(src_path, local_path)
@@ -609,6 +644,11 @@ def add_teacher_photo(ma_gv, ten, src_path):
 def remove_teacher_photo(ma_gv, ten):
     """Xóa ảnh đại diện 1 giáo viên (local + public) và đăng ngay lên web.
     Trả về (ok: bool, message: str)."""
+    # Đồng bộ với bản mới nhất trên GitHub trước khi sửa (xem add_teacher_photo).
+    ok, err = git_publish.sync_from_remote()
+    if not ok:
+        return False, err
+
     local_path = PHOTOS_DIR / f"{ma_gv}.jpg"
     if local_path.exists():
         local_path.unlink()

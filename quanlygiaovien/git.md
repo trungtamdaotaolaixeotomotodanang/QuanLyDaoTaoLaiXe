@@ -132,20 +132,27 @@ tuần"** trong [README.md](README.md).
 
 ## D. Lưu ý khi có NHIỀU máy cùng cập nhật
 
-App hiện **không tự `git pull`** trước khi đăng (xem `git_publish.py`).
-Nếu 2 máy cùng bấm "Cập nhật && Đăng lên web" gần nhau, máy bấm **sau** có
-thể bị GitHub từ chối push (lỗi "rejected - non-fast-forward" hiện trong
-hộp thoại lỗi) vì máy đó đang giữ bản cũ hơn máy kia vừa đẩy lên. Cách xử
-lý: mở Git Bash tại thư mục gốc (`D:\QuanLyDaoTaoLaiXe`) và chạy:
+App giờ **tự `git pull --rebase` TRƯỚC KHI đọc/sửa dữ liệu** (không chỉ
+trước khi push) ở cả 3 chỗ: "Thêm ảnh giáo viên", "Xóa ảnh giáo viên" và
+"Cập nhật && Đăng lên web" (xem `sync_from_remote()` trong `git_publish.py`,
+gọi từ `publish_data.py`). Nhờ vậy hầu hết trường hợp 2 máy cùng sửa gần
+nhau (ví dụ mỗi máy thêm ảnh cho 1 giáo viên khác nhau) sẽ tự gộp được bình
+thường — máy bấm **sau** vẫn tự đăng được, không cần làm gì thêm, và không
+sợ mất ảnh/dữ liệu máy khác vừa thêm (riêng với ảnh giáo viên: nếu máy đang
+dùng không có sẵn file ảnh gốc của 1 giáo viên trên đĩa, pipeline "Cập nhật
+&& Đăng lên web" sẽ tự giữ lại ảnh đã đăng từ trước, không xoá).
+
+Chỉ khi 2 máy sửa **đúng cùng một dòng dữ liệu** (ví dụ cùng sửa SĐT/hạng
+lái xe của đúng 1 giáo viên trong lúc máy kia chưa đăng xong) mới không tự
+gộp được — lúc đó app sẽ báo lỗi "xung đột dữ liệu, không tự gộp được", dữ
+liệu vừa sửa ở máy đó vẫn còn nguyên (chưa mất), nhưng cần người biết Git
+xử lý tay: mở Git Bash tại thư mục gốc (`D:\QuanLyDaoTaoLaiXe`) và chạy:
 
 ```
 git pull
 ```
 
-rồi bấm lại nút "Cập nhật && Đăng lên web" trong app. Để tránh tình huống
-này, tốt nhất **quy ước rõ 1 máy chính** chuyên cập nhật dữ liệu hàng
-ngày; máy khác chỉ dùng để tra cứu (tab TRA CỨU/PHÂN XE/DANH SÁCH XE/LỊCH
-HỌC) hoặc cập nhật ảnh/hạng/link riêng lẻ khi thật sự cần.
+xem và gộp xung đột, rồi bấm lại nút trong app.
 
 ## E. Sự cố thường gặp liên quan tới Git
 
@@ -153,6 +160,6 @@ HỌC) hoặc cập nhật ảnh/hạng/link riêng lẻ khi thật sự cần.
 |---|---|
 | Bấm nút đăng web, trình duyệt không tự mở để đăng nhập GitHub | Kiểm tra đã cài Git for Windows (có Git Credential Manager) chưa; thử mở Git Bash gõ `git push` tại `D:\QuanLyDaoTaoLaiXe` để xem lỗi chi tiết |
 | Lỗi "Permission denied" / "403" khi đăng | Tài khoản GitHub đang đăng nhập trên máy đó **chưa được** thêm làm Collaborator — làm theo mục B |
-| Lỗi "rejected - non-fast-forward" | Máy khác vừa đăng trước — chạy `git pull` ở `D:\QuanLyDaoTaoLaiXe` rồi bấm lại nút trong app (xem mục D) |
+| Lỗi "xung đột dữ liệu với máy khác, không tự gộp được" | 2 máy sửa trùng đúng 1 chỗ dữ liệu — chạy `git pull` ở `D:\QuanLyDaoTaoLaiXe` để xem/gộp xung đột tay rồi bấm lại nút trong app (xem mục D) |
 | Muốn đổi sang tài khoản GitHub khác trên máy đang dùng | Mở **Windows Credential Manager** (gõ "Credential Manager" trong Start Menu) → mục Windows Credentials → tìm `git:https://github.com` → **Remove** → lần bấm nút đăng web kế tiếp app sẽ hỏi đăng nhập lại |
 | Repo chuyển private, máy cũ bỗng không clone/pull được nữa | Phải được thêm làm Collaborator trước (xem mục B) |
