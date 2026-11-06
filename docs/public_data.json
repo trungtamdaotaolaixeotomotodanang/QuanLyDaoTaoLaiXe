@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-06T23:25:51",
+  "generated_at": "2026-11-07T00:15:40",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -18,43 +18,6 @@
       "dia_chi": "Xã Hòa Tiến, Thành phố Đà Nẵng",
       "hang_lai_xe": "B",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43B30483",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "LÊ QUANG THÀNH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ ĐÌNH QUỐC HUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN MINH NHÂN KIỆT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRƯƠNG QUANG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "MAI THU THẢO",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/2816adef-5acc-464a-8c9c-0d3a844b17c5"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -241,43 +204,6 @@
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A34074",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN THỊ TRÀ MY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN VĂN TRƯNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN HỮU THANH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HOÀNG HẢI ĐÔNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "DƯƠNG HIỂN TÀI",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/6d25dbc5-49f8-4689-8011-292aec7439c7"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -320,43 +246,6 @@
       "dia_chi": "Phường Cẩm Lệ, Thành phố Đà Nẵng",
       "hang_lai_xe": "D2",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29261",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "BÙI ĐỨC DUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN BÁ VỮNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ UYÊN THẢO",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ ĐỨC QUANG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "BÙI ĐỨC NHÂN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/da98d908-e0ef-4dbd-b11a-fc504297564c"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -401,43 +290,6 @@
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29325",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "DƯƠNG CÔNG TRÍ",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN VĂN LỢI",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "VÕ NHƯ THIÊN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ THỊ KIM OANH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "PHẠM TẤN THỐNG NHẤT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1dc8cf35-baa9-4207-8a19-61989d39f0e7"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -480,43 +332,6 @@
       "dia_chi": "Phường An Khê, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A03136",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN HỮU KIÊN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HOÀNG THỊ QUỲNH NGA",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "PHAN THỊ MINH CHÂU",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN THỊ THÙY TRANG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HUỲNH NGỌC ĐỊNH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/639946a2-e656-4055-a4de-3ff33f6faf2d"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -755,43 +570,6 @@
       "hang_lai_xe": "C",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A67165",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "ĐOÀN NGỌC HOÀNG LONG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN QUỐC VŨ",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN TẤN THÔNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "ĐINH SỸ QUỐC VIỆT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN TĂNG HỒNG NGỌC",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d06240a-3710-43dd-b031-c5bb21ffd783"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -999,43 +777,6 @@
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "92A09884",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN TRẦN MINH TÂM",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN TRƯƠNG NGỌC SƠN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "DƯƠNG VĂN DUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN ĐÌNH HOÀNG PHÚ",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN VĂN NHẬT TÂN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/07673dd9-c352-4856-9357-ee0d753bb182"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -1210,48 +951,11 @@
     },
     "48002014": {
       "ten": "Huỳnh Trường Giang",
-      "dien_thoai": "0935237239",
+      "dien_thoai": "0935.237.239",
       "ngay_sinh": "17/04/1983",
       "dia_chi": "Phường An Khê, Thành phố Đà Nẵng",
       "hang_lai_xe": "D2",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29272",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN NAM KHÁNH HƯNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN VIẾT HOÀNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN MẠNH DŨNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN THỊ BÌNH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HUỲNH BÁ XUÂN HỒNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/014989be-75a7-41d2-bbfc-ad9bf63547da"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -1538,43 +1242,6 @@
       "dia_chi": "Phường Hòa Cường, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A32035",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "TRẦN MINH HIẾU",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRƯƠNG THỊ THÙY TRÂM",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN QUANG HUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ MINH SANG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN HỒ NHẬT DUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/3a8abc5a-8dec-426e-bd70-d95acf3aa3cd"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -1956,39 +1623,11 @@
     },
     "48002022": {
       "ten": "Huỳnh Bá Đăng Khoa",
-      "dien_thoai": "0772575700",
+      "dien_thoai": "",
       "ngay_sinh": "04/03/1992",
       "dia_chi": "Phường Thanh Khê, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
-      "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "92A39094",
-          "so_hoc_vien": 3,
-          "hoc_vien": [
-            {
-              "ten": "CAO THỊ NHẬT LINH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN DUY KHÁNH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN PHƯỚC MẪN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/96e2351b-f020-48fe-ba9c-59ea375e1912"
-        }
-      ],
+      "khoa_dang_day": [],
       "ho_so_file": "files/ho_so_gv/48002022.pdf",
       "anh_file": null
     },
@@ -4156,49 +3795,11 @@
     },
     "48002034": {
       "ten": "Nguyễn Đức Ngự",
-      "dien_thoai": "0905 051109",
+      "dien_thoai": "",
       "ngay_sinh": "15/12/1988",
       "dia_chi": "Phường Hòa Xuân, Thành phố Đà Nẵng",
       "hang_lai_xe": "B",
-      "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29259",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN THANH PHƯƠNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "PHẠM TẤN TÀI",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ ANH KHOA",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN QUỲNH CHÂU",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "ĐÀO THỊ THÙY TRINH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/80f5d0e6-9932-42f6-839d-0b21457a85c6"
-        }
-      ],
+      "khoa_dang_day": [],
       "ho_so_file": "files/ho_so_gv/48002034.pdf",
       "anh_file": "files/anh_gv/48002034.jpg"
     },
@@ -4838,43 +4439,6 @@
       "dia_chi": "Phường Cẩm Lệ, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29274",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN TẤN ĐẠT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN THỊ TÂM ĐOAN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN ĐỨC ĐẠT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN THỊ THANH NGÂN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN PHƯỚC NGHĨA",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/0c575272-563d-4bae-8ca5-f063d5c5fabd"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -5540,43 +5104,6 @@
       "hang_lai_xe": "D2",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A27493",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "HOÀNG VĂN HIỆP",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN TẤN HUÂN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "PHẠM TRỌNG HOÀNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN VĂN KHƯƠNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HỒ ĐÌNH HIỆU",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/01fbd7b1-9e13-4d31-ae15-430574962e1f"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -6175,43 +5702,6 @@
       "hang_lai_xe": "B",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29288",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN THỊ OANH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN THANH ĐẠT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "PHẠM MINH HƯNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRƯƠNG QUỐC DŨNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LÊ VĂN THÔNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/a5800c55-3254-43cd-9622-fb811f176cfd"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -6565,43 +6055,6 @@
       "dia_chi": "Phường An Hải, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A01510",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "ĐẶNG NGỌC HẢI",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "ĐẶNG NGỌC HUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN NGỌC ANH KHOA",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN QUANG HOÀNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN PHAN TRƯỜNG THÀNH",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/268b059a-0a98-4cec-bb7c-622c87a79c62"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
@@ -7457,43 +6910,6 @@
       "hang_lai_xe": "B",
       "khoa_dang_day": [
         {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29211",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN VĂN HIỆU",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "PHAN CHU HÀN UYỂN",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HOÀNG VÕ ĐỨC TÂM",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRẦN ANH HOÀNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "TRƯƠNG QUỐC VIỆT",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4ed66dc5-5d99-4c40-911e-f4e0dedb9e8d"
-        },
-        {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
           "tu_ngay": "18/09/2026",
@@ -7760,48 +7176,11 @@
     },
     "48002063": {
       "ten": "Huỳnh Tấn Lai",
-      "dien_thoai": "0905222506",
+      "dien_thoai": "0903 522250",
       "ngay_sinh": "12/08/1981",
       "dia_chi": "Xã Bà Nà, Thành phố Đà Nẵng",
       "hang_lai_xe": "C",
       "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K262024",
-          "lop": "BK0726",
-          "tu_ngay": "11/8/2026",
-          "den_ngay": "07/11/2026",
-          "xe": "43A29358",
-          "so_hoc_vien": 5,
-          "hoc_vien": [
-            {
-              "ten": "PHẠM VŨ HOÀNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN ĐÌNH HUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "NGUYỄN MINH THẮNG",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "LƯU HỒNG PHÚC",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HỒ CÔNG HUY",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K262024.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d65001be-4659-466f-ac24-37028429794d"
-        },
         {
           "ma_khoa": "48002K262032",
           "lop": "BK0826",
