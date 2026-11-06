@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-06T22:52:27",
+  "generated_at": "2026-11-06T23:04:43",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -103,7 +103,7 @@
           "lop": "NHCK0526",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16531Ca 1",
+          "xe": "43C16531",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -133,7 +133,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
         },
         {
           "ma_khoa": "48002K26C1005",
@@ -565,7 +565,7 @@
           "lop": "NHDK0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 1",
+          "xe": "43B03663",
           "so_hoc_vien": 9,
           "hoc_vien": [
             {
@@ -615,14 +615,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
           "ma_khoa": "48002K26D0007&48002K26D0008",
           "lop": "NHDK0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 2",
+          "xe": "43B03663",
           "so_hoc_vien": 4,
           "hoc_vien": [
             {
@@ -647,7 +647,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         }
       ],
       "ho_so_file": "files/ho_so_gv/48002008.pdf",
@@ -787,7 +787,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16569  Ca 2",
+          "xe": "43C16569",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -817,7 +817,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d65fced0-b282-42af-810e-9148254d86dd"
         },
         {
           "ma_khoa": "48002K26C1007",
@@ -947,7 +947,7 @@
           "lop": "NHCK0526",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C15832Ca 2",
+          "xe": "43C15832",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -977,7 +977,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/fc0ce0de-5d85-42a0-8267-a86895c335bb"
         },
         {
           "ma_khoa": "48002K26C1005",
@@ -1821,7 +1821,7 @@
           "lop": "NHCK0526",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C15832Ca 1",
+          "xe": "43C15832",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -1851,7 +1851,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/fc0ce0de-5d85-42a0-8267-a86895c335bb"
         },
         {
           "ma_khoa": "48002K26C1005",
@@ -2092,7 +2092,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B09963  Ca 2",
+          "xe": "43B09963",
           "so_hoc_vien": 4,
           "hoc_vien": [
             {
@@ -2117,7 +2117,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d4d580f1-3e01-465b-98f8-53469d397c13"
         },
         {
           "ma_khoa": "48002K26C1007",
@@ -2686,7 +2686,7 @@
           "lop": "NHD2K1226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 1",
+          "xe": "43B03765",
           "so_hoc_vien": 8,
           "hoc_vien": [
             {
@@ -2731,14 +2731,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K262035",
           "lop": "NHD2K1226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 2",
+          "xe": "43B03765",
           "so_hoc_vien": 8,
           "hoc_vien": [
             {
@@ -2783,14 +2783,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K262049&K262050",
           "lop": "NHD2K1426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 1",
+          "xe": "43B03765",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -2820,14 +2820,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K262049&K262050",
           "lop": "NHD2K1426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 2",
+          "xe": "43B03765",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -2862,14 +2862,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K26D2007&D2008",
           "lop": "NHD2K0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 1",
+          "xe": "43B03765",
           "so_hoc_vien": 7,
           "hoc_vien": [
             {
@@ -2909,14 +2909,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K26D2007&D2008",
           "lop": "NHD2K0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 2",
+          "xe": "43B03765",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -2951,14 +2951,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K26D2013&D2014&D2015",
           "lop": "NHD2K0626",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 1",
+          "xe": "43B03765",
           "so_hoc_vien": 7,
           "hoc_vien": [
             {
@@ -2998,14 +2998,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K26D2013&D2014&D2015",
           "lop": "NHD2K0626",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 2",
+          "xe": "43B03765",
           "so_hoc_vien": 7,
           "hoc_vien": [
             {
@@ -3045,14 +3045,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K26D2019",
           "lop": "NHD2K0826",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 1",
+          "xe": "43B03765",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -3107,14 +3107,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "48002K26D2019",
           "lop": "NHD2K0826",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03765Ca 2",
+          "xe": "43B03765",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -3169,14 +3169,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
           "ma_khoa": "BIÊN CHẾ XE KHÓA 48002K26D0009& D0010 (NHDK0526)",
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 2",
+          "xe": "43B08917",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -3211,7 +3211,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         }
       ],
       "ho_so_file": "files/ho_so_gv/48002028.pdf",
@@ -3504,7 +3504,7 @@
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 1",
+          "xe": "43B08917",
           "so_hoc_vien": 8,
           "hoc_vien": [
             {
@@ -3549,14 +3549,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         },
         {
           "ma_khoa": "BIÊN CHẾ XE KHÓA 48002K262046& K262047 (NHDK1126)",
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 2",
+          "xe": "43B08917",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -3611,14 +3611,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         },
         {
           "ma_khoa": "BIÊN CHẾ XE KHÓA 48002K26D0009& D0010 (NHDK0526)",
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 1",
+          "xe": "43B08917",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -3673,14 +3673,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         },
         {
           "ma_khoa": "BIÊN CHẾ XE KHÓA 48002K26D0009& D0010 (NHDK0526)",
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 2",
+          "xe": "43B08917",
           "so_hoc_vien": 4,
           "hoc_vien": [
             {
@@ -3705,14 +3705,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         },
         {
           "ma_khoa": "BIÊN CHẾ XE KHÓA 48002K26D0013& D0014 (NHDK0726)",
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 1",
+          "xe": "43B08917",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -3767,14 +3767,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         },
         {
           "ma_khoa": "BIÊN CHẾ XE KHÓA 48002K26D0013& D0014 (NHDK0726)",
           "lop": "",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B08917  Ca 2",
+          "xe": "43B08917",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -3829,7 +3829,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1d76ba24-ec4d-4774-b585-251fa787d086"
         }
       ],
       "ho_so_file": "files/ho_so_gv/48002033.pdf",
@@ -3948,7 +3948,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B25265  Ca 1",
+          "xe": "43B25265",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -3978,14 +3978,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d376c53-122b-4b7c-9dc5-4dcca0a88021"
         },
         {
           "ma_khoa": "48002K26C1004",
           "lop": "C1K0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B25265  Ca 1",
+          "xe": "43B25265",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -4015,7 +4015,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d376c53-122b-4b7c-9dc5-4dcca0a88021"
         },
         {
           "ma_khoa": "48002K26C1006",
@@ -4085,7 +4085,7 @@
           "lop": "NHCEK1026",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16506Ca 1",
+          "xe": "43C16506",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -4120,14 +4120,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
           "ma_khoa": "48002K262034",
           "lop": "NHCEK1026",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16506Ca2",
+          "xe": "43C16506",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -4162,14 +4162,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
           "ma_khoa": "48002K262048",
           "lop": "NHCEK1226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16506Ca 1",
+          "xe": "43C16506",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -4204,14 +4204,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
           "ma_khoa": "48002K262048",
           "lop": "NHCEK1226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16506Ca2",
+          "xe": "43C16506",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -4246,7 +4246,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
           "ma_khoa": "48002K26CE002",
@@ -5501,7 +5501,7 @@
           "lop": "NHCK0526",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16531Ca 2",
+          "xe": "43C16531",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -5531,7 +5531,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
         },
         {
           "ma_khoa": "48002K26C1005",
@@ -5696,7 +5696,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C15870  Ca 1",
+          "xe": "43C15870",
           "so_hoc_vien": 4,
           "hoc_vien": [
             {
@@ -5721,14 +5721,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/f424a133-ef37-4788-8304-894b2c043768"
         },
         {
           "ma_khoa": "48002K26C1001",
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C15870  Ca 2",
+          "xe": "43C15870",
           "so_hoc_vien": 4,
           "hoc_vien": [
             {
@@ -5753,7 +5753,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/f424a133-ef37-4788-8304-894b2c043768"
         },
         {
           "ma_khoa": "48002K26C1004",
@@ -5972,7 +5972,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C25265  Ca 2",
+          "xe": "43C25265",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -6009,7 +6009,7 @@
           "lop": "C1K0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C25265  Ca 2",
+          "xe": "43C25265",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -6089,7 +6089,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43C16569  Ca 1",
+          "xe": "43C16569",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -6119,7 +6119,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d65fced0-b282-42af-810e-9148254d86dd"
         },
         {
           "ma_khoa": "48002K26C1004",
@@ -6520,7 +6520,7 @@
           "lop": "C1K0226",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B09963  Ca 1",
+          "xe": "43B09963",
           "so_hoc_vien": 5,
           "hoc_vien": [
             {
@@ -6550,7 +6550,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d4d580f1-3e01-465b-98f8-53469d397c13"
         },
         {
           "ma_khoa": "48002K26C1004",
@@ -6672,7 +6672,7 @@
           "lop": "NHDK0426",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 2",
+          "xe": "43B03663",
           "so_hoc_vien": 6,
           "hoc_vien": [
             {
@@ -6707,14 +6707,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
           "ma_khoa": "48002K26D0011&48002K26D0012",
           "lop": "NHDK0626",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 1",
+          "xe": "43B03663",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -6769,14 +6769,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
           "ma_khoa": "48002K26D0011&48002K26D0012",
           "lop": "NHDK0626",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 2",
+          "xe": "43B03663",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -6831,14 +6831,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
           "ma_khoa": "48002K26D0015&48002K26D0016",
           "lop": "NHDK0826",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 1",
+          "xe": "43B03663",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -6893,14 +6893,14 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
           "ma_khoa": "48002K26D0015&48002K26D0016",
           "lop": "NHDK0826",
           "tu_ngay": "",
           "den_ngay": "",
-          "xe": "43B03663  Ca 2",
+          "xe": "43B03663",
           "so_hoc_vien": 10,
           "hoc_vien": [
             {
@@ -6955,7 +6955,7 @@
             }
           ],
           "lich_hoc_pdf": null,
-          "giay_to_xe_link": null
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         }
       ],
       "ho_so_file": "files/ho_so_gv/48002056.pdf",
