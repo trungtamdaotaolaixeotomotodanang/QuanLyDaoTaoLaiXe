@@ -13,6 +13,7 @@ REPO_ROOT = APP_DIR.parent  # git root thực tế là D:\GTCC (docs/ nằm ở 
 FILES_TO_PUBLISH = [
     "docs/public_data.json",
     "docs/files",
+    "quanlygiaovien/ten_gv_overrides.json",
 ]
 
 

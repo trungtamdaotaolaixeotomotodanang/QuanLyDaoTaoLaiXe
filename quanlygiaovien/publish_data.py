@@ -54,6 +54,10 @@ DATA_SOURCES_FILE = APP_DIR / "data_sources.json"
 PHOTOS_DIR = APP_DIR / "anh_gv"  # ảnh đại diện giáo viên - lưu local, bản resize sẽ copy sang docs/files
 GV_EXTRA_FILE = APP_DIR / "giao_vien_extra.json"  # hạng lái xe dạy - tách khỏi DSGV, lưu local theo MaGV
 XE_EXTRA_FILE = APP_DIR / "xe_extra.json"  # link giấy tờ xe (nhập tay) - lưu local theo biển số chuẩn hoá
+TEN_GV_OVERRIDES_FILE = APP_DIR / "ten_gv_overrides.json"  # tên GV trong Excel không khớp DSGV - xử lý tay
+# từ hộp thoại cảnh báo lúc cập nhật (xem set_ten_gv_override) - giá trị là
+# mã GV đúng (tên viết tắt của GV khác) hoặc "ignore" (GV đã nghỉ, không còn
+# trong DSGV) - commit qua git nên dùng chung được giữa các máy.
 
 BASE_URL = "https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html"
 
@@ -162,6 +166,40 @@ def set_xe_link(plate_norm, link):
     rec = data.setdefault(plate_norm, {})
     rec["link"] = (link or "").strip()
     save_xe_extra(data)
+
+
+# ---------------- xử lý tay tên giáo viên không khớp DSGV ----------------
+# Đặt từ hộp thoại cảnh báo lúc "Cập nhật && Đăng lên web" (xem
+# tab_cap_nhat_web.py _PublishResultDialog) khi 1 tên trong Excel biên chế
+# không khớp được DSGV: "ignore" (giáo viên đã nghỉ, không còn trong DSGV -
+# bỏ qua, không báo lại) hoặc mã GV đúng (tên trong Excel là viết tắt/ghi
+# sai của giáo viên này). run_pipeline() áp dụng ở lần chạy kế tiếp.
+def load_ten_gv_overrides():
+    if TEN_GV_OVERRIDES_FILE.exists():
+        return json.loads(TEN_GV_OVERRIDES_FILE.read_text(encoding="utf-8"))
+    return {}
+
+
+def save_ten_gv_overrides(data):
+    TEN_GV_OVERRIDES_FILE.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def set_ten_gv_override(ten_goc, value):
+    """value: mã GV đúng (string) nếu tên này là viết tắt/ghi sai của 1 giáo
+    viên khác, hoặc "ignore" nếu giáo viên đã nghỉ. Đăng lên web ngay (giống
+    add_teacher_photo) để máy khác cũng thấy, không cần đợi lần "Cập nhật &&
+    Đăng lên web" kế tiếp. Trả về (ok: bool, message: str)."""
+    ok, err = git_publish.sync_from_remote()
+    if not ok:
+        return False, err
+
+    data = load_ten_gv_overrides()
+    data[ten_goc] = value
+    save_ten_gv_overrides(data)
+
+    return git_publish.push_public_data(f"Xử lý tên giáo viên không khớp: '{ten_goc}' -> '{value}'")
 
 
 # ---------------- nguồn dữ liệu (data_sources.json) ----------------
@@ -387,6 +425,7 @@ def run_pipeline(sources=None):
     lich_hoc_files = sources.get("lich_hoc_files") or []
     ho_so_folder = sources.get("ho_so_folder") or ""
     xe_extra = load_xe_extra()
+    ten_gv_overrides = load_ten_gv_overrides()
 
     name_to_magv = {attach_files.normalize_name(rec["ten"]): magv for magv, rec in dsgv.items()}
 
@@ -416,20 +455,32 @@ def run_pipeline(sources=None):
     # viên", không còn hiện riêng trong từng khóa (mục "Xe tập lái") nữa.
 
     for c in model.all_courses():
-        if model.status_of(c) != "Đang đào tạo":
-            continue
+        # Cảnh báo dữ liệu (tên GV/biển số không khớp) phải kiểm tra ở TẤT CẢ
+        # khóa, kể cả khóa đã đào tạo xong/chưa bắt đầu - chỉ phần hồ sơ công
+        # khai trên web (teaching_now, lịch học PDF...) mới giới hạn khóa
+        # "Đang đào tạo" (is_active phía dưới), để không bỏ sót lỗi dữ liệu
+        # của khóa cũ chỉ vì khóa đó không còn hiển thị công khai.
+        is_active = model.status_of(c) == "Đang đào tạo"
         ma_khoa = c["ma_khoa"]
         lop = c.get("lop", "")
-        if ma_khoa not in lich_hoc_pdf_cache:
+        if is_active and ma_khoa not in lich_hoc_pdf_cache:
             src = attach_files.find_lich_hoc_pdf(lop, lich_hoc_files)
             lich_hoc_pdf_cache[ma_khoa] = _copy_public_file(src, "lich_hoc", ma_khoa or lop)
-        lich_hoc_pdf = lich_hoc_pdf_cache[ma_khoa]
+        lich_hoc_pdf = lich_hoc_pdf_cache.get(ma_khoa) if is_active else None
 
         for g in c.get("groups", []):
             name = g.get("giao_vien")
             if not name:
                 continue
             ma_gv = name_to_magv.get(attach_files.normalize_name(name))
+            if not ma_gv:
+                # Đã có người xử lý tay trước đó (xem set_ten_gv_override) -
+                # áp dụng luôn, không báo lại.
+                override = ten_gv_overrides.get(name)
+                if override == "ignore":
+                    continue
+                if override and override in dsgv:
+                    ma_gv = override
             if not ma_gv:
                 # Không khớp hệt - thử nhận diện tên viết tắt (vd "Trần N. Đ.
                 # Phương" -> "Trần Ngô Đông Phương") trước khi báo không khớp.
@@ -442,6 +493,7 @@ def run_pipeline(sources=None):
                         "file_path": c.get("source_file_path", ""),
                         "vi_tri": g.get("cell_ref", ""),
                         "noi_dung": f"'{name}' → '{ten_day_du}' (khóa {ma_khoa}) - nên sửa Excel cho đúng chính tả.",
+                        "ten_goc": name,
                     })
                 elif candidates:
                     goi_y = "; ".join(f"'{ten}'" for _, ten in candidates)
@@ -451,6 +503,7 @@ def run_pipeline(sources=None):
                         "file_path": c.get("source_file_path", ""),
                         "vi_tri": g.get("cell_ref", ""),
                         "noi_dung": f"'{name}' (khóa {ma_khoa}) khớp mơ hồ với nhiều giáo viên: {goi_y}.",
+                        "ten_goc": name,
                     })
                     continue
                 else:
@@ -460,6 +513,7 @@ def run_pipeline(sources=None):
                         "file_path": c.get("source_file_path", ""),
                         "vi_tri": g.get("cell_ref", ""),
                         "noi_dung": f"'{name}' (khóa {ma_khoa}) không khớp danh sách giáo viên trong '{dsgv_file_name}'.",
+                        "ten_goc": name,
                     })
                     continue
 
@@ -473,6 +527,12 @@ def run_pipeline(sources=None):
                     "vi_tri": g.get("cell_ref", ""),
                     "noi_dung": f"Biển số '{xe}' (GV {name}, khóa {ma_khoa}) không có trong '{dsxtl_file_name}'.",
                 })
+
+            if not is_active:
+                # Khóa đã xong/chưa bắt đầu - đã kiểm tra cảnh báo xong, không
+                # đưa vào hồ sơ công khai "đang dạy" trên web.
+                continue
+
             giay_to_xe_link = xe_extra.get(attach_files.normalize_plate(xe), {}).get("link") or None
 
             sdt = g.get("sdt", "")
@@ -585,6 +645,12 @@ def run_pipeline(sources=None):
         "ma_khoa_trung": overwritten,
         "so_file_excel": len(bien_che_files),
         "canh_bao": warnings,
+        # Danh sách (mã GV, tên) từ DSGV - để hộp thoại cảnh báo cho người
+        # dùng chọn "đây là tên viết tắt của giáo viên nào" (xem
+        # tab_cap_nhat_web.py _PublishResultDialog).
+        "dsgv_teachers": sorted(
+            ((ma_gv, rec["ten"]) for ma_gv, rec in dsgv.items()), key=lambda x: x[1]
+        ),
     }
 
 

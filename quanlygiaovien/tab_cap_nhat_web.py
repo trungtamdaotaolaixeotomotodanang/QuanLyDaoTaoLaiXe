@@ -21,6 +21,8 @@ from PySide6.QtCore import Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
+    QCompleter,
     QDialog,
     QFileDialog,
     QFrame,
@@ -221,18 +223,94 @@ class _SinglePathPicker(QGroupBox):
         self.txt.setText(str(path) if path else "")
 
 
+class _ActionWorker(QThread):
+    """Chạy 1 hành động ngắn (lưu xử lý tên GV - có git push) ở thread riêng
+    để không treo UI. fn không nhận tham số, trả về (ok: bool, message: str)."""
+
+    finished_result = Signal(bool, str)
+
+    def __init__(self, fn, parent=None):
+        super().__init__(parent)
+        self.fn = fn
+
+    def run(self):
+        try:
+            ok, message = self.fn()
+        except Exception as exc:  # báo lỗi rõ ràng, không để app crash
+            ok, message = False, str(exc)
+        self.finished_result.emit(ok, message)
+
+
+class _TeacherPickerDialog(QDialog):
+    """Hộp thoại nhỏ: chọn 1 giáo viên trong danh sách DSGV - dùng khi người
+    dùng xác nhận 1 tên không khớp là viết tắt/ghi sai của giáo viên nào."""
+
+    def __init__(self, dsgv_teachers, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Chọn giáo viên đúng")
+        self.resize(420, 120)
+        self._dsgv_teachers = dsgv_teachers
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Tên này thực ra là của giáo viên nào trong DSGV?"))
+
+        self.cbo = QComboBox()
+        self.cbo.setEditable(True)
+        self.cbo.setInsertPolicy(QComboBox.NoInsert)
+        for ma_gv, ten in dsgv_teachers:
+            self.cbo.addItem(f"{ten} ({ma_gv})", ma_gv)
+        names = [f"{ten} ({ma_gv})" for ma_gv, ten in dsgv_teachers]
+        completer = QCompleter(names, self)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchContains)
+        self.cbo.setCompleter(completer)
+        layout.addWidget(self.cbo)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch(1)
+        btn_cancel = QPushButton("Hủy")
+        btn_cancel.clicked.connect(self.reject)
+        btn_row.addWidget(btn_cancel)
+        btn_ok = QPushButton("Chọn")
+        btn_ok.setObjectName("primary")
+        btn_ok.clicked.connect(self._on_accept)
+        btn_row.addWidget(btn_ok)
+        layout.addLayout(btn_row)
+
+    def _on_accept(self):
+        idx = self.cbo.currentIndex()
+        if idx < 0 or self.cbo.itemData(idx) is None:
+            QMessageBox.warning(self, "Chưa chọn", "Hãy chọn 1 giáo viên trong danh sách.")
+            return
+        self.accept()
+
+    def selected(self):
+        """Trả về (ma_gv, ten) đã chọn, hoặc None nếu không hợp lệ."""
+        idx = self.cbo.currentIndex()
+        ma_gv = self.cbo.itemData(idx) if idx >= 0 else None
+        if not ma_gv:
+            return None
+        return ma_gv, self.cbo.itemText(idx).rsplit(" (", 1)[0]
+
+
 class _PublishResultDialog(QDialog):
     """Hộp thoại kết quả "Cập nhật && Đăng lên web" - tách cảnh báo theo
     từng loại thành 1 tab riêng (bảng File/Vị trí/Nội dung, cuộn được) thay
     cho 1 khối text dài trong QMessageBox, để không bị tràn màn hình khi có
-    nhiều cảnh báo khác nhau."""
+    nhiều cảnh báo khác nhau. Với tên giáo viên không khớp/mơ hồ, cho xử lý
+    tay ngay (giáo viên đã nghỉ, hoặc chọn đúng tên viết tắt của ai) - xem
+    _ACTIONABLE_LABELS."""
+
+    _ACTIONABLE_LABELS = {"Tên giáo viên không khớp", "Tên giáo viên khớp mơ hồ"}
 
     def __init__(self, result, parent=None):
         super().__init__(parent)
         self.setWindowTitle(
             "Kết quả cập nhật" if result.get("git_ok") else "Hoàn tất (chưa đăng lên web)"
         )
-        self.resize(760, 560)
+        self.resize(820, 560)
+        self._dsgv_teachers = result.get("dsgv_teachers", [])
+        self._workers = []
         layout = QVBoxLayout(self)
 
         summary = QLabel(self._build_summary(result))
@@ -297,9 +375,13 @@ class _PublishResultDialog(QDialog):
         tabs.addTab(txt, "Tổng quan")
 
     def _add_warning_tab(self, tabs, label, rows):
+        actionable = label in self._ACTIONABLE_LABELS and self._dsgv_teachers
         table = QTableWidget()
-        table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["File (bấm đúp để mở)", "Vị trí", "Nội dung"])
+        table.setColumnCount(4 if actionable else 3)
+        headers = ["File (bấm đúp để mở)", "Vị trí", "Nội dung"]
+        if actionable:
+            headers.append("Xử lý")
+        table.setHorizontalHeaderLabels(headers)
         table.setEditTriggers(QTableWidget.NoEditTriggers)
         table.setSelectionBehavior(QTableWidget.SelectRows)
         table.setAlternatingRowColors(True)
@@ -309,6 +391,8 @@ class _PublishResultDialog(QDialog):
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        if actionable:
+            header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         table.setRowCount(len(rows))
         for row_idx, w in enumerate(rows):
             file_item = QTableWidgetItem(w.get("file", ""))
@@ -319,10 +403,78 @@ class _PublishResultDialog(QDialog):
             table.setItem(row_idx, 0, file_item)
             table.setItem(row_idx, 1, QTableWidgetItem(w.get("vi_tri", "")))
             table.setItem(row_idx, 2, QTableWidgetItem(w.get("noi_dung", "")))
+            if actionable:
+                ten_goc = w.get("ten_goc", "")
+                table.setCellWidget(row_idx, 3, self._build_action_widget(table, row_idx, ten_goc))
         table.resizeRowsToContents()
         table.setSortingEnabled(True)
         table.cellDoubleClicked.connect(lambda row, col: self._open_warning_file(table, row))
         tabs.addTab(table, f"{label} ({len(rows)})")
+
+    def _build_action_widget(self, table, row_idx, ten_goc):
+        widget = QWidget()
+        hl = QHBoxLayout(widget)
+        hl.setContentsMargins(2, 2, 2, 2)
+        hl.setSpacing(4)
+        btn_ignore = QPushButton("GV đã nghỉ")
+        btn_ignore.setToolTip("Giáo viên đã nghỉ, không còn trong DSGV - bỏ qua, không báo lại.")
+        btn_ignore.clicked.connect(lambda: self._on_mark_ignore(table, row_idx, ten_goc, widget))
+        hl.addWidget(btn_ignore)
+        btn_pick = QPushButton("Chọn tên đúng...")
+        btn_pick.setToolTip("Tên này là viết tắt/ghi sai của giáo viên nào trong DSGV.")
+        btn_pick.clicked.connect(lambda: self._on_pick_teacher(table, row_idx, ten_goc, widget))
+        hl.addWidget(btn_pick)
+        return widget
+
+    def _on_mark_ignore(self, table, row_idx, ten_goc, widget):
+        confirm = QMessageBox.question(
+            self, "Xác nhận",
+            f"Đánh dấu '{ten_goc}' là giáo viên đã nghỉ (không còn trong DSGV)?\n"
+            "Từ lần 'Cập nhật && Đăng lên web' kế tiếp, tên này sẽ không bị báo lỗi nữa.",
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        self._run_override_action(
+            widget, lambda: publish_data.set_ten_gv_override(ten_goc, "ignore")
+        )
+
+    def _on_pick_teacher(self, table, row_idx, ten_goc, widget):
+        dlg = _TeacherPickerDialog(self._dsgv_teachers, self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+        picked = dlg.selected()
+        if not picked:
+            return
+        ma_gv, ten = picked
+        confirm = QMessageBox.question(
+            self, "Xác nhận",
+            f"Ghi nhận '{ten_goc}' là tên viết tắt/ghi sai của '{ten}'?\n"
+            "Từ lần 'Cập nhật && Đăng lên web' kế tiếp, tên này sẽ tự khớp với giáo viên này.",
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        self._run_override_action(
+            widget, lambda: publish_data.set_ten_gv_override(ten_goc, ma_gv)
+        )
+
+    def _run_override_action(self, widget, fn):
+        widget.setEnabled(False)
+        worker = _ActionWorker(fn)
+        worker.finished_result.connect(lambda ok, msg: self._on_override_done(widget, ok, msg))
+        self._workers.append(worker)
+        worker.start()
+
+    def _on_override_done(self, widget, ok, message):
+        if ok:
+            layout = widget.layout()
+            while layout.count():
+                item = layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
+            layout.addWidget(QLabel("Đã lưu ✓"))
+        else:
+            widget.setEnabled(True)
+            QMessageBox.warning(self, "Chưa lưu được", message)
 
     def _open_warning_file(self, table, row):
         item = table.item(row, 0)
