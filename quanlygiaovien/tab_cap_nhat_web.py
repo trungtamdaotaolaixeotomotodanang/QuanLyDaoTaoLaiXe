@@ -238,6 +238,12 @@ class _PublishWorker(QThread):
 
 
 class CapNhatWebTab(QWidget):
+    # Phát ra ngay sau khi "Cập nhật && Đăng lên web" ghi lại xong data.json
+    # cục bộ (kể cả khi đăng lên web/git thất bại - data.json vẫn đã đổi) -
+    # MainWindow lắng nghe để nạp lại dữ liệu cho các tab khác ngay, khỏi
+    # phải khởi động lại app.
+    data_published = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.worker = None
@@ -440,6 +446,8 @@ class CapNhatWebTab(QWidget):
                 lines.append(f"  - {tid}: '{ten_cu}' -> '{ten_moi}'")
         lines.append(result["git_message"])
         self.log.append("\n".join(lines))
+
+        self.data_published.emit()
 
         if result["git_ok"]:
             QMessageBox.information(self, "Hoàn tất", "\n".join(lines))

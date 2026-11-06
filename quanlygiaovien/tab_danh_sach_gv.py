@@ -92,11 +92,7 @@ class DanhSachGiaoVienTab(QWidget):
         self.photo_worker = None
         self._current_ma_gv = None
         self._teachers = {}
-
-        sources = publish_data.load_data_sources()
-        dsgv_path = sources.get("dsgv_file") or ""
-        if dsgv_path and Path(dsgv_path).exists():
-            self._teachers = roster_xml.parse_dsgv(dsgv_path)
+        self._load_teachers()
 
         self._build_ui()
         self._load_list()
@@ -216,6 +212,30 @@ class DanhSachGiaoVienTab(QWidget):
             self.btn_edit_photo, self.txt_hang, self.btn_save_hang, self.btn_export_one,
         ):
             w.setEnabled(enabled)
+
+    # ---- nạp/nạp lại DSGV ----
+    def _load_teachers(self):
+        sources = publish_data.load_data_sources()
+        dsgv_path = sources.get("dsgv_file") or ""
+        if dsgv_path and Path(dsgv_path).exists():
+            self._teachers = roster_xml.parse_dsgv(dsgv_path)
+        else:
+            self._teachers = {}
+
+    def refresh(self):
+        """Nạp lại DSGV từ đĩa - gọi sau khi tab CẬP NHẬT WEB đăng dữ liệu
+        mới, để khỏi phải khởi động lại app mới thấy giáo viên mới/đổi tên.
+        Giữ nguyên ô tìm kiếm + giáo viên đang chọn nếu còn tồn tại."""
+        ma_gv_truoc = self._current_ma_gv
+        self._load_teachers()
+        self._load_list(self.txt_search.text())
+        if ma_gv_truoc and ma_gv_truoc in self._teachers:
+            for i in range(self.list_widget.count()):
+                item = self.list_widget.item(i)
+                if item.data(Qt.ItemDataRole.UserRole) == ma_gv_truoc:
+                    self.list_widget.setCurrentItem(item)
+                    return
+        self._on_select(None, None)
 
     # ---- danh sách ----
     def _load_list(self, filter_text=""):

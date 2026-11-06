@@ -44,6 +44,13 @@ class DataModel:
         chuẩn bên DSGV, và để tra cứu ra toàn bộ giáo viên (không chỉ những
         người đang có khóa trong Excel)."""
         self.json_path = Path(json_path)
+        self.reload(dsgv)
+
+    def reload(self, dsgv=None):
+        """Đọc lại data.json (+ dsgv nếu có) từ đĩa - dùng sau khi tab CẬP
+        NHẬT WEB ghi lại data.json (bấm "Cập nhật && Đăng lên web") để các
+        tab khác (TRA CỨU/PHÂN XE/DANH SÁCH XE/LỊCH HỌC) đang dùng chung
+        DataModel này thấy ngay dữ liệu mới, không cần khởi động lại app."""
         raw = json.loads(self.json_path.read_text(encoding="utf-8"))
         self.generated_at = raw.get("generated_at", "")
         self.source_files = raw.get("source_files", [])

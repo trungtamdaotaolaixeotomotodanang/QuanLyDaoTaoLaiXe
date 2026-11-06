@@ -180,6 +180,31 @@ class TraCuuXeTab(QWidget):
         main_splitter.setStretchFactor(0, 1)
         main_splitter.setStretchFactor(1, 3)
 
+    def refresh(self):
+        """Nạp lại DSXTL + danh sách xe (sau khi model.reload()) - gọi sau
+        khi tab CẬP NHẬT WEB đăng dữ liệu mới. Giữ nguyên ô tìm kiếm + xe
+        đang chọn nếu còn tồn tại."""
+        current = self.list_widget.currentItem()
+        plate_truoc = current.data(Qt.ItemDataRole.UserRole) if current else None
+
+        sources = publish_data.load_data_sources()
+        dsxtl_file = sources.get("dsxtl_file", "")
+        self.dsxtl = (
+            roster_xml.parse_dsxtl(dsxtl_file)
+            if dsxtl_file and Path(dsxtl_file).exists()
+            else {}
+        )
+        self.vehicles = self._build_vehicle_list()
+        self._load_list(self.txt_search.text())
+
+        if plate_truoc and plate_truoc in self.vehicles:
+            for i in range(self.list_widget.count()):
+                item = self.list_widget.item(i)
+                if item.data(Qt.ItemDataRole.UserRole) == plate_truoc:
+                    self.list_widget.setCurrentItem(item)
+                    return
+        self._on_xe_changed(None)
+
     def _load_list(self, filter_text=""):
         self.list_widget.clear()
         items = list(self.vehicles.items())

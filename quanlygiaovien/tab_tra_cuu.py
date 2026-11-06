@@ -115,6 +115,22 @@ class TraCuuTab(QWidget):
         for c in self.model.all_courses():
             self.cbo_course.addItem(f"{c['ma_khoa']} ({c['lop']})", c["ma_khoa"])
 
+    def refresh(self):
+        """Nạp lại danh sách giáo viên/khóa từ model (sau khi model.reload())
+        - gọi sau khi tab CẬP NHẬT WEB đăng dữ liệu mới. Chạy lại tìm kiếm
+        theo giáo viên đang chọn (nếu có) để bảng kết quả không bị cũ."""
+        teacher_text = self.cbo_teacher.currentText().strip()
+        self._load_filters()
+        if teacher_text:
+            idx = self.cbo_teacher.findText(teacher_text)
+            if idx >= 0:
+                self.cbo_teacher.blockSignals(True)
+                self.cbo_teacher.setCurrentIndex(idx)
+                self.cbo_teacher.blockSignals(False)
+            self._search_by_teacher(teacher_text)
+        else:
+            self._show_rows([], "Chọn hoặc nhập tên giáo viên để tra cứu.")
+
     def _search_by_teacher(self, name=None):
         if name is None:
             name = self.cbo_teacher.currentText()

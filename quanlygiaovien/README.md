@@ -23,12 +23,11 @@ App có 6 tab:
 | **DANH SÁCH XE** | Duyệt danh sách xe, xem lịch sử giáo viên/khóa đã dùng, giấy tờ xe cục bộ, nhập link giấy tờ xe cho trang web |
 | LỊCH HỌC | Xem trực tiếp nội dung file PDF lịch học thực hành theo khóa |
 
-> **Lưu ý:** 5 tab DANH SÁCH GIÁO VIÊN / TRA CỨU / PHÂN XE / DANH SÁCH XE /
-> LỊCH HỌC chỉ đọc dữ liệu nội bộ lúc **mở app** (riêng DANH SÁCH GIÁO VIÊN
-> vẫn sửa ảnh/hạng/xuất PDF và đăng lên web được ngay, chỉ danh sách TÊN
-> giáo viên là cần mở lại app nếu đổi file DSGV). Sau khi bấm "Cập nhật &&
-> Đăng lên web" ở tab đầu tiên, hãy **khởi động lại app** để các tab này
-> thấy dữ liệu mới nhất.
+> **Lưu ý:** ngay khi bấm "Cập nhật && Đăng lên web" ở tab đầu tiên xong,
+> 5 tab còn lại (DANH SÁCH GIÁO VIÊN / TRA CỨU / PHÂN XE / DANH SÁCH XE /
+> LỊCH HỌC) tự nạp lại dữ liệu mới ngay lập tức (danh sách khóa/GV/xe, lựa
+> chọn đang xem nếu còn tồn tại vẫn được giữ nguyên) - **không cần khởi
+> động lại app** nữa.
 
 ## 2. Nguồn dữ liệu
 

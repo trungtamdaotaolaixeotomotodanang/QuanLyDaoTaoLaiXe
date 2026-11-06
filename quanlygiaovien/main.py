@@ -25,15 +25,39 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Quản lý đào tạo lái xe - Tra cứu giáo viên / xe / lịch học")
         self.resize(1200, 850)
+        self.model = model
+
+        self.tab_cap_nhat_web = CapNhatWebTab()
+        self.tab_danh_sach_gv = DanhSachGiaoVienTab()
+        self.tab_tra_cuu = TraCuuTab(model)
+        self.tab_phan_xe = PhanXeTab(model)
+        self.tab_tra_cuu_xe = TraCuuXeTab(model)
+        self.tab_lich_hoc = LichHocTab(model)
 
         tabs = QTabWidget()
-        tabs.addTab(CapNhatWebTab(), "CẬP NHẬT WEB")
-        tabs.addTab(DanhSachGiaoVienTab(), "DANH SÁCH GIÁO VIÊN")
-        tabs.addTab(TraCuuTab(model), "TRA CỨU")
-        tabs.addTab(PhanXeTab(model), "PHÂN XE")
-        tabs.addTab(TraCuuXeTab(model), "DANH SÁCH XE")
-        tabs.addTab(LichHocTab(model), "LỊCH HỌC")
+        tabs.addTab(self.tab_cap_nhat_web, "CẬP NHẬT WEB")
+        tabs.addTab(self.tab_danh_sach_gv, "DANH SÁCH GIÁO VIÊN")
+        tabs.addTab(self.tab_tra_cuu, "TRA CỨU")
+        tabs.addTab(self.tab_phan_xe, "PHÂN XE")
+        tabs.addTab(self.tab_tra_cuu_xe, "DANH SÁCH XE")
+        tabs.addTab(self.tab_lich_hoc, "LỊCH HỌC")
         self.setCentralWidget(tabs)
+
+        # Trước đây phải tắt/bật lại app mới thấy dữ liệu mới sau khi bấm
+        # "Cập nhật && Đăng lên web" (các tab khác chỉ đọc dữ liệu 1 lần lúc
+        # mở app) - giờ nạp lại ngay cho mọi tab khi tab CẬP NHẬT WEB báo đã
+        # ghi xong data.json mới.
+        self.tab_cap_nhat_web.data_published.connect(self._on_data_published)
+
+    def _on_data_published(self):
+        dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""
+        dsgv = roster_xml.parse_dsgv(dsgv_file) if dsgv_file and Path(dsgv_file).exists() else {}
+        self.model.reload(dsgv)
+        self.tab_tra_cuu.refresh()
+        self.tab_phan_xe.refresh()
+        self.tab_tra_cuu_xe.refresh()
+        self.tab_lich_hoc.refresh()
+        self.tab_danh_sach_gv.refresh()
 
 
 def main():

@@ -58,6 +58,20 @@ class LichHocTab(QWidget):
             label = f"{c['ma_khoa']} ({c['lop']})"
             self.cbo_course.addItem(label, c["ma_khoa"])
 
+    def refresh(self):
+        """Nạp lại danh sách file lịch học + khóa (sau khi model.reload())
+        - gọi sau khi tab CẬP NHẬT WEB đăng dữ liệu mới. Giữ nguyên khóa
+        đang chọn nếu còn tồn tại, luôn vẽ lại để không còn PDF cũ."""
+        ma_khoa_truoc = self.cbo_course.currentData()
+        self.lich_hoc_files = publish_data.load_data_sources().get("lich_hoc_files", [])
+        self._load_courses()
+        idx = self.cbo_course.findData(ma_khoa_truoc) if ma_khoa_truoc else -1
+        if idx >= 0:
+            self.cbo_course.blockSignals(True)
+            self.cbo_course.setCurrentIndex(idx)
+            self.cbo_course.blockSignals(False)
+        self._on_course_changed(self.cbo_course.currentIndex())
+
     def _on_course_changed(self, _index):
         ma_khoa = self.cbo_course.currentData()
         course = self.model.find_course(ma_khoa)
