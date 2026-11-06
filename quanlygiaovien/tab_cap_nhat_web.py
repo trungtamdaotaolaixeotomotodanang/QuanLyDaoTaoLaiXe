@@ -21,10 +21,12 @@ from PySide6.QtCore import QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QCheckBox,
+    QDialog,
     QFileDialog,
     QFrame,
     QGroupBox,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -32,6 +34,9 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QStyle,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
     QTextBrowser,
     QTextEdit,
     QVBoxLayout,
@@ -214,6 +219,103 @@ class _SinglePathPicker(QGroupBox):
 
     def set_path(self, path):
         self.txt.setText(str(path) if path else "")
+
+
+class _PublishResultDialog(QDialog):
+    """Hộp thoại kết quả "Cập nhật && Đăng lên web" - tách cảnh báo theo
+    từng loại thành 1 tab riêng (bảng File/Vị trí/Nội dung, cuộn được) thay
+    cho 1 khối text dài trong QMessageBox, để không bị tràn màn hình khi có
+    nhiều cảnh báo khác nhau."""
+
+    def __init__(self, result, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(
+            "Kết quả cập nhật" if result.get("git_ok") else "Hoàn tất (chưa đăng lên web)"
+        )
+        self.resize(760, 560)
+        layout = QVBoxLayout(self)
+
+        summary = QLabel(self._build_summary(result))
+        summary.setWordWrap(True)
+        layout.addWidget(summary)
+
+        tabs = QTabWidget()
+        self._add_overview_tab(tabs, result)
+        for label, rows in self._group_warnings(result.get("canh_bao", [])).items():
+            self._add_warning_tab(tabs, label, rows)
+        layout.addWidget(tabs, 1)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch(1)
+        btn_close = QPushButton("Đóng")
+        btn_close.setObjectName("primary")
+        btn_close.clicked.connect(self.accept)
+        btn_row.addWidget(btn_close)
+        layout.addLayout(btn_row)
+
+    @staticmethod
+    def _build_summary(result):
+        lines = [
+            f"Đã xử lý xong lúc {result['generated_at']} "
+            f"(từ {result['so_file_excel']} file Excel, {result['so_giao_vien']} giáo viên)."
+        ]
+        if result.get("git_ok"):
+            lines.append("Đã đăng lên trang web thành công.")
+        else:
+            lines.append("CHƯA đăng lên web được - " + result.get("git_message", ""))
+        n_warn = len(result.get("canh_bao", []))
+        if n_warn:
+            lines.append(f"Có {n_warn} cảnh báo dữ liệu cần kiểm tra lại (xem các tab dưới).")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _group_warnings(warnings):
+        """Gom cảnh báo theo label -> mỗi label là 1 tab, giữ thứ tự xuất hiện."""
+        grouped = {}
+        for w in warnings:
+            grouped.setdefault(w.get("label", "Khác"), []).append(w)
+        return grouped
+
+    def _add_overview_tab(self, tabs, result):
+        txt = QTextEdit()
+        txt.setReadOnly(True)
+        lines = []
+        if result.get("ma_khoa_trung"):
+            lines.append(
+                "Mã khóa trùng giữa các file (lấy dữ liệu file đọc sau cùng): "
+                + ", ".join(result["ma_khoa_trung"])
+            )
+        if result.get("giao_vien_moi"):
+            lines.append("Giáo viên MỚI (đã tạo mã QR):")
+            for name, tid in result["giao_vien_moi"]:
+                lines.append(f"  - {name} ({tid}.png)")
+        if result.get("giao_vien_doi_ten"):
+            lines.append("Đã cập nhật tên in trên mã QR (link/mã QR không đổi):")
+            for ten_cu, ten_moi, tid in result["giao_vien_doi_ten"]:
+                lines.append(f"  - {tid}: '{ten_cu}' → '{ten_moi}'")
+        txt.setPlainText("\n".join(lines) if lines else "Không có thông tin khác.")
+        tabs.addTab(txt, "Tổng quan")
+
+    def _add_warning_tab(self, tabs, label, rows):
+        table = QTableWidget()
+        table.setColumnCount(3)
+        table.setHorizontalHeaderLabels(["File", "Vị trí", "Nội dung"])
+        table.setEditTriggers(QTableWidget.NoEditTriggers)
+        table.setSelectionBehavior(QTableWidget.SelectRows)
+        table.setAlternatingRowColors(True)
+        table.setWordWrap(True)
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        table.setRowCount(len(rows))
+        for row_idx, w in enumerate(rows):
+            table.setItem(row_idx, 0, QTableWidgetItem(w.get("file", "")))
+            table.setItem(row_idx, 1, QTableWidgetItem(w.get("vi_tri", "")))
+            table.setItem(row_idx, 2, QTableWidgetItem(w.get("noi_dung", "")))
+        table.resizeRowsToContents()
+        table.setSortingEnabled(True)
+        tabs.addTab(table, f"{label} ({len(rows)})")
 
 
 class _PublishWorker(QThread):
@@ -422,37 +524,20 @@ class CapNhatWebTab(QWidget):
         self.btn_publish.setEnabled(True)
         self.btn_publish.setText("Cập nhật && Đăng lên web")
 
-        lines = [
+        log_lines = [
             f"Đã xử lý xong lúc {result['generated_at']} "
-            f"(từ {result['so_file_excel']} file Excel)."
+            f"(từ {result['so_file_excel']} file Excel, {result['so_giao_vien']} giáo viên)."
         ]
-        lines.append(f"Tổng số giáo viên: {result['so_giao_vien']}.")
-        if result["ma_khoa_trung"]:
-            lines.append(
-                "CẢNH BÁO: các mã khóa bị trùng giữa các file (lấy dữ liệu file sau cùng): "
-                + ", ".join(result["ma_khoa_trung"])
-            )
         if result.get("canh_bao"):
-            lines.append("CẢNH BÁO dữ liệu (kiểm tra lại nguồn):")
-            for w in result["canh_bao"]:
-                lines.append("  - " + w)
-        if result["giao_vien_moi"]:
-            lines.append("Giáo viên MỚI (đã tạo mã QR trong thư mục qr_codes/):")
-            for name, tid in result["giao_vien_moi"]:
-                lines.append(f"  - {name} ({tid}.png)")
-        if result.get("giao_vien_doi_ten"):
-            lines.append("Đã cập nhật lại tên in trên mã QR (link/mã QR không đổi):")
-            for ten_cu, ten_moi, tid in result["giao_vien_doi_ten"]:
-                lines.append(f"  - {tid}: '{ten_cu}' -> '{ten_moi}'")
-        lines.append(result["git_message"])
-        self.log.append("\n".join(lines))
+            log_lines.append(f"Có {len(result['canh_bao'])} cảnh báo - xem chi tiết ở hộp thoại kết quả.")
+        log_lines.append(
+            "Đã đăng lên trang web thành công." if result["git_ok"] else result["git_message"]
+        )
+        self.log.append("\n".join(log_lines))
 
         self.data_published.emit()
 
-        if result["git_ok"]:
-            QMessageBox.information(self, "Hoàn tất", "\n".join(lines))
-        else:
-            QMessageBox.warning(self, "Chưa đăng lên web được", result["git_message"])
+        _PublishResultDialog(result, self).exec()
 
     def _on_error(self, message):
         self.btn_publish.setEnabled(True)

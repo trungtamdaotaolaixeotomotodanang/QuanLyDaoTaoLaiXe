@@ -63,6 +63,17 @@ def clean_plate(value):
     return text.replace("-", "").replace(".", "")
 
 
+_PLATE_PROVINCE_RE = re.compile(r"^(43|92)[A-Za-z0-9]")
+
+
+def _looks_like_plate(text):
+    """Biển số xe ở Đà Nẵng bắt đầu bằng 43, Quảng Nam bắt đầu bằng 92 - dùng
+    để nhận ra dòng nào thực sự là biển số khi file nguồn nhập đảo vị trí
+    xe/giáo viên trong cột "xe/Gv/Sđt" (xem _parse_groups)."""
+    digits_only = (text or "").replace("-", "").replace(".", "").replace(" ", "")
+    return bool(_PLATE_PROVINCE_RE.match(digits_only))
+
+
 def _find_course_sheet(wb):
     """Tìm sheet có dòng tiêu đề 'BIÊN CHẾ XE KHÓA ...'. Trả về (ws, title_text)."""
     for ws in wb.worksheets:
@@ -75,7 +86,11 @@ def _find_course_sheet(wb):
 
 def _parse_groups(ws, lop="", ket_qua_thi=None):
     """Đọc bảng học viên bắt đầu từ dòng có 'Stt' tới hết sheet.
-    Trả về list groups: [{giao_vien, xe, ca, sdt, hoc_vien: [...]}].
+    Trả về list groups: [{giao_vien, xe, ca, sdt, cell_ref, hoc_vien: [...]}].
+
+    cell_ref của mỗi group là vị trí ô "xe/Gv/Sđt" gộp (dạng "<sheet>!E<dòng>")
+    - dùng để báo lỗi/cảnh báo kèm vị trí chính xác trong Excel (xem
+    publish_data.run_pipeline).
 
     ket_qua_thi (tùy chọn): dict đối chiếu kết quả thi tốt nghiệp - xem
     load_ket_qua_thi(). Nếu có, mỗi học viên được tra theo (tên, ngày sinh,
@@ -86,8 +101,9 @@ def _parse_groups(ws, lop="", ket_qua_thi=None):
     groups = []
     current_group = None
     started = False
+    sheet_title = getattr(ws, "title", "")
 
-    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, max_col=6):
+    for row_num, row in enumerate(ws.iter_rows(min_row=1, max_row=ws.max_row, max_col=6), start=1):
         a_val = row[0].value
         a_str = str(a_val).strip() if a_val is not None else ""
 
@@ -107,15 +123,24 @@ def _parse_groups(ws, lop="", ket_qua_thi=None):
             if xe_gv_sdt and str(xe_gv_sdt).strip():
                 lines = [clean_text(x) for x in str(xe_gv_sdt).split("\n")]
                 lines = [x for x in lines if x]
-                xe_text, ca = split_plate_ca(lines[0]) if len(lines) > 0 else ("", "")
+                # Dòng xe và giáo viên bị đảo vị trí ở một số file nguồn -
+                # nhận diện dòng nào thực sự là biển số qua số đầu (xem
+                # _looks_like_plate) để gán đúng xe/giao_vien dù bị đảo.
+                line0_text, line0_ca = split_plate_ca(lines[0]) if len(lines) > 0 else ("", "")
+                line1 = lines[1] if len(lines) > 1 else ""
+                line1_text, line1_ca = split_plate_ca(line1)
+                if not _looks_like_plate(line0_text) and _looks_like_plate(line1_text):
+                    xe_text, ca, giao_vien = line1_text, line1_ca, lines[0]
+                else:
+                    xe_text, ca, giao_vien = line0_text, line0_ca, line1
                 xe = xe_text.replace("-", "").replace(".", "")
-                giao_vien = lines[1] if len(lines) > 1 else ""
                 sdt = lines[2] if len(lines) > 2 else ""
                 current_group = {
                     "giao_vien": giao_vien,
                     "xe": xe,
                     "ca": ca,  # "Ca 1"/"Ca 2" nếu 1 xe chạy nhiều ca trong khóa, rỗng nếu không
                     "sdt": sdt,
+                    "cell_ref": f"{sheet_title}!E{row_num}",
                     "hoc_vien": [],
                 }
                 groups.append(current_group)

@@ -436,36 +436,39 @@ def run_pipeline(sources=None):
                 candidates = attach_files.find_teacher_candidates(name, dsgv)
                 if len(candidates) == 1:
                     ma_gv, ten_day_du = candidates[0]
-                    warnings.append(
-                        f"Tên viết tắt: đã tự nhận '{name}' trong file Excel "
-                        f"'{c.get('source_file', '')}' (khóa {ma_khoa}) là '{ten_day_du}' "
-                        f"trong file '{dsgv_file_name}' - nên sửa lại Excel cho đúng chính "
-                        "tả để khỏi phải đoán."
-                    )
+                    warnings.append({
+                        "label": "Tên viết tắt tự nhận diện",
+                        "file": c.get("source_file", ""),
+                        "vi_tri": g.get("cell_ref", ""),
+                        "noi_dung": f"'{name}' → '{ten_day_du}' (khóa {ma_khoa}) - nên sửa Excel cho đúng chính tả.",
+                    })
                 elif candidates:
                     goi_y = "; ".join(f"'{ten}'" for _, ten in candidates)
-                    warnings.append(
-                        f"Không khớp được giáo viên '{name}' trong file Excel "
-                        f"'{c.get('source_file', '')}' (khóa {ma_khoa}) với file "
-                        f"'{dsgv_file_name}' - tên viết tắt này khớp MƠ HỒ với nhiều giáo "
-                        f"viên ({goi_y}), hãy sửa lại Excel cho rõ."
-                    )
+                    warnings.append({
+                        "label": "Tên giáo viên khớp mơ hồ",
+                        "file": c.get("source_file", ""),
+                        "vi_tri": g.get("cell_ref", ""),
+                        "noi_dung": f"'{name}' (khóa {ma_khoa}) khớp mơ hồ với nhiều giáo viên: {goi_y}.",
+                    })
                     continue
                 else:
-                    warnings.append(
-                        f"Không khớp được giáo viên '{name}' trong file Excel "
-                        f"'{c.get('source_file', '')}' (khóa {ma_khoa}) với danh sách "
-                        f"giáo viên trong file '{dsgv_file_name}' - kiểm tra lại chính tả tên."
-                    )
+                    warnings.append({
+                        "label": "Tên giáo viên không khớp",
+                        "file": c.get("source_file", ""),
+                        "vi_tri": g.get("cell_ref", ""),
+                        "noi_dung": f"'{name}' (khóa {ma_khoa}) không khớp danh sách giáo viên trong '{dsgv_file_name}'.",
+                    })
                     continue
 
             hoc_vien = g.get("hoc_vien", [])
             xe = g.get("xe", "")
             if dsxtl_plates and xe and attach_files.normalize_plate(xe) not in dsxtl_plates:
-                warnings.append(
-                    f"Biển số '{xe}' trong file Excel '{c.get('source_file', '')}' "
-                    f"(GV {name}, khóa {ma_khoa}) không có trong file '{dsxtl_file_name}'."
-                )
+                warnings.append({
+                    "label": "Biển số không khớp DSXTL",
+                    "file": c.get("source_file", ""),
+                    "vi_tri": g.get("cell_ref", ""),
+                    "noi_dung": f"Biển số '{xe}' (GV {name}, khóa {ma_khoa}) không có trong '{dsxtl_file_name}'.",
+                })
             giay_to_xe_link = xe_extra.get(attach_files.normalize_plate(xe), {}).get("link") or None
 
             sdt = g.get("sdt", "")

@@ -20,6 +20,7 @@ class _Sheet:
         self._datemode = datemode
         self.max_row = sheet.nrows
         self.max_col = sheet.ncols
+        self.title = sheet.name
 
     def _cell_value(self, row_idx, col_idx):
         cell = self._sheet.cell(row_idx, col_idx)
