@@ -439,6 +439,7 @@ def run_pipeline(sources=None):
                     warnings.append({
                         "label": "Tên viết tắt tự nhận diện",
                         "file": c.get("source_file", ""),
+                        "file_path": c.get("source_file_path", ""),
                         "vi_tri": g.get("cell_ref", ""),
                         "noi_dung": f"'{name}' → '{ten_day_du}' (khóa {ma_khoa}) - nên sửa Excel cho đúng chính tả.",
                     })
@@ -447,6 +448,7 @@ def run_pipeline(sources=None):
                     warnings.append({
                         "label": "Tên giáo viên khớp mơ hồ",
                         "file": c.get("source_file", ""),
+                        "file_path": c.get("source_file_path", ""),
                         "vi_tri": g.get("cell_ref", ""),
                         "noi_dung": f"'{name}' (khóa {ma_khoa}) khớp mơ hồ với nhiều giáo viên: {goi_y}.",
                     })
@@ -455,6 +457,7 @@ def run_pipeline(sources=None):
                     warnings.append({
                         "label": "Tên giáo viên không khớp",
                         "file": c.get("source_file", ""),
+                        "file_path": c.get("source_file_path", ""),
                         "vi_tri": g.get("cell_ref", ""),
                         "noi_dung": f"'{name}' (khóa {ma_khoa}) không khớp danh sách giáo viên trong '{dsgv_file_name}'.",
                     })
@@ -466,6 +469,7 @@ def run_pipeline(sources=None):
                 warnings.append({
                     "label": "Biển số không khớp DSXTL",
                     "file": c.get("source_file", ""),
+                    "file_path": c.get("source_file_path", ""),
                     "vi_tri": g.get("cell_ref", ""),
                     "noi_dung": f"Biển số '{xe}' (GV {name}, khóa {ma_khoa}) không có trong '{dsxtl_file_name}'.",
                 })

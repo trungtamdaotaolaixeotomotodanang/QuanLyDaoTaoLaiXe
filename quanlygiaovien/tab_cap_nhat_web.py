@@ -17,7 +17,7 @@ git commit/push chạy ngầm khi bấm nút "Cập nhật && Đăng lên web".
 """
 from pathlib import Path
 
-from PySide6.QtCore import QThread, QUrl, Signal
+from PySide6.QtCore import Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -299,23 +299,41 @@ class _PublishResultDialog(QDialog):
     def _add_warning_tab(self, tabs, label, rows):
         table = QTableWidget()
         table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["File", "Vị trí", "Nội dung"])
+        table.setHorizontalHeaderLabels(["File (bấm đúp để mở)", "Vị trí", "Nội dung"])
         table.setEditTriggers(QTableWidget.NoEditTriggers)
         table.setSelectionBehavior(QTableWidget.SelectRows)
         table.setAlternatingRowColors(True)
         table.setWordWrap(True)
+        table.setToolTip("Bấm đúp vào tên file để mở file Excel gốc lên xem/sửa.")
         header = table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         table.setRowCount(len(rows))
         for row_idx, w in enumerate(rows):
-            table.setItem(row_idx, 0, QTableWidgetItem(w.get("file", "")))
+            file_item = QTableWidgetItem(w.get("file", ""))
+            file_path = w.get("file_path", "")
+            if file_path:
+                file_item.setData(Qt.ItemDataRole.UserRole, file_path)
+                file_item.setToolTip(file_path)
+            table.setItem(row_idx, 0, file_item)
             table.setItem(row_idx, 1, QTableWidgetItem(w.get("vi_tri", "")))
             table.setItem(row_idx, 2, QTableWidgetItem(w.get("noi_dung", "")))
         table.resizeRowsToContents()
         table.setSortingEnabled(True)
+        table.cellDoubleClicked.connect(lambda row, col: self._open_warning_file(table, row))
         tabs.addTab(table, f"{label} ({len(rows)})")
+
+    def _open_warning_file(self, table, row):
+        item = table.item(row, 0)
+        file_path = item.data(Qt.ItemDataRole.UserRole) if item else None
+        if not file_path:
+            return
+        path = Path(file_path)
+        if not path.exists():
+            QMessageBox.warning(self, "Không tìm thấy file", f"File không còn tồn tại:\n{path}")
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
 
 
 class _PublishWorker(QThread):

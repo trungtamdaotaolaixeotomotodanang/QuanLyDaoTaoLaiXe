@@ -38,20 +38,22 @@ def clean_text(value):
     return text
 
 
-_CA_SUFFIX_RE = re.compile(r"\(\s*(ca\s*\d+)\s*\)\s*$", re.IGNORECASE)
+_CA_SUFFIX_RE = re.compile(r"[\s.\-]*\(?\s*ca[\s.\-]*(\d+)\s*\)?\s*$", re.IGNORECASE)
 
 
 def split_plate_ca(value):
-    """Tách hậu tố '(Ca 1)'/'(Ca 2)' ra khỏi biển số (1 xe chạy nhiều ca
-    trong cùng khóa, mỗi ca Excel ghi riêng 1 dòng xe/GV/SĐT) - cùng 1 xe
-    thì phải gộp lại 1 biển số, không tách thành nhiều xe khác nhau, nhưng
-    vẫn giữ lại "ca mấy" riêng để hiện ghi chú. Trả về (biển_số, ca) - ca
-    rỗng nếu không có hậu tố."""
+    """Tách hậu tố ca (1 xe chạy nhiều ca trong cùng khóa, mỗi ca Excel ghi
+    riêng 1 dòng xe/GV/SĐT) ra khỏi biển số - cùng 1 xe thì phải gộp lại 1
+    biển số, không tách thành nhiều xe khác nhau, nhưng vẫn giữ lại "ca mấy"
+    riêng để hiện ghi chú. Chấp nhận mọi kiểu người dùng hay ghi: có ngoặc
+    tròn hay không ('(Ca 1)'/'Ca 1'), cách bởi dấu cách/gạch ngang/chấm hay
+    ghi liền không cách ('43B25295-Ca1', '43B25295Ca2'...). Trả về
+    (biển_số, ca) - ca rỗng nếu không có hậu tố."""
     text = clean_text(value)
     m = _CA_SUFFIX_RE.search(text)
     if not m:
         return text, ""
-    ca = re.sub(r"\s+", " ", m.group(1).strip()).title()
+    ca = f"Ca {int(m.group(1))}"
     return text[: m.start()].strip(), ca
 
 
@@ -72,6 +74,16 @@ def _looks_like_plate(text):
     xe/giáo viên trong cột "xe/Gv/Sđt" (xem _parse_groups)."""
     digits_only = (text or "").replace("-", "").replace(".", "").replace(" ", "")
     return bool(_PLATE_PROVINCE_RE.match(digits_only))
+
+
+_THAY_PREFIX_RE = re.compile(r"^(thầy|thay)\s+", re.IGNORECASE | re.UNICODE)
+
+
+def _strip_thay_prefix(name):
+    """Bỏ chữ 'Thầy' nhập thừa trước tên giáo viên (vd 'Thầy Nguyễn Văn
+    Cường' -> 'Nguyễn Văn Cường') để khớp đúng với tên chính thức bên
+    DSGV."""
+    return _THAY_PREFIX_RE.sub("", name or "").strip()
 
 
 def _find_course_sheet(wb):
@@ -125,15 +137,20 @@ def _parse_groups(ws, lop="", ket_qua_thi=None):
                 lines = [x for x in lines if x]
                 # Dòng xe và giáo viên bị đảo vị trí ở một số file nguồn -
                 # nhận diện dòng nào thực sự là biển số qua số đầu (xem
-                # _looks_like_plate) để gán đúng xe/giao_vien dù bị đảo.
+                # _looks_like_plate) để gán đúng xe/giao_vien dù bị đảo. Hậu
+                # tố "(Ca N)" có thể nằm ở dòng xe HOẶC dòng tên giáo viên
+                # (tùy file), nên tách ở cả 2 dòng rồi lấy dòng nào có ca.
                 line0_text, line0_ca = split_plate_ca(lines[0]) if len(lines) > 0 else ("", "")
                 line1 = lines[1] if len(lines) > 1 else ""
                 line1_text, line1_ca = split_plate_ca(line1)
                 if not _looks_like_plate(line0_text) and _looks_like_plate(line1_text):
-                    xe_text, ca, giao_vien = line1_text, line1_ca, lines[0]
+                    xe_text, giao_vien_text = line1_text, line0_text
+                    ca = line1_ca or line0_ca
                 else:
-                    xe_text, ca, giao_vien = line0_text, line0_ca, line1
+                    xe_text, giao_vien_text = line0_text, line1_text
+                    ca = line0_ca or line1_ca
                 xe = xe_text.replace("-", "").replace(".", "")
+                giao_vien = _strip_thay_prefix(giao_vien_text)
                 sdt = lines[2] if len(lines) > 2 else ""
                 current_group = {
                     "giao_vien": giao_vien,
@@ -221,6 +238,7 @@ def load_course_from_file(path, ket_qua_thi=None):
         "groups": groups,
         "lich_hoc": [],  # lịch học giờ chỉ còn ở file PDF, xem attach_files.py
         "source_file": Path(path).name,  # để báo cảnh báo rõ nguồn khi dữ liệu không khớp
+        "source_file_path": str(path),  # đường dẫn đầy đủ - để mở file từ hộp thoại cảnh báo
     }
 
 
