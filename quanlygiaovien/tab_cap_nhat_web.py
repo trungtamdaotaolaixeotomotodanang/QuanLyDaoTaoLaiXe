@@ -125,8 +125,26 @@ class _FileListPicker(QGroupBox):
         btn_remove = QPushButton(_icon(self, QStyle.StandardPixmap.SP_TrashIcon), "Xóa")
         btn_remove.clicked.connect(self._on_remove)
         btn_row.addWidget(btn_remove)
+        btn_detail = QPushButton(
+            _icon(self, QStyle.StandardPixmap.SP_FileDialogDetailedView), "Xem chi tiết..."
+        )
+        btn_detail.setToolTip(
+            "Mở bảng danh sách đầy đủ, dễ xem/sort/xóa/mở từng file hơn khung nhỏ này."
+        )
+        btn_detail.clicked.connect(self._on_detail)
+        btn_row.addWidget(btn_detail)
         btn_row.addStretch(1)
         layout.addLayout(btn_row)
+
+    def _on_detail(self):
+        dlg = _FileListDetailDialog(self, self)
+        dlg.exec()
+
+    def remove_path(self, path):
+        for i in range(self.lst.count()):
+            if self.lst.item(i).text() == path:
+                self.lst.takeItem(i)
+                return
 
     def _on_add(self):
         existing = self.paths()
@@ -170,6 +188,85 @@ class _FileListPicker(QGroupBox):
         self.lst.clear()
         for p in paths:
             self.lst.addItem(str(p))
+
+
+class _FileListDetailDialog(QDialog):
+    """Hộp thoại xem đầy đủ danh sách file của 1 _FileListPicker - bảng lớn,
+    có scroll, sort được theo cột, mỗi dòng có nút Mở/Xóa riêng - dễ quản lý
+    hơn khung danh sách nhỏ ở ngoài khi có nhiều file."""
+
+    def __init__(self, picker, parent=None):
+        super().__init__(parent)
+        self.picker = picker
+        self.setWindowTitle(f"Chi tiết - {picker.title()}")
+        self.resize(760, 480)
+
+        layout = QVBoxLayout(self)
+        self.table = QTableWidget(0, 3)
+        self.table.setHorizontalHeaderLabels(["Tên file", "Thư mục", ""])
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setSectionResizeMode(
+            0, QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(
+            2, QHeaderView.ResizeMode.ResizeToContents
+        )
+        layout.addWidget(self.table, 1)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch(1)
+        btn_close = QPushButton("Đóng")
+        btn_close.setObjectName("primary")
+        btn_close.clicked.connect(self.accept)
+        btn_row.addWidget(btn_close)
+        layout.addLayout(btn_row)
+
+        self._reload()
+        self.table.setSortingEnabled(True)
+
+    def _reload(self):
+        self.table.setSortingEnabled(False)
+        paths = self.picker.paths()
+        self.table.setRowCount(len(paths))
+        for row, p in enumerate(paths):
+            path_obj = Path(p)
+            self.table.setItem(row, 0, QTableWidgetItem(path_obj.name))
+            self.table.setItem(row, 1, QTableWidgetItem(str(path_obj.parent)))
+            self.table.setCellWidget(row, 2, self._build_actions(p))
+        self.table.setSortingEnabled(True)
+
+    def _build_actions(self, path):
+        widget = QWidget()
+        h = QHBoxLayout(widget)
+        h.setContentsMargins(4, 2, 4, 2)
+        btn_open = QPushButton("Mở")
+        btn_open.clicked.connect(lambda: self._on_open(path))
+        h.addWidget(btn_open)
+        btn_del = QPushButton("Xóa")
+        btn_del.clicked.connect(lambda: self._on_delete(path))
+        h.addWidget(btn_del)
+        return widget
+
+    def _on_open(self, path):
+        p = Path(path)
+        if not p.exists():
+            QMessageBox.warning(self, "Không tìm thấy file", f"File không còn tồn tại:\n{p}")
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(p)))
+
+    def _on_delete(self, path):
+        confirm = QMessageBox.question(
+            self, "Xác nhận",
+            f"Bỏ file khỏi danh sách này?\n{Path(path).name}\n\n"
+            "(Chỉ bỏ khỏi danh sách đang chọn trong app, không xóa file gốc trên máy.)",
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        self.picker.remove_path(path)
+        self._reload()
 
 
 class _SinglePathPicker(QGroupBox):
