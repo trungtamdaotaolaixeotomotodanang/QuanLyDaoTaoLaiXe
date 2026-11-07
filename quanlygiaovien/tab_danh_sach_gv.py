@@ -46,18 +46,12 @@ _MAU_COT_HANG = QColor("#fff3b0")
 # tay hạng khác (vd ghép nhiều hạng "B, C1") vì đây là ô combo có thể sửa.
 CAC_HANG_LAI_XE = ["B", "C1", "C", "D1", "D2", "CE"]
 
+import attach_files
 import detail_dialog
 import publish_data
 import roster_xml
 from photo_crop_dialog import PhotoCropDialog
 from style import icon as _icon
-
-
-def _given_name_key(full_name):
-    """Khóa sắp xếp theo TÊN (từ cuối cùng), không theo HỌ - vd "Nguyễn Văn
-    An" sắp xếp theo "An"."""
-    parts = (full_name or "").split()
-    return (parts[-1], full_name) if parts else (full_name, full_name)
 
 
 def _pil_to_pixmap(img):
@@ -240,7 +234,7 @@ class DanhSachGiaoVienTab(QWidget):
     # ---- danh sách ----
     def _load_list(self, filter_text=""):
         self.list_widget.clear()
-        teachers = sorted(self._teachers.items(), key=lambda kv: _given_name_key(kv[1]["ten"]))
+        teachers = sorted(self._teachers.items(), key=lambda kv: attach_files.given_name_sort_key(kv[1]["ten"]))
         filter_text = (filter_text or "").strip().lower()
         if filter_text:
             teachers = [
@@ -272,7 +266,7 @@ class DanhSachGiaoVienTab(QWidget):
                 "Hãy chọn file DSGV_*.xml ở tab CẬP NHẬT WEB rồi khởi động lại app.",
             )
             return
-        teachers = sorted(self._teachers.items(), key=lambda kv: _given_name_key(kv[1]["ten"]))
+        teachers = sorted(self._teachers.items(), key=lambda kv: attach_files.given_name_sort_key(kv[1]["ten"]))
 
         columns = []
         seen = set()
@@ -541,7 +535,7 @@ class DanhSachGiaoVienTab(QWidget):
                 "Hãy chọn file DSGV_*.xml ở tab CẬP NHẬT WEB rồi khởi động lại app.",
             )
             return
-        teachers = sorted(self._teachers.items(), key=lambda kv: _given_name_key(kv[1]["ten"]))
+        teachers = sorted(self._teachers.items(), key=lambda kv: attach_files.given_name_sort_key(kv[1]["ten"]))
         self._export_cards(teachers, "the_giao_vien.pdf")
 
     def _export_cards(self, teachers, default_name):

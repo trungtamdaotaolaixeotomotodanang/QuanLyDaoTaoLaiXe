@@ -104,7 +104,7 @@ class DataModel:
             for g in c.get("groups", []):
                 if g.get("giao_vien"):
                     names.add(g["giao_vien"])
-        return sorted(names)
+        return sorted(names, key=attach_files.given_name_sort_key)
 
     def status_of(self, course):
         today = datetime.now()

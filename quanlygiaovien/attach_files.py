@@ -38,6 +38,14 @@ def _name_words(text):
     return [w.rstrip(".,") for w in normalize_name(text).split(" ") if w.rstrip(".,")]
 
 
+def given_name_sort_key(full_name):
+    """Khóa sắp xếp theo TÊN (từ cuối cùng), không theo HỌ - vd "Nguyễn Văn
+    An" sắp xếp theo "An". Dùng cho mọi nơi hiển thị danh sách/combobox tên
+    giáo viên trong app."""
+    parts = (full_name or "").split()
+    return (parts[-1], full_name) if parts else (full_name, full_name)
+
+
 def is_abbreviated_match(short_name, full_name):
     """True nếu `short_name` có thể là bản viết tắt của `full_name`: cùng
     số từ, và mỗi từ của short_name bằng hệt hoặc là phần đầu (viết tắt)

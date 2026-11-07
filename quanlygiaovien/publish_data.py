@@ -649,7 +649,8 @@ def run_pipeline(sources=None):
         # dùng chọn "đây là tên viết tắt của giáo viên nào" (xem
         # tab_cap_nhat_web.py _PublishResultDialog).
         "dsgv_teachers": sorted(
-            ((ma_gv, rec["ten"]) for ma_gv, rec in dsgv.items()), key=lambda x: x[1]
+            ((ma_gv, rec["ten"]) for ma_gv, rec in dsgv.items()),
+            key=lambda x: attach_files.given_name_sort_key(x[1]),
         ),
     }
 
