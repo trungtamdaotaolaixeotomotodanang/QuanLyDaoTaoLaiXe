@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
+    QCompleter,
     QHBoxLayout,
     QLabel,
     QSplitter,
@@ -26,6 +27,9 @@ class PhanXeTab(QWidget):
         top = QHBoxLayout()
         top.addWidget(QLabel("Chọn khóa:"))
         self.cbo_course = QComboBox()
+        self.cbo_course.setEditable(True)
+        self.cbo_course.setInsertPolicy(QComboBox.NoInsert)
+        self.cbo_course.lineEdit().setPlaceholderText("Nhập hoặc chọn mã khóa...")
         self.cbo_course.currentIndexChanged.connect(self._on_course_changed)
         top.addWidget(self.cbo_course, 1)
         self.lbl_summary = QLabel("")
@@ -52,9 +56,15 @@ class PhanXeTab(QWidget):
 
     def _load_courses(self):
         self.cbo_course.clear()
+        labels = []
         for c in self.model.all_courses():
             label = f"{c['ma_khoa']} ({c['lop']})"
             self.cbo_course.addItem(label, c["ma_khoa"])
+            labels.append(label)
+        completer = QCompleter(labels, self)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchContains)
+        self.cbo_course.setCompleter(completer)
 
     def refresh(self):
         """Nạp lại danh sách khóa từ model (sau khi model.reload()) - gọi

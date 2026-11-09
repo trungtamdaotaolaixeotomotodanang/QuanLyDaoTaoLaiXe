@@ -45,6 +45,9 @@ class TraCuuTab(QWidget):
 
         form_layout.addWidget(QLabel("Mã khóa:"))
         self.cbo_course = QComboBox()
+        self.cbo_course.setEditable(True)
+        self.cbo_course.setInsertPolicy(QComboBox.NoInsert)
+        self.cbo_course.lineEdit().setPlaceholderText("Nhập hoặc chọn mã khóa...")
         form_layout.addWidget(self.cbo_course, 1)
         btn_course = QPushButton("Tìm theo khóa")
         btn_course.clicked.connect(self._search_by_course)
@@ -114,8 +117,15 @@ class TraCuuTab(QWidget):
         self.cbo_teacher.setCompleter(completer)
 
         self.cbo_course.clear()
+        course_labels = []
         for c in self.model.all_courses():
-            self.cbo_course.addItem(f"{c['ma_khoa']} ({c['lop']})", c["ma_khoa"])
+            label = f"{c['ma_khoa']} ({c['lop']})"
+            self.cbo_course.addItem(label, c["ma_khoa"])
+            course_labels.append(label)
+        course_completer = QCompleter(course_labels, self)
+        course_completer.setCaseSensitivity(Qt.CaseInsensitive)
+        course_completer.setFilterMode(Qt.MatchContains)
+        self.cbo_course.setCompleter(course_completer)
 
     def refresh(self):
         """Nạp lại danh sách giáo viên/khóa từ model (sau khi model.reload())

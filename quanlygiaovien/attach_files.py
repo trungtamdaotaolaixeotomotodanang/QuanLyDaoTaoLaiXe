@@ -104,9 +104,22 @@ def resolve_lich_hoc_pdf(ma_khoa, lop, candidate_files, overrides=None):
     """Tìm file lịch học cho 1 khóa: ưu tiên file đã gán tay theo mã khóa
     (overrides - xem publish_data.load_lich_hoc_overrides, tab LỊCH HỌC nút
     "Cập nhật"/"Chọn file") vì không phụ thuộc đúng quy ước đặt tên file;
-    chưa gán tay thì mới tự so khớp theo mã lớp như find_lich_hoc_pdf()."""
-    if overrides and ma_khoa in overrides:
-        return Path(overrides[ma_khoa])
+    chưa gán tay thì mới tự so khớp theo mã lớp như find_lich_hoc_pdf().
+
+    overrides lưu THEO TÊN FILE (không phải đường dẫn tuyệt đối) - để đưa
+    lên git, dùng chung được giữa các máy (xem publish_data.
+    set_lich_hoc_override). Chỉ áp dụng được trên máy nào CŨNG có 1 file
+    tên này trong candidate_files (danh sách "lich_hoc_files" của máy đó) -
+    máy chưa có thì coi như khóa này chưa có file, không tự so khớp theo
+    mã lớp để tránh lấy nhầm file khác (đã có người xác nhận khóa này cần
+    đúng file tên này)."""
+    if overrides:
+        ten_file = overrides.get(ma_khoa)
+        if ten_file:
+            for f in candidate_files:
+                if Path(f).name == ten_file:
+                    return Path(f)
+            return None
     return find_lich_hoc_pdf(lop, candidate_files)
 
 

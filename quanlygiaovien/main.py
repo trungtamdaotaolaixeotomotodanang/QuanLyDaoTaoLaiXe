@@ -48,6 +48,9 @@ class MainWindow(QMainWindow):
         # mở app) - giờ nạp lại ngay cho mọi tab khi tab CẬP NHẬT WEB báo đã
         # ghi xong data.json mới.
         self.tab_cap_nhat_web.data_published.connect(self._on_data_published)
+        self.tab_lich_hoc.lich_hoc_source_added.connect(
+            self.tab_cap_nhat_web.pick_lich_hoc.add_path_if_missing
+        )
 
     def _on_data_published(self):
         dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""

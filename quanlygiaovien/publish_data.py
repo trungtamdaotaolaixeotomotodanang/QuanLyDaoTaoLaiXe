@@ -51,12 +51,14 @@ QR_DIR = APP_DIR / "qr_codes"
 QR_CAPTIONS_FILE = QR_DIR / "_captions.json"
 APP_SETTINGS_FILE = APP_DIR / "app_settings.json"
 DATA_SOURCES_FILE = APP_DIR / "data_sources.json"
-LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> đường
-# dẫn file lịch học PDF gán tay (xem tab LỊCH HỌC - nút "Cập nhật"/"Chọn
-# file") - ưu tiên hơn so khớp tự động theo mã lớp (attach_files.
-# find_lich_hoc_pdf/resolve_lich_hoc_pdf), để không phụ thuộc đúng quy ước
-# đặt tên file. Chỉ lưu đường dẫn cục bộ trên máy này (giống data_sources.json)
-# - KHÔNG đưa lên git.
+LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> TÊN
+# file lịch học PDF gán tay (xem tab LỊCH HỌC - nút "Cập nhật"/"Chọn file",
+# set_lich_hoc_override) - ưu tiên hơn so khớp tự động theo mã lớp
+# (attach_files.find_lich_hoc_pdf/resolve_lich_hoc_pdf), để không phụ thuộc
+# đúng quy ước đặt tên file. Lưu theo TÊN FILE (không phải đường dẫn tuyệt
+# đối) và commit qua git (giống ten_gv_overrides.json) nên dùng chung được
+# giữa các máy - máy nào cũng cần có 1 file tên này trong "lich_hoc_files"
+# (data_sources.json) của máy đó thì mới áp dụng được.
 PHOTOS_DIR = APP_DIR / "anh_gv"  # ảnh đại diện giáo viên - lưu local, bản resize sẽ copy sang docs/files
 GV_EXTRA_FILE = APP_DIR / "giao_vien_extra.json"  # hạng lái xe dạy - tách khỏi DSGV, lưu local theo MaGV
 XE_EXTRA_FILE = APP_DIR / "xe_extra.json"  # link giấy tờ xe (nhập tay) - lưu local theo biển số chuẩn hoá
@@ -262,11 +264,12 @@ def save_data_sources(sources):
 
 
 def load_lich_hoc_overrides():
-    """Danh sách file lịch học đã gán tay theo mã khóa (xem
-    LICH_HOC_OVERRIDES_FILE) - tự bỏ những mục mà file không còn tồn tại."""
+    """Danh sách tên file lịch học đã gán tay theo mã khóa (xem
+    LICH_HOC_OVERRIDES_FILE) - việc file đó có tồn tại/khớp được trên máy
+    này hay không do attach_files.resolve_lich_hoc_pdf tự kiểm tra (so với
+    "lich_hoc_files" của máy này), không lọc ở đây."""
     if LICH_HOC_OVERRIDES_FILE.exists():
-        data = json.loads(LICH_HOC_OVERRIDES_FILE.read_text(encoding="utf-8"))
-        return {k: v for k, v in data.items() if Path(v).exists()}
+        return json.loads(LICH_HOC_OVERRIDES_FILE.read_text(encoding="utf-8"))
     return {}
 
 
@@ -274,6 +277,22 @@ def save_lich_hoc_overrides(data):
     LICH_HOC_OVERRIDES_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+
+def set_lich_hoc_override(ma_khoa, ten_file):
+    """Gán tay file lịch học (theo TÊN FILE) cho 1 khóa, đăng lên web ngay
+    (giống set_ten_gv_override/add_teacher_photo) để máy khác cũng thấy
+    ngay, không cần đợi lần "Cập nhật && Đăng lên web" kế tiếp.
+    Trả về (ok: bool, message: str)."""
+    ok, err = git_publish.sync_from_remote()
+    if not ok:
+        return False, err
+
+    data = load_lich_hoc_overrides()
+    data[ma_khoa] = ten_file
+    save_lich_hoc_overrides(data)
+
+    return git_publish.push_public_data(f"Gán file lịch học cho khóa {ma_khoa}: {ten_file}")
 
 
 # ---------------- QR ----------------

@@ -146,6 +146,14 @@ class _FileListPicker(QGroupBox):
                 self.lst.takeItem(i)
                 return
 
+    def add_path_if_missing(self, path):
+        """Thêm 1 file vào danh sách nếu chưa có - dùng khi nơi khác (vd
+        dialog "Thông tin chi tiết" ở tab LỊCH HỌC) vừa đăng ký thêm file
+        nguồn, để khung này không bị lệch rồi ghi đè mất lúc người dùng bấm
+        "Cập nhật && Đăng lên web" (xem LichHocTab.lich_hoc_source_added)."""
+        if path not in self.paths():
+            self.lst.addItem(path)
+
     def _on_add(self):
         existing = self.paths()
         start_dir = str(Path(existing[0]).parent) if existing else ""
@@ -200,6 +208,7 @@ class _FileListDetailDialog(QDialog):
         self.picker = picker
         self.setWindowTitle(f"Chi tiết - {picker.title()}")
         self.resize(760, 480)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
 
         layout = QVBoxLayout(self)
         self.table = QTableWidget(0, 3)
