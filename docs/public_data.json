@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T13:55:46",
+  "generated_at": "2026-11-09T14:26:39",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -3966,7 +3966,7 @@
         },
         {
           "ma_khoa": "48002K26CE002",
-          "lop": "NHCEK0326,C-CE",
+          "lop": "NHCEK0326",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43C16506",
@@ -3974,43 +3974,43 @@
           "hoc_vien": [
             {
               "ten": "ĐOÀN CÔNG HẬU (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "PHAN BÁ NGỌC (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "LƯƠNG BÁ QUYỀN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "ĐINH HỮU SINH (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "PHAN MINH TÂM (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "LƯƠNG VĂN THẮNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "TRẦN VĂN TRUNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             },
             {
               "ten": "HUỲNH VĂN XUÂN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/04/2026"
             }
           ],
           "lich_hoc_pdf": null,
@@ -4018,7 +4018,7 @@
         },
         {
           "ma_khoa": "48002K26CE003",
-          "lop": "NHCEK0426,C-CE",
+          "lop": "NHCEK0426",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43C16506",
@@ -4026,51 +4026,51 @@
           "hoc_vien": [
             {
               "ten": "NGUYỄN HỌC ÂU (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "TRẦN VĂN LUYỆN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "TRẦN TUẤN NHẬT (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "NGUYỄN NGỌC QUỐC (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "TRÀ PHƯỚC SƠN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "NGUYỄN HẢI TOÀN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "LÊ ĐỨC BẢO TRUNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             },
             {
               "ten": "PHẠM QUỐC TƯỞNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "22/5/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26CE003.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
           "ma_khoa": "48002K26CE004",
-          "lop": "NHCEK0526,C-CE",
+          "lop": "NHCEK0526",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43C16506",
@@ -4078,51 +4078,51 @@
           "hoc_vien": [
             {
               "ten": "NGUYỄN THÁI BÌNH (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "VÕ ĐÌNH CHÁNH (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "NGUYỄN VĂN CƯỜNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "TÔ THANH HIỆP (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "PHẠM VIẾT TRÍ (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "NGUYỄN VĂN ANH TÚ (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "LÊ VĂN TƯ (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             },
             {
               "ten": "NGUYỄN ĐÌNH QUANG VŨ (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "17/06/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26CE004.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
           "ma_khoa": "48002K26CE005",
-          "lop": "NHCEK0626,C-CE",
+          "lop": "NHCEK0626",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43C16506",
@@ -4130,43 +4130,43 @@
           "hoc_vien": [
             {
               "ten": "PHAN TÁ NGỌC ĐỒNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "ĐINH VĂN HỦA (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "LÊ TRỌNG NHÂN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "LÊ VĂN NHỰT (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "MAI VĂN QUỐC (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "ĐINH SƯƠNG (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "NGUYỄN TIẾN SỸ (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             },
             {
               "ten": "PHAN VĂN VIÊN (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "15/7/2026"
             }
           ],
           "lich_hoc_pdf": null,
@@ -4174,54 +4174,54 @@
         },
         {
           "ma_khoa": "48002K26CE008",
-          "lop": "NHCEK0826,C-CE",
+          "lop": "NHCEK0826",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43C16506",
           "so_hoc_vien": 8,
           "hoc_vien": [
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "LÊ VĂN BÌNH (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "HUỲNH NGỌC CƯỜNG (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "HUỲNH BÁ HOÀNG (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "PHẠM VĂN NHANH (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "BÙI ĐÌNH PHÚ (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "ĐỖ TRỌNG PHƯỚC (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "PHAN MINH TÚ (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "12/09/2026"
             },
             {
-              "ten": " (C->CE)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
+              "ten": "HUỲNH NGỌC VỸ (C->CE)",
+              "ket_qua_thi": "Đạt",
+              "ngay_tot_nghiep": "24/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26CE008.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         }
       ],
