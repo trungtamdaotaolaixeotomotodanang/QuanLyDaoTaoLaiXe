@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T14:26:39",
+  "generated_at": "2026-11-09T14:34:17",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -6750,7 +6750,7 @@
       "khoa_dang_day": [
         {
           "ma_khoa": "48002K262041",
-          "lop": "NHCEK1126,C-CE",
+          "lop": "NHCEK1126",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43B19466",
@@ -6797,12 +6797,12 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262041.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/56d5eea7-f969-4bb0-9ed3-a4ec1eb70540"
         },
         {
           "ma_khoa": "48002K262041",
-          "lop": "NHCEK1126,C-CE",
+          "lop": "NHCEK1126",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43B19466",
@@ -6849,12 +6849,12 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262041.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/56d5eea7-f969-4bb0-9ed3-a4ec1eb70540"
         },
         {
           "ma_khoa": "48002K262055",
-          "lop": "NHCEK1326,C-CE",
+          "lop": "NHCEK1326",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43B19466",
@@ -6906,7 +6906,7 @@
         },
         {
           "ma_khoa": "48002K262055",
-          "lop": "NHCEK1326,C-CE",
+          "lop": "NHCEK1326",
           "tu_ngay": "",
           "den_ngay": "",
           "xe": "43B19466",
