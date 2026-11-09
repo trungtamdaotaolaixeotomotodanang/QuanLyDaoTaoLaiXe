@@ -69,7 +69,12 @@ nhánh `main`, thư mục `/docs`.
 2. **Convert Excel → `data.json`** (`convert_excel_to_json.build_data`):
    mỗi file = 1 khóa, parse theo dòng tiêu đề "BIÊN CHẾ XE KHÓA ..." và
    bảng học viên (cột gộp xe/GV/SĐT). Hai file trùng mã khóa → file đọc
-   sau đè file trước, trả về cảnh báo "mã khóa trùng".
+   sau đè file trước, trả về cảnh báo "mã khóa trùng". `tu_ngay`/`den_ngay`
+   lấy từ sheet "Sổ phân công GV" (cột "Thời gian"); khóa nào sheet này
+   không ghi ngày thì dùng tạm ngày đã gán tay (tab PHÂN XE - nút "Xem chi
+   tiết...", `ngay_hoc_overrides.json`, commit qua git nên dùng chung được
+   giữa các máy) - Excel luôn ưu tiên hơn, sửa đúng Excel rồi "Tải lại từ
+   Excel"/"Cập nhật && Đăng lên web" thì override tự hết tác dụng.
 3. **Parse DSGV / DSXTL** (`roster_xml`): chỉ lấy `MaGV + Họ tên + SĐT`
    (DSGV) và `biển số` (DSXTL) — chủ động KHÔNG đọc ảnh/CCCD.
 4. **Dọn `docs/files/`**: xoá sạch rồi copy lại từ đầu, để không còn sót

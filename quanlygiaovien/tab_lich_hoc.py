@@ -59,6 +59,15 @@ class _LichHocDetailDialog(QDialog):
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
 
         layout = QVBoxLayout(self)
+        note = QLabel(
+            "Dòng tô đỏ là khóa chưa có file lịch học khớp. Bấm \"Chọn file...\"/\"Cập "
+            "nhật...\" để gán - áp dụng ngay cho khung xem PDF ở tab này. Lưu ý: web công "
+            "khai chỉ hiện đúng file này sau khi bạn bấm \"Cập nhật && Đăng lên web\" ở tab "
+            "CẬP NHẬT WEB."
+        )
+        note.setWordWrap(True)
+        layout.addWidget(note)
+
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(
             ["Mã khóa", "Lớp", "File lịch học đang khớp", ""]
@@ -143,7 +152,11 @@ class _LichHocDetailDialog(QDialog):
             self.lich_hoc_tab.lich_hoc_overrides = publish_data.load_lich_hoc_overrides()
             self._reload_table()
             self.lich_hoc_tab._on_course_changed(self.lich_hoc_tab.cbo_course.currentIndex())
-            QMessageBox.information(self, "Hoàn tất", message)
+            QMessageBox.information(
+                self, "Hoàn tất",
+                f"{message}\n\nLưu ý: web công khai chỉ hiện đúng file này sau khi bạn bấm "
+                "\"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB.",
+            )
         else:
             QMessageBox.warning(self, "Chưa đăng lên web được", message)
 

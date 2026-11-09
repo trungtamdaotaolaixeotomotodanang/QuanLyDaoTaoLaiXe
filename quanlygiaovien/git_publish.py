@@ -16,6 +16,7 @@ FILES_TO_PUBLISH = [
     "docs/files",
     "quanlygiaovien/ten_gv_overrides.json",
     "quanlygiaovien/lich_hoc_overrides.json",
+    "quanlygiaovien/ngay_hoc_overrides.json",
 ]
 
 # Khi chạy từ file .exe đã build (không có console riêng - xem main.spec

@@ -200,8 +200,9 @@ class _FileListPicker(QGroupBox):
 
 class _FileListDetailDialog(QDialog):
     """Hộp thoại xem đầy đủ danh sách file của 1 _FileListPicker - bảng lớn,
-    có scroll, sort được theo cột, mỗi dòng có nút Mở/Xóa riêng - dễ quản lý
-    hơn khung danh sách nhỏ ở ngoài khi có nhiều file."""
+    có scroll, sort được theo cột, mỗi dòng có nút Mở/Xóa riêng, có checkbox
+    chọn nhiều dòng để xóa nhanh (hoặc xóa tất cả) - dễ quản lý hơn khung
+    danh sách nhỏ ở ngoài khi có nhiều file."""
 
     def __init__(self, picker, parent=None):
         super().__init__(parent)
@@ -211,18 +212,32 @@ class _FileListDetailDialog(QDialog):
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
 
         layout = QVBoxLayout(self)
-        self.table = QTableWidget(0, 3)
-        self.table.setHorizontalHeaderLabels(["Tên file", "Thư mục", ""])
+
+        select_row = QHBoxLayout()
+        self.chk_all = QCheckBox("Chọn tất cả")
+        self.chk_all.toggled.connect(self._on_toggle_all)
+        select_row.addWidget(self.chk_all)
+        select_row.addStretch(1)
+        btn_delete_selected = QPushButton("Xóa các mục đã chọn")
+        btn_delete_selected.setObjectName("danger")
+        btn_delete_selected.clicked.connect(self._on_delete_selected)
+        select_row.addWidget(btn_delete_selected)
+        btn_delete_all = QPushButton("Xóa tất cả")
+        btn_delete_all.setObjectName("danger")
+        btn_delete_all.clicked.connect(self._on_delete_all)
+        select_row.addWidget(btn_delete_all)
+        layout.addLayout(select_row)
+
+        self.table = QTableWidget(0, 4)
+        self.table.setHorizontalHeaderLabels(["", "Tên file", "Thư mục", ""])
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.verticalHeader().setVisible(False)
-        self.table.horizontalHeader().setSectionResizeMode(
-            0, QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(
-            2, QHeaderView.ResizeMode.ResizeToContents
-        )
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         layout.addWidget(self.table, 1)
 
         btn_row = QHBoxLayout()
@@ -238,13 +253,21 @@ class _FileListDetailDialog(QDialog):
 
     def _reload(self):
         self.table.setSortingEnabled(False)
+        self.chk_all.blockSignals(True)
+        self.chk_all.setChecked(False)
+        self.chk_all.blockSignals(False)
         paths = self.picker.paths()
         self.table.setRowCount(len(paths))
         for row, p in enumerate(paths):
             path_obj = Path(p)
-            self.table.setItem(row, 0, QTableWidgetItem(path_obj.name))
-            self.table.setItem(row, 1, QTableWidgetItem(str(path_obj.parent)))
-            self.table.setCellWidget(row, 2, self._build_actions(p))
+            chk_item = QTableWidgetItem()
+            chk_item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
+            chk_item.setCheckState(Qt.CheckState.Unchecked)
+            chk_item.setData(Qt.ItemDataRole.UserRole, p)
+            self.table.setItem(row, 0, chk_item)
+            self.table.setItem(row, 1, QTableWidgetItem(path_obj.name))
+            self.table.setItem(row, 2, QTableWidgetItem(str(path_obj.parent)))
+            self.table.setCellWidget(row, 3, self._build_actions(p))
         self.table.setSortingEnabled(True)
 
     def _build_actions(self, path):
@@ -258,6 +281,19 @@ class _FileListDetailDialog(QDialog):
         btn_del.clicked.connect(lambda: self._on_delete(path))
         h.addWidget(btn_del)
         return widget
+
+    def _checked_paths(self):
+        paths = []
+        for row in range(self.table.rowCount()):
+            item = self.table.item(row, 0)
+            if item.checkState() == Qt.CheckState.Checked:
+                paths.append(item.data(Qt.ItemDataRole.UserRole))
+        return paths
+
+    def _on_toggle_all(self, checked):
+        state = Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked
+        for row in range(self.table.rowCount()):
+            self.table.item(row, 0).setCheckState(state)
 
     def _on_open(self, path):
         p = Path(path)
@@ -275,6 +311,37 @@ class _FileListDetailDialog(QDialog):
         if confirm != QMessageBox.StandardButton.Yes:
             return
         self.picker.remove_path(path)
+        self._reload()
+
+    def _on_delete_selected(self):
+        paths = self._checked_paths()
+        if not paths:
+            QMessageBox.information(self, "Chưa chọn file nào", "Hãy tick chọn ít nhất 1 file ở cột đầu bảng.")
+            return
+        ten_file = "\n".join(f"- {Path(p).name}" for p in paths)
+        confirm = QMessageBox.question(
+            self, "Xác nhận",
+            f"Bỏ {len(paths)} file đã chọn khỏi danh sách này?\n{ten_file}\n\n"
+            "(Chỉ bỏ khỏi danh sách đang chọn trong app, không xóa file gốc trên máy.)",
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        for p in paths:
+            self.picker.remove_path(p)
+        self._reload()
+
+    def _on_delete_all(self):
+        total = self.table.rowCount()
+        if not total:
+            return
+        confirm = QMessageBox.question(
+            self, "Xác nhận",
+            f"Bỏ TẤT CẢ {total} file khỏi danh sách này?\n\n"
+            "(Chỉ bỏ khỏi danh sách đang chọn trong app, không xóa file gốc trên máy.)",
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        self.picker.set_paths([])
         self._reload()
 
 
@@ -625,6 +692,7 @@ class CapNhatWebTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.worker = None
+        self.last_result = None
         self._build_ui()
         self._load_sources()
 
@@ -723,12 +791,22 @@ class CapNhatWebTab(QWidget):
                 "theo mã GV chính thức (DSGV), không đổi giữa các lần cập nhật."
             )
         )
+        publish_row = QHBoxLayout()
         self.btn_publish = QPushButton(
             _icon(self, QStyle.StandardPixmap.SP_ArrowUp), "Cập nhật && Đăng lên web"
         )
         self.btn_publish.setObjectName("primary")
         self.btn_publish.clicked.connect(self._on_publish_clicked)
-        box_layout.addWidget(self.btn_publish)
+        publish_row.addWidget(self.btn_publish, 1)
+        self.btn_view_last_result = QPushButton("Xem lại kết quả/cảnh báo...")
+        self.btn_view_last_result.setToolTip(
+            "Mở lại hộp thoại kết quả + cảnh báo của lần \"Cập nhật && Đăng lên web\" gần "
+            "nhất trong phiên làm việc này."
+        )
+        self.btn_view_last_result.setEnabled(False)
+        self.btn_view_last_result.clicked.connect(self._on_view_last_result)
+        publish_row.addWidget(self.btn_view_last_result)
+        box_layout.addLayout(publish_row)
 
         self.log = QTextEdit()
         self.log.setReadOnly(True)
@@ -799,6 +877,8 @@ class CapNhatWebTab(QWidget):
     def _on_done(self, result):
         self.btn_publish.setEnabled(True)
         self.btn_publish.setText("Cập nhật && Đăng lên web")
+        self.last_result = result
+        self.btn_view_last_result.setEnabled(True)
 
         log_lines = [
             f"Đã xử lý xong lúc {result['generated_at']} "
@@ -814,6 +894,10 @@ class CapNhatWebTab(QWidget):
         self.data_published.emit()
 
         _PublishResultDialog(result, self).exec()
+
+    def _on_view_last_result(self):
+        if self.last_result:
+            _PublishResultDialog(self.last_result, self).exec()
 
     def _on_error(self, message):
         self.btn_publish.setEnabled(True)

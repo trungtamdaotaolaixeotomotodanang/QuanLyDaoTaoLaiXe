@@ -59,6 +59,12 @@ LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> T�
 # đối) và commit qua git (giống ten_gv_overrides.json) nên dùng chung được
 # giữa các máy - máy nào cũng cần có 1 file tên này trong "lich_hoc_files"
 # (data_sources.json) của máy đó thì mới áp dụng được.
+NGAY_HOC_OVERRIDES_FILE = APP_DIR / "ngay_hoc_overrides.json"  # mã khóa -> {tu_ngay,
+# den_ngay} gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_override)
+# - chỉ áp dụng khi file Excel "Sổ phân công GV" KHÔNG có ngày (convert_excel_to_json.
+# _find_period trả về rỗng); file Excel vẫn luôn là nguồn chính, sửa đúng Excel rồi
+# "Tải lại từ Excel"/"Cập nhật && Đăng lên web" thì override tự hết tác dụng. Commit
+# qua git (giống ten_gv_overrides.json) nên dùng chung được giữa các máy.
 PHOTOS_DIR = APP_DIR / "anh_gv"  # ảnh đại diện giáo viên - lưu local, bản resize sẽ copy sang docs/files
 GV_EXTRA_FILE = APP_DIR / "giao_vien_extra.json"  # hạng lái xe dạy - tách khỏi DSGV, lưu local theo MaGV
 XE_EXTRA_FILE = APP_DIR / "xe_extra.json"  # link giấy tờ xe (nhập tay) - lưu local theo biển số chuẩn hoá
@@ -208,6 +214,55 @@ def set_ten_gv_override(ten_goc, value):
     save_ten_gv_overrides(data)
 
     return git_publish.push_public_data(f"Xử lý tên giáo viên không khớp: '{ten_goc}' -> '{value}'")
+
+
+def load_ngay_hoc_overrides():
+    if NGAY_HOC_OVERRIDES_FILE.exists():
+        return json.loads(NGAY_HOC_OVERRIDES_FILE.read_text(encoding="utf-8"))
+    return {}
+
+
+def save_ngay_hoc_overrides(data):
+    NGAY_HOC_OVERRIDES_FILE.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def set_ngay_hoc_override(ma_khoa, tu_ngay, den_ngay):
+    """Gán tay ngày bắt đầu/kết thúc cho 1 khóa (xem tab PHÂN XE - nút "Xem
+    chi tiết..."), dùng khi file Excel "Sổ phân công GV" chưa có ngày. Đăng
+    lên web ngay (giống set_ten_gv_override) để máy khác cũng thấy, không
+    cần đợi lần "Cập nhật && Đăng lên web" kế tiếp. Trả về (ok, message)."""
+    ok, err = git_publish.sync_from_remote()
+    if not ok:
+        return False, err
+
+    data = load_ngay_hoc_overrides()
+    data[ma_khoa] = {"tu_ngay": tu_ngay, "den_ngay": den_ngay}
+    save_ngay_hoc_overrides(data)
+
+    return git_publish.push_public_data(f"Cập nhật thời gian khóa {ma_khoa}: {tu_ngay} - {den_ngay}")
+
+
+def replace_course_in_data_json(new_course):
+    """Thay dữ liệu 1 khóa trong data.json bằng bản vừa đọc lại từ file
+    Excel nguồn của khóa đó (xem tab PHÂN XE - nút "Tải lại từ Excel",
+    convert_excel_to_json.load_course_from_file) - chỉ cập nhật data.json
+    cục bộ (máy này dùng để hiển thị), KHÔNG đụng tới docs/ (web công khai)
+    - vẫn cần bấm "Cập nhật && Đăng lên web" ở tab CẬP NHẬT WEB để đăng
+    thay đổi này lên web."""
+    data_json_path = APP_DIR / "data.json"
+    raw = json.loads(data_json_path.read_text(encoding="utf-8"))
+    courses = raw.get("courses", [])
+    for i, c in enumerate(courses):
+        if c.get("ma_khoa") == new_course["ma_khoa"]:
+            courses[i] = new_course
+            break
+    else:
+        courses.append(new_course)
+    data_json_path.write_text(
+        json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 # ---------------- nguồn dữ liệu (data_sources.json) ----------------
@@ -449,6 +504,20 @@ def run_pipeline(sources=None):
 
     data_json_path = APP_DIR / "data.json"
     data, overwritten = convert_excel_to_json.build_data(bien_che_files, ket_qua_thi=ket_qua_thi)
+
+    # Khóa nào Excel không ghi ngày bắt đầu/kết thúc thì dùng tạm ngày đã
+    # gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_override)
+    # - Excel luôn ưu tiên hơn, sửa đúng Excel thì ghi đè lại override này.
+    ngay_hoc_overrides = load_ngay_hoc_overrides()
+    for c in data["courses"]:
+        override = ngay_hoc_overrides.get(c["ma_khoa"])
+        if not override:
+            continue
+        if not c.get("tu_ngay"):
+            c["tu_ngay"] = override.get("tu_ngay", "")
+        if not c.get("den_ngay"):
+            c["den_ngay"] = override.get("den_ngay", "")
+
     data_json_path.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
