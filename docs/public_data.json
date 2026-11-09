@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-07T06:48:00",
+  "generated_at": "2026-11-09T12:47:10",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
       "dien_thoai": "0935323555",
       "ngay_sinh": "27/04/1976",
-      "dia_chi": "52 Vũ Miên, Phường Hòa Xuân, Thành phố Đà Nẵng",
+      "dia_chi": "Phường Hòa Xuân, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [],
       "ho_so_file": "files/ho_so_gv/48002001.pdf",
@@ -95,7 +95,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262038.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
         },
         {
@@ -147,7 +147,7 @@
               "ngay_tot_nghiep": "05/09/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1005.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1378ba10-6a6f-4095-8d18-2570f7e9f635"
         },
         {
@@ -189,7 +189,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1378ba10-6a6f-4095-8d18-2570f7e9f635"
         }
       ],
@@ -368,200 +368,6 @@
       "ho_so_file": "files/ho_so_gv/48002007.pdf",
       "anh_file": null
     },
-    "48002008": {
-      "ten": "Trần Viết Duy",
-      "dien_thoai": "SĐT: 0914453359",
-      "ngay_sinh": "11/08/1972",
-      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
-      "hang_lai_xe": "D",
-      "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K26C0004",
-          "lop": "NHCK0326",
-          "tu_ngay": "",
-          "den_ngay": "",
-          "xe": "43C16531",
-          "so_hoc_vien": 7,
-          "hoc_vien": [
-            {
-              "ten": "HỒ VĂN TUẤN ANH (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "PHẠM CÔNG BẰNG (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "12/09/2026"
-            },
-            {
-              "ten": "HUỲNH CÔNG BẢO (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "TRẦN NGỌC HƯNG (C1->C)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "ĐOÀN XUÂN MỸ (C1->C)",
-              "ket_qua_thi": "",
-              "ngay_tot_nghiep": ""
-            },
-            {
-              "ten": "HỒ VĂN NHÂM (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "12/09/2026"
-            },
-            {
-              "ten": "NGUYỄN QUÁNG (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            }
-          ],
-          "lich_hoc_pdf": null,
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
-        },
-        {
-          "ma_khoa": "48002K26C0004",
-          "lop": "NHCK0326",
-          "tu_ngay": "",
-          "den_ngay": "",
-          "xe": "43C16531",
-          "so_hoc_vien": 7,
-          "hoc_vien": [
-            {
-              "ten": "PHAN QUỐC TAM (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "PHẠM VĂN TẤN (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "LƯU VĂN THẨN (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "NGUYỄN THÀNH (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "LÊ TẤN THỨC (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "NGUYỄN VĂN VINH (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            },
-            {
-              "ten": "BLING YẾU (C1->C)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "31/7/2026"
-            }
-          ],
-          "lich_hoc_pdf": null,
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
-        },
-        {
-          "ma_khoa": "48002K26D0007&48002K26D0008",
-          "lop": "NHDK0426",
-          "tu_ngay": "",
-          "den_ngay": "",
-          "xe": "43B03663",
-          "so_hoc_vien": 9,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN VĂN BA (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "ĐỖ VĂN BÌNH (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "A LĂNG BLỐT (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "VÕ NHƯ CHINH (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "NGUYỄN ANH DŨNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "NGUYỄN NGỌC HẬU (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "LÝ VĂN HÙNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "26/06/2026"
-            },
-            {
-              "ten": "VÕ HUY HÙNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "NGUYỄN QUỐC LĨNH (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            }
-          ],
-          "lich_hoc_pdf": null,
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
-        },
-        {
-          "ma_khoa": "48002K26D0007&48002K26D0008",
-          "lop": "NHDK0426",
-          "tu_ngay": "",
-          "den_ngay": "",
-          "xe": "43B03663",
-          "so_hoc_vien": 4,
-          "hoc_vien": [
-            {
-              "ten": "THÂN NGUYỄN PHƯƠNG NAM (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "PHÙNG THẮNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "ĐỒNG PHƯỚC VÂN (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "TRẦN NGỌC TIÊN (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "26/06/2026"
-            }
-          ],
-          "lich_hoc_pdf": null,
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
-        }
-      ],
-      "ho_so_file": "files/ho_so_gv/48002008.pdf",
-      "anh_file": null
-    },
     "48002009": {
       "ten": "Lê Văn Đông",
       "dien_thoai": "0903 522250",
@@ -693,7 +499,7 @@
               "ngay_tot_nghiep": "21/06/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C0003.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
         },
         {
@@ -762,7 +568,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d134250-3192-41f1-b96f-251528c0fc28"
         }
       ],
@@ -853,7 +659,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262038.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/fc0ce0de-5d85-42a0-8267-a86895c335bb"
         },
         {
@@ -900,7 +706,7 @@
               "ngay_tot_nghiep": "05/09/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1005.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d134250-3192-41f1-b96f-251528c0fc28"
         },
         {
@@ -942,7 +748,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d134250-3192-41f1-b96f-251528c0fc28"
         }
       ],
@@ -1029,16 +835,6 @@
       "ho_so_file": "files/ho_so_gv/48002014.pdf",
       "anh_file": null
     },
-    "48002015": {
-      "ten": "Hồ Kỳ Hải",
-      "dien_thoai": "",
-      "ngay_sinh": "02/04/1965",
-      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
-      "hang_lai_xe": "C1",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002015.pdf",
-      "anh_file": null
-    },
     "48002016": {
       "ten": "Nguyễn Thanh Hải",
       "dien_thoai": "",
@@ -1090,7 +886,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/e81faf75-9f1a-4b63-8c70-032e71d8c435"
         },
         {
@@ -1191,7 +987,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/e81faf75-9f1a-4b63-8c70-032e71d8c435"
         },
         {
@@ -1228,7 +1024,7 @@
               "ngay_tot_nghiep": "05/09/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/e81faf75-9f1a-4b63-8c70-032e71d8c435"
         }
       ],
@@ -1398,7 +1194,7 @@
               "ngay_tot_nghiep": "21/06/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C0003.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
         },
         {
@@ -1445,7 +1241,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1005.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d5d10429-cbab-43c6-abc9-31961a770e95"
         },
         {
@@ -1497,7 +1293,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d5d10429-cbab-43c6-abc9-31961a770e95"
         }
       ],
@@ -1555,7 +1351,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/7101fcfc-1884-4b49-a404-72b0ada8aa8a"
         },
         {
@@ -1582,7 +1378,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/7101fcfc-1884-4b49-a404-72b0ada8aa8a"
         },
         {
@@ -1614,7 +1410,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/7101fcfc-1884-4b49-a404-72b0ada8aa8a"
         }
       ],
@@ -1672,7 +1468,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262038.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/fc0ce0de-5d85-42a0-8267-a86895c335bb"
         },
         {
@@ -1724,7 +1520,7 @@
               "ngay_tot_nghiep": "05/09/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1005.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/546adcde-7361-4214-b13b-e31d034aef6e"
         },
         {
@@ -1766,7 +1562,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/546adcde-7361-4214-b13b-e31d034aef6e"
         }
       ],
@@ -1847,7 +1643,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/970de159-c16f-4bad-9794-a8ff6c966075"
         },
         {
@@ -1906,7 +1702,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/970de159-c16f-4bad-9794-a8ff6c966075"
         },
         {
@@ -1970,7 +1766,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ba26cf9f-9c7c-4dc1-93e3-a8f30b21fed0"
         }
       ],
@@ -2063,7 +1859,7 @@
               "ngay_tot_nghiep": "22/04/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2005&D2006.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2110,7 +1906,7 @@
               "ngay_tot_nghiep": "31/5/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2011&D2012.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2157,7 +1953,7 @@
               "ngay_tot_nghiep": "08/6/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2011&D2012.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2219,7 +2015,7 @@
               "ngay_tot_nghiep": "15/7/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2016&D2017&D2018.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2281,7 +2077,7 @@
               "ngay_tot_nghiep": "15/7/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2016&D2017&D2018.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2328,7 +2124,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2020&D2021.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2380,7 +2176,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2020&D2021.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2427,7 +2223,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2025&D2026.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         },
         {
@@ -2479,7 +2275,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2025&D2026.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
         }
       ],
@@ -2552,7 +2348,7 @@
               "ngay_tot_nghiep": "24/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262035.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2604,7 +2400,7 @@
               "ngay_tot_nghiep": "24/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262035.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2641,7 +2437,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262049&K262050.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2683,7 +2479,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262049&K262050.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2730,7 +2526,7 @@
               "ngay_tot_nghiep": "08/05/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2007&D2008.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2772,7 +2568,7 @@
               "ngay_tot_nghiep": "08/05/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2007&D2008.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2819,7 +2615,7 @@
               "ngay_tot_nghiep": "14/6/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2013&D2014&D2015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2866,7 +2662,7 @@
               "ngay_tot_nghiep": "14/6/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2013&D2014&D2015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2928,7 +2724,7 @@
               "ngay_tot_nghiep": "31/7/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2019.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -2990,7 +2786,7 @@
               "ngay_tot_nghiep": "31/7/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2019.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/67aa6a5e-4be1-4bab-bca1-de727404552b"
         },
         {
@@ -3132,7 +2928,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/db1ec6da-7310-4867-a2c0-f63ceccf7191"
         },
         {
@@ -3208,7 +3004,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/db1ec6da-7310-4867-a2c0-f63ceccf7191"
         },
         {
@@ -3235,7 +3031,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/db1ec6da-7310-4867-a2c0-f63ceccf7191"
         }
       ],
@@ -3273,7 +3069,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/e1900d92-c412-43d0-9ba9-ddd623426e3f"
         },
         {
@@ -3339,7 +3135,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/e1900d92-c412-43d0-9ba9-ddd623426e3f"
         }
       ],
@@ -3934,7 +3730,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1004.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d376c53-122b-4b7c-9dc5-4dcca0a88021"
         },
         {
@@ -3986,7 +3782,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1006.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4d376c53-122b-4b7c-9dc5-4dcca0a88021"
         }
       ],
@@ -4039,7 +3835,7 @@
               "ngay_tot_nghiep": "24/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262034.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
@@ -4081,7 +3877,7 @@
               "ngay_tot_nghiep": "24/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262034.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
@@ -4123,7 +3919,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262048.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
@@ -4165,7 +3961,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262048.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1ab1066b-00ba-4df7-89c5-7a690331c28d"
         },
         {
@@ -4561,7 +4357,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2005&D2006.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4608,7 +4404,7 @@
               "ngay_tot_nghiep": "31/5/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2011&D2012.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4655,7 +4451,7 @@
               "ngay_tot_nghiep": "31/5/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2011&D2012.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4717,7 +4513,7 @@
               "ngay_tot_nghiep": "15/7/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2016&D2017&D2018.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4779,7 +4575,7 @@
               "ngay_tot_nghiep": "15/7/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2016&D2017&D2018.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4826,7 +4622,7 @@
               "ngay_tot_nghiep": "05/09/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2020&D2021.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4878,7 +4674,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2020&D2021.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4925,7 +4721,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2025&D2026.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         },
         {
@@ -4972,7 +4768,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D2025&D2026.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
         }
       ],
@@ -5020,7 +4816,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/8075bf34-ab7c-406a-997b-1b51457289c7"
         },
         {
@@ -5052,7 +4848,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/8075bf34-ab7c-406a-997b-1b51457289c7"
         },
         {
@@ -5089,7 +4885,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/8075bf34-ab7c-406a-997b-1b51457289c7"
         }
       ],
@@ -5180,7 +4976,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/0c161b32-9d7f-47e8-80ac-b179f7566d99"
         },
         {
@@ -5291,7 +5087,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/0c161b32-9d7f-47e8-80ac-b179f7566d99"
         },
         {
@@ -5328,7 +5124,7 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/0c161b32-9d7f-47e8-80ac-b179f7566d99"
         }
       ],
@@ -5376,7 +5172,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262038.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
         },
         {
@@ -5423,7 +5219,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1005.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ba26cf9f-9c7c-4dc1-93e3-a8f30b21fed0"
         },
         {
@@ -5465,7 +5261,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ba26cf9f-9c7c-4dc1-93e3-a8f30b21fed0"
         }
       ],
@@ -5513,7 +5309,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/c1adae53-9e8c-46aa-adbb-0974611d1102"
         }
       ],
@@ -5635,7 +5431,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1004.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/f424a133-ef37-4788-8304-894b2c043768"
         },
         {
@@ -5687,7 +5483,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1006.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/f424a133-ef37-4788-8304-894b2c043768"
         }
       ],
@@ -5847,7 +5643,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1004.pdf",
           "giay_to_xe_link": null
         },
         {
@@ -5879,7 +5675,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1378ba10-6a6f-4095-8d18-2570f7e9f635"
         }
       ],
@@ -5979,7 +5775,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1004.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d65fced0-b282-42af-810e-9148254d86dd"
         },
         {
@@ -6031,7 +5827,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1006.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d65fced0-b282-42af-810e-9148254d86dd"
         }
       ],
@@ -6154,7 +5950,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1007.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/546adcde-7361-4214-b13b-e31d034aef6e"
         }
       ],
@@ -6192,7 +5988,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/89dc7ce7-47bf-487c-b808-c59ae48406b5"
         },
         {
@@ -6273,7 +6069,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/89dc7ce7-47bf-487c-b808-c59ae48406b5"
         }
       ],
@@ -6373,7 +6169,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1004.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d4d580f1-3e01-465b-98f8-53469d397c13"
         },
         {
@@ -6425,7 +6221,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26C1006.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d4d580f1-3e01-465b-98f8-53469d397c13"
         }
       ],
@@ -6478,7 +6274,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D0007&48002K26D0008.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
@@ -6540,7 +6336,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D0011&48002K26D0012.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
@@ -6602,7 +6398,7 @@
               "ngay_tot_nghiep": "13/8/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D0011&48002K26D0012.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
@@ -6664,7 +6460,7 @@
               "ngay_tot_nghiep": "07/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D0015&48002K26D0016.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         },
         {
@@ -6726,7 +6522,7 @@
               "ngay_tot_nghiep": "07/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26D0015&48002K26D0016.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
         }
       ],
@@ -6774,7 +6570,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262015.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d5e566a2-d00e-41c8-9c41-1fa0fb6a9ce9"
         },
         {
@@ -6838,7 +6634,7 @@
               "ngay_tot_nghiep": "01/10/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0110.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d5e566a2-d00e-41c8-9c41-1fa0fb6a9ce9"
         },
         {
@@ -6875,21 +6671,11 @@
               "ngay_tot_nghiep": "21/08/2026"
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K26B0111.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/d5e566a2-d00e-41c8-9c41-1fa0fb6a9ce9"
         }
       ],
       "ho_so_file": "files/ho_so_gv/48002057.pdf",
-      "anh_file": null
-    },
-    "48002058": {
-      "ten": "Trần Thị Ái Vân",
-      "dien_thoai": "0917672579",
-      "ngay_sinh": "05/10/1977",
-      "dia_chi": "Phường Thanh Khê, Thành phố Đà Nẵng",
-      "hang_lai_xe": "A1",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002058.pdf",
       "anh_file": null
     },
     "48002059": {
@@ -7258,6 +7044,26 @@
         }
       ],
       "ho_so_file": "files/ho_so_gv/48002064.pdf",
+      "anh_file": null
+    },
+    "48002065": {
+      "ten": "Phan Đức Nguyên Vũ",
+      "dien_thoai": "",
+      "ngay_sinh": "24/10/1983",
+      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
+      "hang_lai_xe": "",
+      "khoa_dang_day": [],
+      "ho_so_file": "files/ho_so_gv/48002065.pdf",
+      "anh_file": null
+    },
+    "48002066": {
+      "ten": "Nguyễn Trường Sa",
+      "dien_thoai": "",
+      "ngay_sinh": "24/10/1978",
+      "dia_chi": "Phường Hòa Cường, Thành phố Đà Nẵng",
+      "hang_lai_xe": "",
+      "khoa_dang_day": [],
+      "ho_so_file": "files/ho_so_gv/48002066.pdf",
       "anh_file": null
     }
   },
