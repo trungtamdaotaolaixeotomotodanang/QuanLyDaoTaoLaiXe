@@ -7,6 +7,7 @@ from PySide6.QtPdfWidgets import QPdfView
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
+    QFileDialog,
     QHBoxLayout,
     QHeaderView,
     QLabel,
@@ -25,20 +26,21 @@ from style import icon as _icon
 
 
 class _LichHocDetailDialog(QDialog):
-    """Hộp thoại tổng quan toàn bộ khóa - thư mục chứa file lịch học khớp
-    với khóa đó (nếu có) - để xem nhanh khóa nào đã có/thiếu file, và mở
-    thư mục đó ra ngay để thêm/thay file mới mà không cần dò tay qua
-    Explorer."""
+    """Hộp thoại tổng quan toàn bộ khóa - file lịch học khớp với khóa đó
+    (nếu có) - để xem nhanh khóa nào đã có/thiếu file, và gán tay (cập
+    nhật file đúng, hoặc chọn file cho khóa chưa có) ngay tại đây - không
+    phụ thuộc đúng quy ước đặt tên file PDF như so khớp tự động."""
 
-    def __init__(self, courses, lich_hoc_files, parent=None):
+    def __init__(self, lich_hoc_tab, parent=None):
         super().__init__(parent)
+        self.lich_hoc_tab = lich_hoc_tab
         self.setWindowTitle("Thông tin chi tiết - Lịch học thực hành")
         self.resize(760, 480)
 
         layout = QVBoxLayout(self)
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(
-            ["Mã khóa", "Lớp", "Thư mục chứa file lịch học", ""]
+            ["Mã khóa", "Lớp", "File lịch học đang khớp", ""]
         )
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -58,36 +60,47 @@ class _LichHocDetailDialog(QDialog):
         btn_row.addWidget(btn_close)
         layout.addLayout(btn_row)
 
-        self.table.setRowCount(len(courses))
-        for row, c in enumerate(courses):
-            pdf_path = attach_files.find_lich_hoc_pdf(c.get("lop", ""), lich_hoc_files)
-            self.table.setItem(row, 0, QTableWidgetItem(c.get("ma_khoa", "")))
-            self.table.setItem(row, 1, QTableWidgetItem(c.get("lop", "")))
-            folder = str(Path(pdf_path).parent) if pdf_path else "(chưa có file lịch học khớp)"
-            self.table.setItem(row, 2, QTableWidgetItem(folder))
-            self.table.setCellWidget(row, 3, self._build_action(pdf_path))
+        self._reload_table()
         self.table.setSortingEnabled(True)
 
-    def _build_action(self, pdf_path):
+    def _reload_table(self):
+        self.table.setSortingEnabled(False)
+        courses = self.lich_hoc_tab.model.all_courses()
+        self.table.setRowCount(len(courses))
+        for row, c in enumerate(courses):
+            ma_khoa, lop = c.get("ma_khoa", ""), c.get("lop", "")
+            pdf_path = attach_files.resolve_lich_hoc_pdf(
+                ma_khoa, lop, self.lich_hoc_tab.lich_hoc_files, self.lich_hoc_tab.lich_hoc_overrides
+            )
+            self.table.setItem(row, 0, QTableWidgetItem(ma_khoa))
+            self.table.setItem(row, 1, QTableWidgetItem(lop))
+            ten_file = Path(pdf_path).name if pdf_path else "(chưa có file lịch học khớp)"
+            self.table.setItem(row, 2, QTableWidgetItem(ten_file))
+            self.table.setCellWidget(row, 3, self._build_action(ma_khoa, pdf_path))
+        self.table.setSortingEnabled(True)
+
+    def _build_action(self, ma_khoa, pdf_path):
         widget = QWidget()
         h = QHBoxLayout(widget)
         h.setContentsMargins(4, 2, 4, 2)
-        btn = QPushButton("Mở thư mục")
-        if pdf_path:
-            btn.clicked.connect(lambda: self._on_open_folder(pdf_path))
-        else:
-            btn.setEnabled(False)
+        btn = QPushButton("Cập nhật..." if pdf_path else "Chọn file...")
+        btn.clicked.connect(lambda: self._on_update(ma_khoa, pdf_path))
         h.addWidget(btn)
         return widget
 
-    def _on_open_folder(self, pdf_path):
-        folder = Path(pdf_path).parent
-        if not folder.exists():
-            QMessageBox.warning(
-                self, "Không tìm thấy thư mục", f"Thư mục không còn tồn tại:\n{folder}"
-            )
+    def _on_update(self, ma_khoa, old_pdf_path):
+        start_dir = str(Path(old_pdf_path).parent) if old_pdf_path else ""
+        new_path, _ = QFileDialog.getOpenFileName(
+            self, f"Chọn file lịch học - {ma_khoa}", start_dir, "PDF Files (*.pdf)"
+        )
+        if not new_path:
             return
-        QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
+        overrides = publish_data.load_lich_hoc_overrides()
+        overrides[ma_khoa] = new_path
+        publish_data.save_lich_hoc_overrides(overrides)
+        self.lich_hoc_tab.lich_hoc_overrides = overrides
+        self._reload_table()
+        self.lich_hoc_tab._on_course_changed(self.lich_hoc_tab.cbo_course.currentIndex())
 
 
 class LichHocTab(QWidget):
@@ -99,6 +112,7 @@ class LichHocTab(QWidget):
         super().__init__(parent)
         self.model = model
         self.lich_hoc_files = publish_data.load_data_sources().get("lich_hoc_files", [])
+        self.lich_hoc_overrides = publish_data.load_lich_hoc_overrides()
         self.current_pdf_path = None
         self._build_ui()
         self._load_courses()
@@ -119,8 +133,8 @@ class LichHocTab(QWidget):
             _icon(self, QStyle.StandardPixmap.SP_FileDialogDetailedView), "Thông tin chi tiết..."
         )
         self.btn_detail.setToolTip(
-            "Xem tổng quan mọi khóa và thư mục chứa file lịch học khớp với khóa đó - "
-            "mở thư mục ra để thêm/thay file mới nhanh hơn."
+            "Xem tổng quan mọi khóa và file lịch học khớp với khóa đó - cập nhật "
+            "lại file đúng, hoặc chọn file cho khóa chưa có, ngay tại đây."
         )
         self.btn_detail.clicked.connect(self._open_detail_dialog)
         top.addWidget(self.btn_detail)
@@ -148,6 +162,7 @@ class LichHocTab(QWidget):
         đang chọn nếu còn tồn tại, luôn vẽ lại để không còn PDF cũ."""
         ma_khoa_truoc = self.cbo_course.currentData()
         self.lich_hoc_files = publish_data.load_data_sources().get("lich_hoc_files", [])
+        self.lich_hoc_overrides = publish_data.load_lich_hoc_overrides()
         self._load_courses()
         idx = self.cbo_course.findData(ma_khoa_truoc) if ma_khoa_truoc else -1
         if idx >= 0:
@@ -167,7 +182,9 @@ class LichHocTab(QWidget):
         self.lbl_summary.setText(
             f"Lớp {course['lop']} | Thời gian: {course['tu_ngay']} → {course['den_ngay']}"
         )
-        pdf_path = attach_files.find_lich_hoc_pdf(course.get("lop", ""), self.lich_hoc_files)
+        pdf_path = attach_files.resolve_lich_hoc_pdf(
+            ma_khoa, course.get("lop", ""), self.lich_hoc_files, self.lich_hoc_overrides
+        )
         self._show_pdf(pdf_path)
 
     def _show_pdf(self, pdf_path):
@@ -185,5 +202,5 @@ class LichHocTab(QWidget):
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.current_pdf_path)))
 
     def _open_detail_dialog(self):
-        dlg = _LichHocDetailDialog(self.model.all_courses(), self.lich_hoc_files, self)
+        dlg = _LichHocDetailDialog(self, self)
         dlg.exec()

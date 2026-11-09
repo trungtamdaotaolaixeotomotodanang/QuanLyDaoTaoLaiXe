@@ -85,7 +85,11 @@ def find_teacher_candidates(name, dsgv):
 
 def find_lich_hoc_pdf(lop, candidate_files):
     """Tìm file lịch học PDF theo mã lớp (vd "BK0726") trong 1 danh sách
-    file PDF đã chọn sẵn (không tự quét thư mục)."""
+    file PDF đã chọn sẵn (không tự quét thư mục). "lop" có thể kèm hạng
+    sau dấu phẩy (vd "NHCEK1126,C-CE" - xem quy ước ở README/load_ket_qua_thi)
+    - chỉ dùng phần mã lớp trước dấu phẩy để so khớp tên file, phần hạng
+    không nằm trong tên file PDF."""
+    lop = (lop or "").split(",")[0]
     code = normalize_plate(lop)  # chỉ dùng để bỏ dấu cách/ký tự đặc biệt
     if not code:
         return None
@@ -94,6 +98,16 @@ def find_lich_hoc_pdf(lop, candidate_files):
         if code in normalize_plate(f.stem):
             return f
     return None
+
+
+def resolve_lich_hoc_pdf(ma_khoa, lop, candidate_files, overrides=None):
+    """Tìm file lịch học cho 1 khóa: ưu tiên file đã gán tay theo mã khóa
+    (overrides - xem publish_data.load_lich_hoc_overrides, tab LỊCH HỌC nút
+    "Cập nhật"/"Chọn file") vì không phụ thuộc đúng quy ước đặt tên file;
+    chưa gán tay thì mới tự so khớp theo mã lớp như find_lich_hoc_pdf()."""
+    if overrides and ma_khoa in overrides:
+        return Path(overrides[ma_khoa])
+    return find_lich_hoc_pdf(lop, candidate_files)
 
 
 def find_xe_doc(xe_bien_so, folder):

@@ -76,7 +76,9 @@ nhánh `main`, thư mục `/docs`.
    file PDF/Word của khóa/giáo viên không còn hoạt động.
 5. **Với mỗi khóa đang "Đang đào tạo"** (`DataModel.status_of` so ngày
    hệ thống với `tu_ngay`/`den_ngay`):
-   - Ghép lịch học PDF theo mã lớp (`attach_files.find_lich_hoc_pdf`).
+   - Ghép lịch học PDF: ưu tiên file gán tay theo mã khóa (tab LỊCH HỌC -
+     `lich_hoc_overrides.json`), chưa gán tay thì tự so khớp theo mã lớp
+     (`attach_files.resolve_lich_hoc_pdf` / `find_lich_hoc_pdf`).
    - Với mỗi nhóm học viên: khớp tên GV với DSGV
      (không khớp được → cảnh báo, **bỏ qua nhóm đó** khỏi public data);
      khớp biển số với DSXTL (không có → cảnh báo nhưng vẫn giữ);

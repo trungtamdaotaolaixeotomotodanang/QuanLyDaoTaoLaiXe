@@ -51,6 +51,12 @@ QR_DIR = APP_DIR / "qr_codes"
 QR_CAPTIONS_FILE = QR_DIR / "_captions.json"
 APP_SETTINGS_FILE = APP_DIR / "app_settings.json"
 DATA_SOURCES_FILE = APP_DIR / "data_sources.json"
+LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> đường
+# dẫn file lịch học PDF gán tay (xem tab LỊCH HỌC - nút "Cập nhật"/"Chọn
+# file") - ưu tiên hơn so khớp tự động theo mã lớp (attach_files.
+# find_lich_hoc_pdf/resolve_lich_hoc_pdf), để không phụ thuộc đúng quy ước
+# đặt tên file. Chỉ lưu đường dẫn cục bộ trên máy này (giống data_sources.json)
+# - KHÔNG đưa lên git.
 PHOTOS_DIR = APP_DIR / "anh_gv"  # ảnh đại diện giáo viên - lưu local, bản resize sẽ copy sang docs/files
 GV_EXTRA_FILE = APP_DIR / "giao_vien_extra.json"  # hạng lái xe dạy - tách khỏi DSGV, lưu local theo MaGV
 XE_EXTRA_FILE = APP_DIR / "xe_extra.json"  # link giấy tờ xe (nhập tay) - lưu local theo biển số chuẩn hoá
@@ -255,6 +261,21 @@ def save_data_sources(sources):
     )
 
 
+def load_lich_hoc_overrides():
+    """Danh sách file lịch học đã gán tay theo mã khóa (xem
+    LICH_HOC_OVERRIDES_FILE) - tự bỏ những mục mà file không còn tồn tại."""
+    if LICH_HOC_OVERRIDES_FILE.exists():
+        data = json.loads(LICH_HOC_OVERRIDES_FILE.read_text(encoding="utf-8"))
+        return {k: v for k, v in data.items() if Path(v).exists()}
+    return {}
+
+
+def save_lich_hoc_overrides(data):
+    LICH_HOC_OVERRIDES_FILE.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
 # ---------------- QR ----------------
 def _load_caption_font(size):
     import os
@@ -423,6 +444,7 @@ def run_pipeline(sources=None):
     dsxtl_file_name = Path(dsxtl_file).name if dsxtl_file else ""
 
     lich_hoc_files = sources.get("lich_hoc_files") or []
+    lich_hoc_overrides = load_lich_hoc_overrides()
     ho_so_folder = sources.get("ho_so_folder") or ""
     xe_extra = load_xe_extra()
     ten_gv_overrides = load_ten_gv_overrides()
@@ -464,7 +486,7 @@ def run_pipeline(sources=None):
         ma_khoa = c["ma_khoa"]
         lop = c.get("lop", "")
         if is_active and ma_khoa not in lich_hoc_pdf_cache:
-            src = attach_files.find_lich_hoc_pdf(lop, lich_hoc_files)
+            src = attach_files.resolve_lich_hoc_pdf(ma_khoa, lop, lich_hoc_files, lich_hoc_overrides)
             lich_hoc_pdf_cache[ma_khoa] = _copy_public_file(src, "lich_hoc", ma_khoa or lop)
         lich_hoc_pdf = lich_hoc_pdf_cache.get(ma_khoa) if is_active else None
 
@@ -685,9 +707,25 @@ def _save_resized_photo(src_path, dest_path, max_dim=1000):
 
 
 def teacher_photo_path(ma_gv):
-    """Đường dẫn ảnh local hiện tại của 1 giáo viên (None nếu chưa có ảnh)."""
+    """Đường dẫn ảnh local hiện tại của 1 giáo viên (None nếu chưa có ảnh).
+    Nếu máy này chưa có ảnh gốc cục bộ (anh_gv/ - không đưa lên git) nhưng
+    máy khác đã thêm ảnh này rồi đăng lên web (docs/files/anh_gv - CÓ đưa
+    lên git, đã kéo về qua sync_from_remote trước khi gọi hàm này) thì tự
+    chép bản public đó về làm ảnh gốc cục bộ luôn - để máy này xem được
+    trong app và dùng dán ảnh vào QR/thẻ, không cần máy kia gửi ảnh riêng."""
     path = PHOTOS_DIR / f"{ma_gv}.jpg"
-    return path if path.exists() else None
+    if path.exists():
+        return path
+    rec = _load_public_data().get("teachers", {}).get(ma_gv)
+    anh_file = rec.get("anh_file") if rec else None
+    if not anh_file:
+        return None
+    src = DOCS_DIR / anh_file
+    if not src.exists():
+        return None
+    PHOTOS_DIR.mkdir(exist_ok=True)
+    shutil.copy2(src, path)
+    return path
 
 
 def add_teacher_photo(ma_gv, ten, src_path):

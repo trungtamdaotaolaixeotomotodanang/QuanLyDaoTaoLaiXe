@@ -4,6 +4,7 @@ Người dùng không cần biết git: hàm push_public_data() tự làm mọi 
 chỉ commit/push đúng những file được phép public (xem .gitignore).
 """
 import subprocess
+import sys
 
 from runtime_paths import app_dir
 
@@ -16,6 +17,14 @@ FILES_TO_PUBLISH = [
     "quanlygiaovien/ten_gv_overrides.json",
 ]
 
+# Khi chạy từ file .exe đã build (không có console riêng - xem main.spec
+# console=False), subprocess.run spawn "git" sẽ bị Windows tự mở 1 cửa sổ
+# cmd đen mới cho MỖI lệnh (fetch/rebase/add/commit/push) vì không có
+# console nào để gắn vào - cần cờ này để Windows không mở cửa sổ đó. Khi
+# chạy bằng "python main.py" từ terminal thì không bị (đã có console sẵn)
+# nên trước đây không phát hiện ra.
+_CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+
 
 def _run(args):
     return subprocess.run(
@@ -25,6 +34,7 @@ def _run(args):
         text=True,
         encoding="utf-8",
         errors="replace",
+        creationflags=_CREATE_NO_WINDOW,
     )
 
 
