@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-10T09:28:15",
+  "generated_at": "2026-11-10T09:35:31",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
       "dien_thoai": "0935323555",
       "ngay_sinh": "27/04/1976",
-      "dia_chi": "52 Vũ Miên, Phường Hòa Xuân, Thành phố Đà Nẵng",
+      "dia_chi": "Phường Hòa Xuân, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [],
       "ho_so_file": "files/ho_so_gv/48002001.pdf",
@@ -236,16 +236,6 @@
       "ho_so_file": "files/ho_so_gv/48002007.pdf",
       "anh_file": "files/anh_gv/48002007.jpg"
     },
-    "48002008": {
-      "ten": "Trần Viết Duy",
-      "dien_thoai": "",
-      "ngay_sinh": "11/08/1972",
-      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
-      "hang_lai_xe": "D",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002008.pdf",
-      "anh_file": null
-    },
     "48002009": {
       "ten": "Lê Văn Đông",
       "dien_thoai": "0903 522250",
@@ -437,16 +427,6 @@
       ],
       "ho_so_file": "files/ho_so_gv/48002014.pdf",
       "anh_file": "files/anh_gv/48002014.jpg"
-    },
-    "48002015": {
-      "ten": "Hồ Kỳ Hải",
-      "dien_thoai": "",
-      "ngay_sinh": "02/04/1965",
-      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
-      "hang_lai_xe": "C1",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002015.pdf",
-      "anh_file": null
     },
     "48002016": {
       "ten": "Nguyễn Thanh Hải",
@@ -1155,16 +1135,6 @@
       "ho_so_file": "files/ho_so_gv/48002057.pdf",
       "anh_file": "files/anh_gv/48002057.jpg"
     },
-    "48002058": {
-      "ten": "Trần Thị Ái Vân",
-      "dien_thoai": "0917672579",
-      "ngay_sinh": "05/10/1977",
-      "dia_chi": "Phường Thanh Khê, Thành phố Đà Nẵng",
-      "hang_lai_xe": "A1",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002058.pdf",
-      "anh_file": null
-    },
     "48002059": {
       "ten": "Nguyễn Đức Thành Duy",
       "dien_thoai": "",
@@ -1323,6 +1293,26 @@
       ],
       "ho_so_file": "files/ho_so_gv/48002064.pdf",
       "anh_file": "files/anh_gv/48002064.jpg"
+    },
+    "48002065": {
+      "ten": "Phan Đức Nguyên Vũ",
+      "dien_thoai": "",
+      "ngay_sinh": "24/10/1983",
+      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
+      "hang_lai_xe": "",
+      "khoa_dang_day": [],
+      "ho_so_file": "files/ho_so_gv/48002065.pdf",
+      "anh_file": "files/anh_gv/48002065.jpg"
+    },
+    "48002066": {
+      "ten": "Nguyễn Trường Sa",
+      "dien_thoai": "",
+      "ngay_sinh": "24/10/1978",
+      "dia_chi": "Phường Hòa Cường, Thành phố Đà Nẵng",
+      "hang_lai_xe": "",
+      "khoa_dang_day": [],
+      "ho_so_file": "files/ho_so_gv/48002066.pdf",
+      "anh_file": "files/anh_gv/48002066.jpg"
     }
   },
   "ho_so_password_hash": "9f9ff7dcfae316f727ecfff74d62f388d8cd5a53ca10ecc304b77944bfbc7502"
