@@ -505,18 +505,35 @@ def run_pipeline(sources=None):
     data_json_path = APP_DIR / "data.json"
     data, overwritten = convert_excel_to_json.build_data(bien_che_files, ket_qua_thi=ket_qua_thi)
 
+    warnings = []
+
     # Khóa nào Excel không ghi ngày bắt đầu/kết thúc thì dùng tạm ngày đã
     # gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_override)
     # - Excel luôn ưu tiên hơn, sửa đúng Excel thì ghi đè lại override này.
+    # Khóa nào sau khi áp override vẫn còn thiếu ngày thì báo cảnh báo luôn,
+    # kèm lý do cụ thể (không tìm thấy sheet / không tìm thấy dòng mã khóa /
+    # dữ liệu "Thời gian" sai format - xem convert_excel_to_json._find_period)
+    # để người dùng biết chính xác cần sửa gì trong file Excel.
     ngay_hoc_overrides = load_ngay_hoc_overrides()
     for c in data["courses"]:
         override = ngay_hoc_overrides.get(c["ma_khoa"])
-        if not override:
-            continue
-        if not c.get("tu_ngay"):
-            c["tu_ngay"] = override.get("tu_ngay", "")
-        if not c.get("den_ngay"):
-            c["den_ngay"] = override.get("den_ngay", "")
+        if override:
+            if not c.get("tu_ngay"):
+                c["tu_ngay"] = override.get("tu_ngay", "")
+            if not c.get("den_ngay"):
+                c["den_ngay"] = override.get("den_ngay", "")
+        if not c.get("tu_ngay") or not c.get("den_ngay"):
+            ly_do = c.get("ngay_ly_do") or "Không lấy được ngày bắt đầu/kết thúc."
+            warnings.append({
+                "label": "Thiếu ngày bắt đầu/kết thúc",
+                "file": c.get("source_file", ""),
+                "file_path": c.get("source_file_path", ""),
+                "vi_tri": c.get("ngay_vi_tri", ""),
+                "noi_dung": (
+                    f"Khóa {c['ma_khoa']}: {ly_do} Có thể gán tay ở tab "
+                    "PHÂN XE - \"Xem chi tiết...\" trong lúc chờ sửa Excel."
+                ),
+            })
 
     data_json_path.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -538,8 +555,6 @@ def run_pipeline(sources=None):
     ten_gv_overrides = load_ten_gv_overrides()
 
     name_to_magv = {attach_files.normalize_name(rec["ten"]): magv for magv, rec in dsgv.items()}
-
-    warnings = []
 
     # Sao lưu ảnh đại diện giáo viên ĐÃ ĐĂNG trước khi xoá sạch docs/files/ -
     # để không mất ảnh của giáo viên mà máy này không có file ảnh gốc cục bộ

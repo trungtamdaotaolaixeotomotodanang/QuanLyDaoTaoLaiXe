@@ -26,7 +26,12 @@ import attach_files
 import xls_compat
 
 TITLE_RE = re.compile(r"BI[ÊE]N CH[ẾE] XE KH[ÓO]A\s+(.+?)\s*\(([^)]+)\)", re.UNICODE | re.IGNORECASE)
-PERIOD_RE = re.compile(r"T[ừu]\s*([0-9/]+).*?đ[ếe]n\s*([0-9/]+)", re.UNICODE | re.IGNORECASE | re.DOTALL)
+# Hỗ trợ cả 2 cách ghi "Thời gian" khác nhau giữa các người nhập liệu:
+# "Từ 01/06/2026 ... đến 29/08/2026" và "Từ ngày: 15/07/2026 ... đến ngày: 21/08/2026"
+PERIOD_RE = re.compile(
+    r"T[ừu]\s*(?:ngày\s*:?\s*)?([0-9/]+).*?đ[ếe]n\s*(?:ngày\s*:?\s*)?([0-9/]+)",
+    re.UNICODE | re.IGNORECASE | re.DOTALL,
+)
 
 
 def clean_text(value):
@@ -184,15 +189,38 @@ def _parse_groups(ws, lop="", ket_qua_thi=None):
     return groups
 
 
+def _find_period_sheet_name(wb):
+    """Tên sheet chứa "Thời gian" (Từ ngày...đến ngày...) tùy người nhập liệu
+    có thể ghi khác nhau, ví dụ "Sổ phân công GV" hoặc "SỐ PHÂN CÔNG GV XE
+    TẬP LÁI" - khớp theo từ khóa "PHÂN CÔNG" + "GV"/"GIÁO VIÊN" (không phân
+    biệt hoa/thường) để không bỏ sót tu_ngay/den_ngay khi tên sheet lệch
+    chuẩn."""
+    for name in wb.sheetnames:
+        upper = name.strip().upper()
+        if "PHÂN CÔNG" in upper and ("GV" in upper or "GIÁO VIÊN" in upper):
+            return name
+    return None
+
+
 def _find_period(wb, ma_khoa):
-    """Lấy (tu_ngay, den_ngay) từ sheet 'Sổ phân công GV' theo mã khóa."""
-    if "Sổ phân công GV" not in wb.sheetnames:
-        return "", ""
-    ws = wb["Sổ phân công GV"]
+    """Lấy (tu_ngay, den_ngay, ly_do_thieu, vi_tri) từ sheet "...phân công
+    GV..." theo mã khóa. ly_do_thieu rỗng nghĩa là lấy được đầy đủ; khác rỗng
+    thì giải thích vì sao không lấy được (không có sheet / không có dòng mã
+    khóa / dữ liệu "Thời gian" sai format) để báo rõ trong cảnh báo khi cập
+    nhật web (xem publish_data.run_pipeline)."""
+    sheet_name = _find_period_sheet_name(wb)
+    if sheet_name is None:
+        return (
+            "", "",
+            "Không tìm thấy sheet \"...phân công GV...\" (ví dụ \"Sổ phân "
+            "công GV\" hoặc \"SỐ PHÂN CÔNG GV XE TẬP LÁI\") trong file.",
+            "",
+        )
+    ws = wb[sheet_name]
     header_seen = False
-    for row in ws.iter_rows(values_only=True):
+    for row_num, row in enumerate(ws.iter_rows(values_only=True), start=1):
         if not header_seen:
-            if row and str(row[0] or "").strip() == "Số TT":
+            if row and str(row[0] or "").strip().upper() == "SỐ TT":
                 header_seen = True
             continue
         if len(row) < 4:
@@ -202,8 +230,22 @@ def _find_period(wb, ma_khoa):
             thoi_gian = str(row[2] or "")
             m = PERIOD_RE.search(thoi_gian)
             if m:
-                return m.group(1).strip(), m.group(2).strip()
-    return "", ""
+                return m.group(1).strip(), m.group(2).strip(), "", ""
+            return (
+                "", "",
+                f"Có dòng mã khóa \"{ma_khoa}\" trong sheet \"{sheet_name}\" "
+                f"nhưng cột \"Thời gian\" ghi \"{thoi_gian.strip()}\" không "
+                "đúng format hỗ trợ (cần dạng \"Từ .../.../... đến "
+                ".../.../...\").",
+                f"{sheet_name}!C{row_num}",
+            )
+    return (
+        "", "",
+        f"Không tìm thấy dòng ứng với mã khóa \"{ma_khoa}\" ở cột \"Khoá "
+        f"đào tạo\" trong sheet \"{sheet_name}\" - có thể mã khóa ghi sai/"
+        "khác với tên file.",
+        sheet_name,
+    )
 
 
 def _load_workbook(path):
@@ -230,13 +272,16 @@ def load_course_from_file(path, ket_qua_thi=None):
 
     groups = _parse_groups(ws, lop, ket_qua_thi)
     so_hoc_vien = sum(len(g["hoc_vien"]) for g in groups)
-    tu_ngay, den_ngay = _find_period(wb, ma_khoa)
+    tu_ngay, den_ngay, ngay_ly_do, ngay_vi_tri = _find_period(wb, ma_khoa)
 
     return {
         "ma_khoa": ma_khoa,
         "lop": lop,
         "tu_ngay": tu_ngay,
         "den_ngay": den_ngay,
+        "ngay_ly_do": ngay_ly_do,  # rỗng = lấy được đủ; khác rỗng = giải
+        # thích vì sao không lấy được tu_ngay/den_ngay (xem _find_period)
+        "ngay_vi_tri": ngay_vi_tri,  # sheet/ô liên quan đến ngay_ly_do
         "hv_per_xe": None,
         "so_hoc_vien": so_hoc_vien,
         "groups": groups,

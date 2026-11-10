@@ -481,6 +481,7 @@ class _PublishResultDialog(QDialog):
         self.setWindowTitle(
             "Kết quả cập nhật" if result.get("git_ok") else "Hoàn tất (chưa đăng lên web)"
         )
+        self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
         self.resize(820, 560)
         self._dsgv_teachers = result.get("dsgv_teachers", [])
         self._workers = []
