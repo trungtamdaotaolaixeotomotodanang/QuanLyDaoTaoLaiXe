@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-10T14:05:16",
+  "generated_at": "2026-11-10T14:07:05",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
       "dien_thoai": "0935323555",
       "ngay_sinh": "27/04/1976",
-      "dia_chi": "52 Vũ Miên, Phường Hòa Xuân, Thành phố Đà Nẵng",
+      "dia_chi": "Phường Hòa Xuân, Thành phố Đà Nẵng",
       "hang_lai_xe": "C1",
       "khoa_dang_day": [],
       "ho_so_file": "files/ho_so_gv/48002001.pdf",
@@ -629,106 +629,6 @@
       "ho_so_file": "files/ho_so_gv/48002007.pdf",
       "anh_file": "files/anh_gv/48002007.jpg"
     },
-    "48002008": {
-      "ten": "Trần Viết Duy",
-      "dien_thoai": "SĐT: 0779591353",
-      "ngay_sinh": "11/08/1972",
-      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
-      "hang_lai_xe": "D",
-      "khoa_dang_day": [
-        {
-          "ma_khoa": "48002K26D0007&48002K26D0008",
-          "lop": "NHDK0426",
-          "tu_ngay": "",
-          "den_ngay": "",
-          "xe": "43B03663",
-          "so_hoc_vien": 9,
-          "hoc_vien": [
-            {
-              "ten": "NGUYỄN VĂN BA (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "ĐỖ VĂN BÌNH (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "A LĂNG BLỐT (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "VÕ NHƯ CHINH (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "NGUYỄN ANH DŨNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "NGUYỄN NGỌC HẬU (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "LÝ VĂN HÙNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "26/06/2026"
-            },
-            {
-              "ten": "VÕ HUY HÙNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "NGUYỄN QUỐC LĨNH (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K26D0007&48002K26D0008.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
-        },
-        {
-          "ma_khoa": "48002K26D0007&48002K26D0008",
-          "lop": "NHDK0426",
-          "tu_ngay": "",
-          "den_ngay": "",
-          "xe": "43B03663",
-          "so_hoc_vien": 4,
-          "hoc_vien": [
-            {
-              "ten": "THÂN NGUYỄN PHƯƠNG NAM (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "PHÙNG THẮNG (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "ĐỒNG PHƯỚC VÂN (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "14/6/2026"
-            },
-            {
-              "ten": "TRẦN NGỌC TIÊN (C-D)",
-              "ket_qua_thi": "Đạt",
-              "ngay_tot_nghiep": "26/06/2026"
-            }
-          ],
-          "lich_hoc_pdf": "files/lich_hoc/48002K26D0007&48002K26D0008.pdf",
-          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/504d4d7e-0da4-4221-bdaa-f6ac569a097e"
-        }
-      ],
-      "ho_so_file": "files/ho_so_gv/48002008.pdf",
-      "anh_file": null
-    },
     "48002009": {
       "ten": "Lê Văn Đông",
       "dien_thoai": "0903 522250",
@@ -1323,16 +1223,6 @@
       ],
       "ho_so_file": "files/ho_so_gv/48002014.pdf",
       "anh_file": "files/anh_gv/48002014.jpg"
-    },
-    "48002015": {
-      "ten": "Hồ Kỳ Hải",
-      "dien_thoai": "",
-      "ngay_sinh": "02/04/1965",
-      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
-      "hang_lai_xe": "C1",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002015.pdf",
-      "anh_file": null
     },
     "48002016": {
       "ten": "Nguyễn Thanh Hải",
@@ -8269,16 +8159,6 @@
       "ho_so_file": "files/ho_so_gv/48002057.pdf",
       "anh_file": "files/anh_gv/48002057.jpg"
     },
-    "48002058": {
-      "ten": "Trần Thị Ái Vân",
-      "dien_thoai": "0917672579",
-      "ngay_sinh": "05/10/1977",
-      "dia_chi": "Phường Thanh Khê, Thành phố Đà Nẵng",
-      "hang_lai_xe": "A1",
-      "khoa_dang_day": [],
-      "ho_so_file": "files/ho_so_gv/48002058.pdf",
-      "anh_file": null
-    },
     "48002059": {
       "ten": "Nguyễn Đức Thành Duy",
       "dien_thoai": "",
@@ -8757,6 +8637,26 @@
       ],
       "ho_so_file": "files/ho_so_gv/48002064.pdf",
       "anh_file": "files/anh_gv/48002064.jpg"
+    },
+    "48002065": {
+      "ten": "Phan Đức Nguyên Vũ",
+      "dien_thoai": "",
+      "ngay_sinh": "24/10/1983",
+      "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
+      "hang_lai_xe": "",
+      "khoa_dang_day": [],
+      "ho_so_file": "files/ho_so_gv/48002065.pdf",
+      "anh_file": "files/anh_gv/48002065.jpg"
+    },
+    "48002066": {
+      "ten": "Nguyễn Trường Sa",
+      "dien_thoai": "",
+      "ngay_sinh": "24/10/1978",
+      "dia_chi": "Phường Hòa Cường, Thành phố Đà Nẵng",
+      "hang_lai_xe": "",
+      "khoa_dang_day": [],
+      "ho_so_file": "files/ho_so_gv/48002066.pdf",
+      "anh_file": "files/anh_gv/48002066.jpg"
     }
   },
   "ho_so_password_hash": "9f9ff7dcfae316f727ecfff74d62f388d8cd5a53ca10ecc304b77944bfbc7502"
