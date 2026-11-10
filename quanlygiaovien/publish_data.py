@@ -60,7 +60,7 @@ LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> T�
 # giữa các máy - máy nào cũng cần có 1 file tên này trong "lich_hoc_files"
 # (data_sources.json) của máy đó thì mới áp dụng được.
 NGAY_HOC_OVERRIDES_FILE = APP_DIR / "ngay_hoc_overrides.json"  # mã khóa -> {tu_ngay,
-# den_ngay} gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_override)
+# den_ngay} gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_overrides_bulk)
 # - chỉ áp dụng khi file Excel "Sổ phân công GV" KHÔNG có ngày (convert_excel_to_json.
 # _find_period trả về rỗng); file Excel vẫn luôn là nguồn chính, sửa đúng Excel rồi
 # "Tải lại từ Excel"/"Cập nhật && Đăng lên web" thì override tự hết tác dụng. Commit
@@ -230,7 +230,7 @@ def save_ngay_hoc_overrides(data):
 
 def apply_ngay_hoc_overrides_fallback(courses):
     """Với khóa nào chưa có đủ tu_ngay/den_ngay, dùng tạm ngày đã gán tay
-    (ngay_hoc_overrides.json, xem set_ngay_hoc_override) - Excel luôn ưu
+    (ngay_hoc_overrides.json, xem set_ngay_hoc_overrides_bulk) - Excel luôn ưu
     tiên hơn, sửa đúng Excel thì override này không còn tác dụng. Gọi mỗi
     khi nạp data.json (khởi động app, sau "Tải lại từ Excel"...), không chỉ
     lúc "Cập nhật && Đăng lên web" - để ngày gán tay vẫn hiện lại sau khi
@@ -269,23 +269,32 @@ def _update_course_dates_in_public_data(ma_khoa, tu_ngay, den_ngay):
     return changed
 
 
-def set_ngay_hoc_override(ma_khoa, tu_ngay, den_ngay):
-    """Gán tay ngày bắt đầu/kết thúc cho 1 khóa (xem tab PHÂN XE - nút "Xem
-    chi tiết..."), dùng khi file Excel "Sổ phân công GV" chưa có ngày. Đăng
-    lên web ngay (giống set_ten_gv_override), kể cả sửa luôn docs/
-    public_data.json nếu khóa đang hiển thị công khai - để máy khác/web
-    công khai thấy ngay, không cần đợi lần "Cập nhật && Đăng lên web" kế
-    tiếp. Trả về (ok, message)."""
+def set_ngay_hoc_overrides_bulk(changes):
+    """Gán tay ngày bắt đầu/kết thúc cho NHIỀU khóa cùng lúc (xem tab PHÂN
+    XE - nút "Lưu thay đổi"), dùng khi file Excel "Sổ phân công GV" chưa có
+    ngày. 1 lần đồng bộ + 1 lần đăng web cho tất cả khóa thay đổi (thay vì
+    lặp lại cho từng khóa), kể cả sửa luôn docs/public_data.json cho khóa
+    nào đang hiển thị công khai - để máy khác/web công khai thấy ngay,
+    không cần đợi lần "Cập nhật && Đăng lên web" kế tiếp.
+    changes: dict ma_khoa -> (tu_ngay, den_ngay). Trả về (ok, message)."""
     ok, err = git_publish.sync_from_remote()
     if not ok:
         return False, err
 
     data = load_ngay_hoc_overrides()
-    data[ma_khoa] = {"tu_ngay": tu_ngay, "den_ngay": den_ngay}
+    for ma_khoa, (tu_ngay, den_ngay) in changes.items():
+        data[ma_khoa] = {"tu_ngay": tu_ngay, "den_ngay": den_ngay}
     save_ngay_hoc_overrides(data)
-    _update_course_dates_in_public_data(ma_khoa, tu_ngay, den_ngay)
 
-    return git_publish.push_public_data(f"Cập nhật thời gian khóa {ma_khoa}: {tu_ngay} - {den_ngay}")
+    for ma_khoa, (tu_ngay, den_ngay) in changes.items():
+        _update_course_dates_in_public_data(ma_khoa, tu_ngay, den_ngay)
+
+    if len(changes) == 1:
+        (ma_khoa, (tu_ngay, den_ngay)), = changes.items()
+        message = f"Cập nhật thời gian khóa {ma_khoa}: {tu_ngay} - {den_ngay}"
+    else:
+        message = f"Cập nhật thời gian {len(changes)} khóa"
+    return git_publish.push_public_data(message)
 
 
 def replace_course_in_data_json(new_course):
@@ -552,7 +561,7 @@ def run_pipeline(sources=None):
     warnings = []
 
     # Khóa nào Excel không ghi ngày bắt đầu/kết thúc thì dùng tạm ngày đã
-    # gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_override)
+    # gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_overrides_bulk)
     # - Excel luôn ưu tiên hơn, sửa đúng Excel thì ghi đè lại override này.
     apply_ngay_hoc_overrides_fallback(data["courses"])
 

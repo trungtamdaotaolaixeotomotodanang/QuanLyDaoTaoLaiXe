@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from PySide6.QtCore import QUrl, Qt, QThread, Signal
-from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtGui import QBrush, QColor, QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
     QCompleter,
@@ -60,17 +60,22 @@ class _PhanXeDetailDialog(QDialog):
         self.resize(920, 520)
         self.setWindowFlags(self.windowFlags() | Qt.WindowMaximizeButtonHint)
 
+        self._loading = False
+        self._invalid_cells = set()
+        self._original_dates = {}
+
         layout = QVBoxLayout(self)
         note = QLabel(
             "Sửa trực tiếp \"Ngày bắt đầu\"/\"Ngày kết thúc\" (định dạng dd/mm/yyyy) rồi bấm "
-            "\"Lưu ngày\" - chỉ có tác dụng với khóa mà file Excel chưa có ngày (Excel luôn "
-            "ưu tiên hơn). Dòng tô đỏ là khóa chưa có đủ ngày bắt đầu/kết thúc; ô tô vàng ở "
-            "\"Số học viên\"/\"Số xe/nhóm\"/\"Trạng thái dữ liệu\" là khóa có khả năng file "
-            "Excel bị lỗi/thiếu dữ liệu (0 học viên, 0 xe/nhóm, hoặc có nhóm thiếu xe/giáo "
-            "viên). \"Mở Excel\" để sửa file gốc, \"Tải lại từ Excel\" để đọc lại ngay sau khi "
-            "sửa. Lưu ý: \"Lưu ngày\" đăng lên web công khai ngay (nếu khóa đang hiển thị); "
-            "riêng \"Tải lại từ Excel\" (số học viên, xe/nhóm...) chỉ cập nhật trên máy này, "
-            "vẫn cần bấm \"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB để đăng lên web."
+            "\"Lưu thay đổi\" ở dưới - chỉ có tác dụng với khóa mà file Excel chưa có ngày "
+            "(Excel luôn ưu tiên hơn). Sai định dạng sẽ báo ngay khi nhập (ô tô đỏ đậm, trỏ "
+            "vào ô để xem chi tiết). Dòng tô đỏ nhạt là khóa chưa có đủ ngày bắt đầu/kết thúc; "
+            "ô tô vàng ở \"Số học viên\"/\"Số xe/nhóm\"/\"Trạng thái dữ liệu\" là khóa có khả "
+            "năng file Excel bị lỗi/thiếu dữ liệu (0 học viên, 0 xe/nhóm, hoặc có nhóm thiếu "
+            "xe/giáo viên). \"Mở Excel\" để sửa file gốc, \"Tải lại từ Excel\" để đọc lại ngay "
+            "sau khi sửa. Lưu ý: \"Lưu thay đổi\" đăng lên web công khai ngay (nếu khóa đang "
+            "hiển thị); riêng \"Tải lại từ Excel\" (số học viên, xe/nhóm...) chỉ cập nhật trên "
+            "máy này, vẫn cần bấm \"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB để đăng lên web."
         )
         note.setWordWrap(True)
         layout.addWidget(note)
@@ -92,11 +97,18 @@ class _PhanXeDetailDialog(QDialog):
             header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.table, 1)
+        self.table.itemChanged.connect(self._on_item_changed)
 
         btn_row = QHBoxLayout()
+        self.btn_save_all = QPushButton("Lưu thay đổi")
+        self.btn_save_all.setObjectName("primary")
+        self.btn_save_all.setToolTip(
+            "Lưu tất cả ngày bắt đầu/kết thúc vừa sửa ở bảng trên (chỉ các khóa có thay đổi)."
+        )
+        self.btn_save_all.clicked.connect(self._on_save_all_changes)
+        btn_row.addWidget(self.btn_save_all)
         btn_row.addStretch(1)
         btn_close = QPushButton("Đóng")
-        btn_close.setObjectName("primary")
         btn_close.clicked.connect(self.accept)
         btn_row.addWidget(btn_close)
         layout.addLayout(btn_row)
@@ -105,9 +117,15 @@ class _PhanXeDetailDialog(QDialog):
         self.table.setSortingEnabled(True)
 
     def _reload_table(self):
+        self._loading = True
+        self._invalid_cells = set()
         self.table.setSortingEnabled(False)
         courses = self.phan_xe_tab.model.all_courses()
         self.table.setRowCount(len(courses))
+        self._original_dates = {
+            c.get("ma_khoa", ""): (c.get("tu_ngay", ""), c.get("den_ngay", ""))
+            for c in courses
+        }
         for row, c in enumerate(courses):
             item_ma_khoa = QTableWidgetItem(c.get("ma_khoa", ""))
             item_ma_khoa.setFlags(item_ma_khoa.flags() & ~Qt.ItemIsEditable)
@@ -144,6 +162,7 @@ class _PhanXeDetailDialog(QDialog):
             self.table.setItem(row, 6, item_trang_thai)
             self.table.setCellWidget(row, 7, action)
         self.table.setSortingEnabled(True)
+        self._loading = False
 
     @staticmethod
     def _data_issues(course):
@@ -168,10 +187,6 @@ class _PhanXeDetailDialog(QDialog):
         widget.setAttribute(Qt.WA_StyledBackground, True)
         h = QHBoxLayout(widget)
         h.setContentsMargins(4, 2, 4, 2)
-        btn_save = QPushButton("Lưu ngày")
-        btn_save.setToolTip("Lưu ngày bắt đầu/kết thúc vừa sửa ở 2 cột bên trái cho khóa này.")
-        btn_save.clicked.connect(lambda: self._on_save_dates(ma_khoa))
-        h.addWidget(btn_save)
         btn_open = QPushButton("Mở Excel")
         btn_open.setToolTip("Mở file Excel \"BIÊN CHẾ XE KHÓA ...\" gốc của khóa này để sửa.")
         btn_open.clicked.connect(lambda: self._on_open_excel(source_path))
@@ -184,52 +199,70 @@ class _PhanXeDetailDialog(QDialog):
         h.addWidget(btn_reload)
         return widget
 
-    def _find_row(self, ma_khoa):
-        for row in range(self.table.rowCount()):
-            if self.table.item(row, 0).text() == ma_khoa:
-                return row
-        return None
-
-    def _on_save_dates(self, ma_khoa):
-        row = self._find_row(ma_khoa)
-        if row is None:
+    def _on_item_changed(self, item):
+        """Báo ngay lúc nhập nếu "Ngày bắt đầu"/"Ngày kết thúc" sai định dạng
+        - tô đỏ đậm + tooltip cho đúng ô đó, không cần chờ bấm "Lưu thay
+        đổi" mới biết."""
+        if self._loading or item.column() not in (2, 3):
             return
-        tu_ngay = self.table.item(row, 2).text().strip()
-        den_ngay = self.table.item(row, 3).text().strip()
-        for label, value in (("Ngày bắt đầu", tu_ngay), ("Ngày kết thúc", den_ngay)):
-            if value and not data_model._parse_date(value):
-                QMessageBox.warning(
-                    self, "Sai định dạng ngày",
-                    f"{label} '{value}' không đúng định dạng dd/mm/yyyy.",
-                )
-                return
+        text = item.text().strip()
+        key = (item.row(), item.column())
+        if text and not data_model._parse_date(text):
+            item.setBackground(QColor("#f1948a"))
+            item.setToolTip(f"Sai định dạng ngày (cần dd/mm/yyyy, ví dụ 01/06/2026): '{text}'")
+            self._invalid_cells.add(key)
+        else:
+            item.setBackground(QBrush())
+            item.setToolTip("")
+            self._invalid_cells.discard(key)
+
+    def _on_save_all_changes(self):
+        if self._invalid_cells:
+            rows = sorted({row for row, _ in self._invalid_cells})
+            ten_khoa = ", ".join(self.table.item(row, 0).text() for row in rows)
+            QMessageBox.warning(
+                self, "Sai định dạng ngày",
+                "Sửa đúng định dạng dd/mm/yyyy ở ô tô đỏ đậm trước khi lưu - khóa: " + ten_khoa,
+            )
+            return
+
+        changes = {}
+        for row in range(self.table.rowCount()):
+            ma_khoa = self.table.item(row, 0).text()
+            tu_text = self.table.item(row, 2).text().strip()
+            den_text = self.table.item(row, 3).text().strip()
+            if (tu_text, den_text) != self._original_dates.get(ma_khoa, ("", "")):
+                changes[ma_khoa] = (tu_text, den_text)
+
+        if not changes:
+            QMessageBox.information(self, "Không có thay đổi", "Chưa có ngày nào được sửa.")
+            return
 
         self.setEnabled(False)
-        self._worker = _ActionWorker(
-            lambda: publish_data.set_ngay_hoc_override(ma_khoa, tu_ngay, den_ngay)
-        )
+        self._worker = _ActionWorker(lambda: publish_data.set_ngay_hoc_overrides_bulk(changes))
         self._worker.finished_result.connect(
-            lambda ok, msg: self._on_save_dates_done(ok, msg, ma_khoa, tu_ngay, den_ngay)
+            lambda ok, msg: self._on_save_all_done(ok, msg, changes)
         )
         self._worker.start()
 
-    def _on_save_dates_done(self, ok, message, ma_khoa, tu_ngay, den_ngay):
+    def _on_save_all_done(self, ok, message, changes):
         self.setEnabled(True)
         if ok:
-            course = self.phan_xe_tab.model.find_course(ma_khoa)
-            if course:
-                if not course.get("tu_ngay"):
-                    course["tu_ngay"] = tu_ngay
-                if not course.get("den_ngay"):
-                    course["den_ngay"] = den_ngay
+            for ma_khoa, (tu_ngay, den_ngay) in changes.items():
+                course = self.phan_xe_tab.model.find_course(ma_khoa)
+                if course:
+                    if not course.get("tu_ngay"):
+                        course["tu_ngay"] = tu_ngay
+                    if not course.get("den_ngay"):
+                        course["den_ngay"] = den_ngay
             self._reload_table()
-            if self.phan_xe_tab.cbo_course.currentData() == ma_khoa:
-                self.phan_xe_tab._render_course(ma_khoa)
+            if self.phan_xe_tab.cbo_course.currentData() in changes:
+                self.phan_xe_tab._render_course(self.phan_xe_tab.cbo_course.currentData())
             QMessageBox.information(
                 self, "Hoàn tất",
-                f"{message}\n\nĐã đăng ngay lên web công khai (nếu khóa này đang hiển thị). "
-                "Nếu khóa chưa từng đăng lên web (ví dụ khóa mới), ngày này sẽ hiện sau khi "
-                "bạn bấm \"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB.",
+                f"{message}\n\nĐã lưu {len(changes)} khóa và đăng ngay lên web công khai (nếu "
+                "khóa đang hiển thị). Khóa chưa từng đăng lên web (ví dụ khóa mới) sẽ hiện "
+                "ngày này sau khi bạn bấm \"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB.",
             )
         else:
             QMessageBox.warning(self, "Chưa đăng lên web được", message)
