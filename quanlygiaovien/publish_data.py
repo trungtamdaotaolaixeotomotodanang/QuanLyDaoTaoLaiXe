@@ -228,11 +228,54 @@ def save_ngay_hoc_overrides(data):
     )
 
 
+def apply_ngay_hoc_overrides_fallback(courses):
+    """Với khóa nào chưa có đủ tu_ngay/den_ngay, dùng tạm ngày đã gán tay
+    (ngay_hoc_overrides.json, xem set_ngay_hoc_override) - Excel luôn ưu
+    tiên hơn, sửa đúng Excel thì override này không còn tác dụng. Gọi mỗi
+    khi nạp data.json (khởi động app, sau "Tải lại từ Excel"...), không chỉ
+    lúc "Cập nhật && Đăng lên web" - để ngày gán tay vẫn hiện lại sau khi
+    tắt/mở lại app. Sửa trực tiếp trong courses (list các dict), không trả
+    về gì."""
+    overrides = load_ngay_hoc_overrides()
+    if not overrides:
+        return
+    for c in courses:
+        override = overrides.get(c.get("ma_khoa"))
+        if not override:
+            continue
+        if not c.get("tu_ngay"):
+            c["tu_ngay"] = override.get("tu_ngay", "")
+        if not c.get("den_ngay"):
+            c["den_ngay"] = override.get("den_ngay", "")
+
+
+def _update_course_dates_in_public_data(ma_khoa, tu_ngay, den_ngay):
+    """Cập nhật ngay tu_ngay/den_ngay của 1 khóa trong docs/public_data.json
+    (nếu khóa đó đang nằm trong "khoa_dang_day" của giáo viên nào - khóa
+    thiếu ngày mặc định được coi là "Đang đào tạo" nên thường đã có ở đây
+    rồi, xem DataModel.status_of) - để web công khai cập nhật ngay khi gán
+    tay, không cần đợi lần "Cập nhật && Đăng lên web" kế tiếp. Trả về True
+    nếu có sửa gì đó (để biết có cần push không)."""
+    data = _load_public_data()
+    changed = False
+    for rec in data.get("teachers", {}).values():
+        for khoa in rec.get("khoa_dang_day", []):
+            if khoa.get("ma_khoa") == ma_khoa:
+                khoa["tu_ngay"] = tu_ngay
+                khoa["den_ngay"] = den_ngay
+                changed = True
+    if changed:
+        _save_public_data(data)
+    return changed
+
+
 def set_ngay_hoc_override(ma_khoa, tu_ngay, den_ngay):
     """Gán tay ngày bắt đầu/kết thúc cho 1 khóa (xem tab PHÂN XE - nút "Xem
     chi tiết..."), dùng khi file Excel "Sổ phân công GV" chưa có ngày. Đăng
-    lên web ngay (giống set_ten_gv_override) để máy khác cũng thấy, không
-    cần đợi lần "Cập nhật && Đăng lên web" kế tiếp. Trả về (ok, message)."""
+    lên web ngay (giống set_ten_gv_override), kể cả sửa luôn docs/
+    public_data.json nếu khóa đang hiển thị công khai - để máy khác/web
+    công khai thấy ngay, không cần đợi lần "Cập nhật && Đăng lên web" kế
+    tiếp. Trả về (ok, message)."""
     ok, err = git_publish.sync_from_remote()
     if not ok:
         return False, err
@@ -240,6 +283,7 @@ def set_ngay_hoc_override(ma_khoa, tu_ngay, den_ngay):
     data = load_ngay_hoc_overrides()
     data[ma_khoa] = {"tu_ngay": tu_ngay, "den_ngay": den_ngay}
     save_ngay_hoc_overrides(data)
+    _update_course_dates_in_public_data(ma_khoa, tu_ngay, den_ngay)
 
     return git_publish.push_public_data(f"Cập nhật thời gian khóa {ma_khoa}: {tu_ngay} - {den_ngay}")
 
@@ -510,18 +554,13 @@ def run_pipeline(sources=None):
     # Khóa nào Excel không ghi ngày bắt đầu/kết thúc thì dùng tạm ngày đã
     # gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_override)
     # - Excel luôn ưu tiên hơn, sửa đúng Excel thì ghi đè lại override này.
+    apply_ngay_hoc_overrides_fallback(data["courses"])
+
     # Khóa nào sau khi áp override vẫn còn thiếu ngày thì báo cảnh báo luôn,
     # kèm lý do cụ thể (không tìm thấy sheet / không tìm thấy dòng mã khóa /
     # dữ liệu "Thời gian" sai format - xem convert_excel_to_json._find_period)
     # để người dùng biết chính xác cần sửa gì trong file Excel.
-    ngay_hoc_overrides = load_ngay_hoc_overrides()
     for c in data["courses"]:
-        override = ngay_hoc_overrides.get(c["ma_khoa"])
-        if override:
-            if not c.get("tu_ngay"):
-                c["tu_ngay"] = override.get("tu_ngay", "")
-            if not c.get("den_ngay"):
-                c["den_ngay"] = override.get("den_ngay", "")
         if not c.get("tu_ngay") or not c.get("den_ngay"):
             ly_do = c.get("ngay_ly_do") or "Không lấy được ngày bắt đầu/kết thúc."
             warnings.append({

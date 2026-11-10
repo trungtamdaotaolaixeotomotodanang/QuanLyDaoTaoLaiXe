@@ -4,6 +4,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
 
+import git_publish
 import publish_data
 import roster_xml
 from data_model import DataModel
@@ -56,6 +57,7 @@ class MainWindow(QMainWindow):
         dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""
         dsgv = roster_xml.parse_dsgv(dsgv_file) if dsgv_file and Path(dsgv_file).exists() else {}
         self.model.reload(dsgv)
+        publish_data.apply_ngay_hoc_overrides_fallback(self.model.courses)
         self.tab_tra_cuu.refresh()
         self.tab_phan_xe.refresh()
         self.tab_tra_cuu_xe.refresh()
@@ -79,10 +81,21 @@ def main():
             encoding="utf-8",
         )
 
+    # Kéo về ngay_hoc_overrides.json (và các file công khai khác) mới nhất
+    # từ máy khác trước khi nạp model - để ngày gán tay ở máy khác cũng
+    # hiện ra ở đây, không chỉ ngày tự gán tay trên chính máy này. Chỉ thử
+    # tốt nhất có thể (best-effort) - lỗi mạng/offline thì bỏ qua, vẫn mở
+    # app bình thường với dữ liệu cục bộ hiện có.
+    try:
+        git_publish.sync_from_remote()
+    except Exception:
+        pass
+
     dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""
     dsgv = roster_xml.parse_dsgv(dsgv_file) if dsgv_file and Path(dsgv_file).exists() else {}
 
     model = DataModel(DATA_JSON, dsgv=dsgv)
+    publish_data.apply_ngay_hoc_overrides_fallback(model.courses)
     window = MainWindow(model)
     window.show()
     sys.exit(app.exec())

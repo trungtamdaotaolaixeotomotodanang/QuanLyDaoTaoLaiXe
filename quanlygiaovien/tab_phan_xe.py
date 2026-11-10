@@ -68,9 +68,9 @@ class _PhanXeDetailDialog(QDialog):
             "\"Số học viên\"/\"Số xe/nhóm\"/\"Trạng thái dữ liệu\" là khóa có khả năng file "
             "Excel bị lỗi/thiếu dữ liệu (0 học viên, 0 xe/nhóm, hoặc có nhóm thiếu xe/giáo "
             "viên). \"Mở Excel\" để sửa file gốc, \"Tải lại từ Excel\" để đọc lại ngay sau khi "
-            "sửa. Lưu ý: web công khai chỉ hiện đúng dữ liệu sau khi bạn bấm \"Cập nhật && "
-            "Đăng lên web\" ở tab CẬP NHẬT WEB (ngày bắt đầu/kết thúc quyết định khóa có hiện "
-            "là \"đang dạy\" của giáo viên trên web hay không)."
+            "sửa. Lưu ý: \"Lưu ngày\" đăng lên web công khai ngay (nếu khóa đang hiển thị); "
+            "riêng \"Tải lại từ Excel\" (số học viên, xe/nhóm...) chỉ cập nhật trên máy này, "
+            "vẫn cần bấm \"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB để đăng lên web."
         )
         note.setWordWrap(True)
         layout.addWidget(note)
@@ -227,9 +227,9 @@ class _PhanXeDetailDialog(QDialog):
                 self.phan_xe_tab._render_course(ma_khoa)
             QMessageBox.information(
                 self, "Hoàn tất",
-                f"{message}\n\nLưu ý: web công khai chỉ hiện đúng ngày này (và khóa này có "
-                "hiện là \"đang dạy\" hay không) sau khi bạn bấm \"Cập nhật && Đăng lên web\" "
-                "ở tab CẬP NHẬT WEB.",
+                f"{message}\n\nĐã đăng ngay lên web công khai (nếu khóa này đang hiển thị). "
+                "Nếu khóa chưa từng đăng lên web (ví dụ khóa mới), ngày này sẽ hiện sau khi "
+                "bạn bấm \"Cập nhật && Đăng lên web\" ở tab CẬP NHẬT WEB.",
             )
         else:
             QMessageBox.warning(self, "Chưa đăng lên web được", message)
@@ -402,5 +402,6 @@ class PhanXeTab(QWidget):
         dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""
         dsgv = roster_xml.parse_dsgv(dsgv_file) if dsgv_file and Path(dsgv_file).exists() else {}
         self.model.reload(dsgv)
+        publish_data.apply_ngay_hoc_overrides_fallback(self.model.courses)
         self._load_courses()
         self._render_course(self.cbo_course.currentData())
