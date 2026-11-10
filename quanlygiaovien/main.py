@@ -2,12 +2,13 @@ import json
 import sys
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
+from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QTabWidget
 
 import git_publish
 import publish_data
 import roster_xml
 from data_model import DataModel
+from login_dialog import LoginDialog
 from runtime_paths import app_dir
 from style import apply_style
 from tab_cap_nhat_web import CapNhatWebTab
@@ -68,6 +69,9 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     apply_style(app)
+
+    if LoginDialog().exec() != QDialog.Accepted:
+        sys.exit(0)
 
     if not DATA_JSON.exists():
         # Chưa đăng dữ liệu lần nào - tạo file rỗng để mở app được, người
