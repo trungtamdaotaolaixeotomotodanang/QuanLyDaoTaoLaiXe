@@ -87,13 +87,17 @@ def _strip_thay_prefix(name):
 
 
 def _find_course_sheet(wb):
-    """Tìm sheet có dòng tiêu đề 'BIÊN CHẾ XE KHÓA ...'. Trả về (ws, title_text)."""
+    """Tìm sheet có dòng tiêu đề 'BIÊN CHẾ XE KHÓA ...'. Trả về (ws, title_text,
+    row_num) - row_num để báo chính xác vị trí (sheet!A<row_num>) khi có mã
+    khóa trùng giữa các file (xem build_data)."""
     for ws in wb.worksheets:
-        for row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, 10), max_col=1):
+        for row_num, row in enumerate(
+            ws.iter_rows(min_row=1, max_row=min(ws.max_row, 10), max_col=1), start=1
+        ):
             v = row[0].value
             if v and str(v).strip().upper().startswith("BIÊN CHẾ XE KHÓA"):
-                return ws, str(v).strip()
-    return None, None
+                return ws, str(v).strip(), row_num
+    return None, None, None
 
 
 def _parse_groups(ws, lop="", ket_qua_thi=None):
@@ -212,7 +216,7 @@ def _load_workbook(path):
 def load_course_from_file(path, ket_qua_thi=None):
     """Đọc 1 file 'BIÊN CHẾ XE KHÓA xxxx.xlsx/.xls', trả về 1 course dict."""
     wb = _load_workbook(path)
-    ws, title = _find_course_sheet(wb)
+    ws, title, title_row = _find_course_sheet(wb)
     if ws is None:
         raise ValueError(
             f"Không tìm thấy dòng tiêu đề 'BIÊN CHẾ XE KHÓA ...' trong file: {path}"
@@ -239,6 +243,8 @@ def load_course_from_file(path, ket_qua_thi=None):
         "lich_hoc": [],  # lịch học giờ chỉ còn ở file PDF, xem attach_files.py
         "source_file": Path(path).name,  # để báo cảnh báo rõ nguồn khi dữ liệu không khớp
         "source_file_path": str(path),  # đường dẫn đầy đủ - để mở file từ hộp thoại cảnh báo
+        "title_cell_ref": f"{ws.title}!A{title_row}",  # vị trí dòng tiêu đề - để báo
+        # chính xác sheet/ô khi 2 file trùng mã khóa (xem build_data)
     }
 
 
@@ -268,14 +274,26 @@ def load_ket_qua_thi(path, sheet_name="TỔNGHỢP"):
 
 def build_data(excel_paths, ket_qua_thi=None):
     """Đọc & gộp nhiều file 'BIÊN CHẾ XE KHÓA xxxx.xlsx' (mỗi file 1 khóa).
-    Nếu 2 file trùng mã khóa, file đọc sau ghi đè file đọc trước (trả thêm
-    danh sách mã bị ghi đè). ket_qua_thi (tùy chọn): xem load_ket_qua_thi()."""
+    Nếu 2 file trùng mã khóa, file đọc sau ghi đè file đọc trước - trả thêm
+    danh sách chi tiết các lần ghi đè (mã khóa + file/sheet/ô dòng tiêu đề
+    của bản được giữ và bản bị bỏ qua, xem title_cell_ref ở
+    load_course_from_file) để báo đúng vị trí cho người dùng kiểm tra.
+    ket_qua_thi (tùy chọn): xem load_ket_qua_thi()."""
     courses_by_code = {}
     overwritten = []
     for path in excel_paths:
         c = load_course_from_file(path, ket_qua_thi)
-        if c["ma_khoa"] in courses_by_code:
-            overwritten.append(c["ma_khoa"])
+        prev = courses_by_code.get(c["ma_khoa"])
+        if prev is not None:
+            overwritten.append({
+                "ma_khoa": c["ma_khoa"],
+                "giu_lai_file": c["source_file"],
+                "giu_lai_file_path": c["source_file_path"],
+                "giu_lai_vi_tri": c["title_cell_ref"],
+                "bo_qua_file": prev["source_file"],
+                "bo_qua_file_path": prev["source_file_path"],
+                "bo_qua_vi_tri": prev["title_cell_ref"],
+            })
         courses_by_code[c["ma_khoa"]] = c
 
     courses = [courses_by_code[k] for k in sorted(courses_by_code)]

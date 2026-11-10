@@ -492,6 +492,8 @@ class _PublishResultDialog(QDialog):
 
         tabs = QTabWidget()
         self._add_overview_tab(tabs, result)
+        if result.get("ma_khoa_trung"):
+            self._add_ma_khoa_trung_tab(tabs, result["ma_khoa_trung"])
         for label, rows in self._group_warnings(result.get("canh_bao", [])).items():
             self._add_warning_tab(tabs, label, rows)
         layout.addWidget(tabs, 1)
@@ -514,6 +516,9 @@ class _PublishResultDialog(QDialog):
             lines.append("Đã đăng lên trang web thành công.")
         else:
             lines.append("CHƯA đăng lên web được - " + result.get("git_message", ""))
+        n_trung = len(result.get("ma_khoa_trung", []))
+        if n_trung:
+            lines.append(f"Có {n_trung} mã khóa trùng giữa các file (xem tab \"Mã khóa trùng\").")
         n_warn = len(result.get("canh_bao", []))
         if n_warn:
             lines.append(f"Có {n_warn} cảnh báo dữ liệu cần kiểm tra lại (xem các tab dưới).")
@@ -531,11 +536,6 @@ class _PublishResultDialog(QDialog):
         txt = QTextEdit()
         txt.setReadOnly(True)
         lines = []
-        if result.get("ma_khoa_trung"):
-            lines.append(
-                "Mã khóa trùng giữa các file (lấy dữ liệu file đọc sau cùng): "
-                + ", ".join(result["ma_khoa_trung"])
-            )
         if result.get("giao_vien_moi"):
             lines.append("Giáo viên MỚI (đã tạo mã QR):")
             for name, tid in result["giao_vien_moi"]:
@@ -581,8 +581,68 @@ class _PublishResultDialog(QDialog):
                 table.setCellWidget(row_idx, 3, self._build_action_widget(table, row_idx, ten_goc))
         table.resizeRowsToContents()
         table.setSortingEnabled(True)
-        table.cellDoubleClicked.connect(lambda row, col: self._open_warning_file(table, row))
+        table.cellDoubleClicked.connect(lambda row, col: self._open_cell_file(table, row, 0))
         tabs.addTab(table, f"{label} ({len(rows)})")
+
+    def _add_ma_khoa_trung_tab(self, tabs, rows):
+        """Tab riêng cho mã khóa trùng giữa 2 file Excel (xem
+        convert_excel_to_json.build_data) - chỉ rõ đúng file/sheet/ô dòng
+        tiêu đề của bản được GIỮ LẠI và bản bị BỎ QUA, để người dùng tìm và
+        xử lý (xóa file sai/cũ khỏi danh sách "Biên chế xe khóa")."""
+        table = QTableWidget()
+        table.setColumnCount(5)
+        table.setHorizontalHeaderLabels(
+            [
+                "Mã khóa",
+                "File GIỮ LẠI (bấm đúp để mở)", "Vị trí (giữ lại)",
+                "File BỊ BỎ QUA (bấm đúp để mở)", "Vị trí (bỏ qua)",
+            ]
+        )
+        table.setEditTriggers(QTableWidget.NoEditTriggers)
+        table.setSelectionBehavior(QTableWidget.SelectRows)
+        table.setAlternatingRowColors(True)
+        table.setToolTip("Bấm đúp vào tên file để mở file Excel gốc lên xem/sửa.")
+        header = table.horizontalHeader()
+        for col in range(5):
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+        table.setRowCount(len(rows))
+        for row_idx, w in enumerate(rows):
+            table.setItem(row_idx, 0, QTableWidgetItem(w.get("ma_khoa", "")))
+
+            giu_lai_item = QTableWidgetItem(w.get("giu_lai_file", ""))
+            giu_lai_path = w.get("giu_lai_file_path", "")
+            if giu_lai_path:
+                giu_lai_item.setData(Qt.ItemDataRole.UserRole, giu_lai_path)
+                giu_lai_item.setToolTip(giu_lai_path)
+            table.setItem(row_idx, 1, giu_lai_item)
+            table.setItem(row_idx, 2, QTableWidgetItem(w.get("giu_lai_vi_tri", "")))
+
+            bo_qua_item = QTableWidgetItem(w.get("bo_qua_file", ""))
+            bo_qua_path = w.get("bo_qua_file_path", "")
+            if bo_qua_path:
+                bo_qua_item.setData(Qt.ItemDataRole.UserRole, bo_qua_path)
+                bo_qua_item.setToolTip(bo_qua_path)
+            table.setItem(row_idx, 3, bo_qua_item)
+            table.setItem(row_idx, 4, QTableWidgetItem(w.get("bo_qua_vi_tri", "")))
+        table.resizeRowsToContents()
+        table.setSortingEnabled(True)
+        table.cellDoubleClicked.connect(
+            lambda row, col: self._open_cell_file(table, row, 3 if col in (3, 4) else 1)
+        )
+
+        note = QLabel(
+            "Ghi chú: bấm đúp vào tên file ở cột \"File GIỮ LẠI\" hoặc \"File BỊ "
+            "BỎ QUA\" để mở đúng file Excel đó lên xem/sửa."
+        )
+        note.setWordWrap(True)
+        note.setStyleSheet("color: #6c757d; font-style: italic; padding-top: 4px;")
+
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.addWidget(table)
+        container_layout.addWidget(note)
+        tabs.addTab(container, f"Mã khóa trùng ({len(rows)})")
 
     def _build_action_widget(self, table, row_idx, ten_goc):
         widget = QWidget()
@@ -649,8 +709,8 @@ class _PublishResultDialog(QDialog):
             widget.setEnabled(True)
             QMessageBox.warning(self, "Chưa lưu được", message)
 
-    def _open_warning_file(self, table, row):
-        item = table.item(row, 0)
+    def _open_cell_file(self, table, row, col):
+        item = table.item(row, col)
         file_path = item.data(Qt.ItemDataRole.UserRole) if item else None
         if not file_path:
             return
