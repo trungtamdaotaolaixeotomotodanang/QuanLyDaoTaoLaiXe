@@ -2,7 +2,18 @@ import json
 import sys
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QTabWidget
+from PySide6.QtCore import QThread, Signal
+from PySide6.QtWidgets import (
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 import git_publish
 import publish_data
@@ -20,6 +31,22 @@ from tab_tra_cuu_xe import TraCuuXeTab
 
 APP_DIR = app_dir()
 DATA_JSON = APP_DIR / "data.json"
+
+
+class _SyncWorker(QThread):
+    """Chạy git_publish.sync_from_remote() ở thread riêng để không treo UI
+    (xem MainWindow._on_sync_clicked) - best-effort lúc mở app đã có sẵn,
+    nút này cho người dùng chủ động bấm lại giữa chừng + thấy rõ kết quả
+    thay vì âm thầm bỏ qua lỗi như lúc khởi động."""
+
+    finished_result = Signal(bool, str)
+
+    def run(self):
+        try:
+            ok, message = git_publish.sync_from_remote()
+        except Exception as exc:
+            ok, message = False, str(exc)
+        self.finished_result.emit(ok, message)
 
 
 class MainWindow(QMainWindow):
@@ -43,7 +70,23 @@ class MainWindow(QMainWindow):
         tabs.addTab(self.tab_phan_xe, "PHÂN XE")
         tabs.addTab(self.tab_tra_cuu_xe, "DANH SÁCH XE")
         tabs.addTab(self.tab_lich_hoc, "LỊCH HỌC")
-        self.setCentralWidget(tabs)
+
+        # Nút lấy ngay_hoc_overrides.json (ngày bắt đầu/kết thúc gán tay) +
+        # các file công khai khác mới nhất từ máy khác/GitHub - bổ sung cho
+        # việc tự lấy lúc mở app (xem main(): đã làm nhưng âm thầm bỏ qua
+        # lỗi) để người dùng chủ động bấm lại giữa chừng và thấy rõ kết quả.
+        self.btn_sync = QPushButton("🔄 Lấy dữ liệu mới nhất")
+        self.btn_sync.clicked.connect(self._on_sync_clicked)
+        top_row = QHBoxLayout()
+        top_row.addStretch()
+        top_row.addWidget(self.btn_sync)
+
+        central = QWidget()
+        central_layout = QVBoxLayout(central)
+        central_layout.setContentsMargins(8, 6, 8, 8)
+        central_layout.addLayout(top_row)
+        central_layout.addWidget(tabs)
+        self.setCentralWidget(central)
 
         # Trước đây phải tắt/bật lại app mới thấy dữ liệu mới sau khi bấm
         # "Cập nhật && Đăng lên web" (các tab khác chỉ đọc dữ liệu 1 lần lúc
@@ -53,6 +96,34 @@ class MainWindow(QMainWindow):
         self.tab_lich_hoc.lich_hoc_source_added.connect(
             self.tab_cap_nhat_web.pick_lich_hoc.add_path_if_missing
         )
+
+    def _on_sync_clicked(self):
+        self.btn_sync.setEnabled(False)
+        self.btn_sync.setText("Đang lấy dữ liệu...")
+        self._sync_worker = _SyncWorker()
+        self._sync_worker.finished_result.connect(self._on_sync_done)
+        self._sync_worker.start()
+
+    def _on_sync_done(self, ok, message):
+        self.btn_sync.setEnabled(True)
+        self.btn_sync.setText("🔄 Lấy dữ liệu mới nhất")
+        if ok:
+            publish_data.apply_ngay_hoc_overrides_fallback(self.model.courses)
+            self.tab_tra_cuu.refresh()
+            self.tab_phan_xe.refresh()
+            self.tab_tra_cuu_xe.refresh()
+            self.tab_lich_hoc.refresh()
+            self.tab_danh_sach_gv.refresh()
+            QMessageBox.information(
+                self, "Hoàn tất",
+                "Đã lấy dữ liệu mới nhất (ngày học gán tay, tên GV sửa tay...) "
+                "từ máy khác/GitHub về.",
+            )
+        else:
+            QMessageBox.warning(
+                self, "Không lấy được dữ liệu mới",
+                "Có thể do mất mạng hoặc có xung đột dữ liệu. Chi tiết:\n" + message,
+            )
 
     def _on_data_published(self):
         dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""
