@@ -108,6 +108,15 @@ class MainWindow(QMainWindow):
         self.btn_sync.setEnabled(True)
         self.btn_sync.setText("🔄 Lấy dữ liệu mới nhất")
         if ok:
+            # Nạp lại data.json từ đĩa (reset về đúng dữ liệu Excel gốc,
+            # tu_ngay/den_ngay rỗng nếu Excel không có) RỒI MỚI áp override -
+            # không được áp thẳng lên self.model.courses đang dùng dở, vì nếu
+            # khóa đó đã được fallback điền 1 lần trong phiên này rồi thì
+            # "if not c.get('tu_ngay')" sẽ chặn, không cho ngày MỚI (đã được
+            # người khác sửa lại cho đúng) ghi đè ngày CŨ đang hiển thị.
+            dsgv_file = publish_data.load_data_sources().get("dsgv_file") or ""
+            dsgv = roster_xml.parse_dsgv(dsgv_file) if dsgv_file and Path(dsgv_file).exists() else {}
+            self.model.reload(dsgv)
             publish_data.apply_ngay_hoc_overrides_fallback(self.model.courses)
             self.tab_tra_cuu.refresh()
             self.tab_phan_xe.refresh()
