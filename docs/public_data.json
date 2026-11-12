@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-11T12:27:29",
+  "generated_at": "2026-11-12T08:37:30",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -3471,7 +3471,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262055.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/56d5eea7-f969-4bb0-9ed3-a4ec1eb70540"
         },
         {
@@ -3523,7 +3523,7 @@
               "ngay_tot_nghiep": ""
             }
           ],
-          "lich_hoc_pdf": null,
+          "lich_hoc_pdf": "files/lich_hoc/48002K262055.pdf",
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/56d5eea7-f969-4bb0-9ed3-a4ec1eb70540"
         }
       ],
