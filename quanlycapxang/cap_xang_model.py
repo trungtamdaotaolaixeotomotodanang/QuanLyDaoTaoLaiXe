@@ -35,6 +35,7 @@ class CapXangModel:
             raw = {"generated_at": "", "courses": []}
         self.generated_at = raw.get("generated_at", "")
         self.courses = raw.get("courses", [])
+        self.all_teacher_names = set(raw.get("teachers", []))
 
         dinh_muc_cache = fuel_norm.load_cache()
         self.dinh_muc_source_file = dinh_muc_cache.get("source_file", "")
@@ -54,8 +55,10 @@ class CapXangModel:
 
     def all_teachers(self):
         """Danh sách tên giáo viên duy nhất, đã sắp xếp theo tên (không
-        theo họ) - gồm mọi giáo viên từng xuất hiện trong khóa nào đó."""
-        names = set()
+        theo họ) - gồm TOÀN BỘ giáo viên trong DSGV (kể cả giáo viên hiện
+        không dạy khóa nào), union thêm tên xuất hiện trong khóa (phòng khi
+        "teachers" thiếu/cũ hơn "courses")."""
+        names = set(self.all_teacher_names)
         for c in self.courses:
             for g in c.get("groups", []):
                 if g.get("giao_vien"):

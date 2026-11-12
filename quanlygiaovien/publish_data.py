@@ -834,6 +834,10 @@ def run_pipeline(sources=None):
 
     cap_xang_out = {
         "generated_at": model.generated_at,
+        # Toàn bộ tên giáo viên trong DSGV (kể cả giáo viên hiện KHÔNG có
+        # khóa/xe nào trong "courses" bên dưới) - để app cấp xăng hiện đủ
+        # giáo viên trong ô chọn, giống DANH SÁCH GIÁO VIÊN bên app này.
+        "teachers": sorted(rec["ten"] for rec in dsgv.values() if rec.get("ten")),
         "courses": list(cap_xang_courses.values()),
     }
     CAP_XANG_DATA_FILE.write_text(
