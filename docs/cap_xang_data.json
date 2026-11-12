@@ -1,0 +1,2060 @@
+{
+  "generated_at": "2026-11-12T21:36:08",
+  "teachers": [
+    "Bùi Kiến Quốc",
+    "Bùi Ngọc Triều",
+    "Giao Thanh Tùng",
+    "Hoàng Minh Đức",
+    "Huỳnh Bá Đăng Khoa",
+    "Huỳnh Ngọc Tân",
+    "Huỳnh Quốc Bảo",
+    "Huỳnh Trường Giang",
+    "Huỳnh Tấn Lai",
+    "Hồ Duy Dũng",
+    "Hồ Kỳ Hải",
+    "Hồ Minh Tin",
+    "Lê Bá Kiệt",
+    "Lê Huỳnh Đức",
+    "Lê Ngọc Hòa",
+    "Lê Quang Nghĩa",
+    "Lê Quốc Việt",
+    "Lê Thành Nhân",
+    "Lê Trương Lai",
+    "Lê Văn Duân",
+    "Lê Văn Long",
+    "Lê Văn Đông",
+    "Lương Văn Quang",
+    "Nguyễn Anh Dương",
+    "Nguyễn Bá Quýnh",
+    "Nguyễn Chính Nghĩa",
+    "Nguyễn Hữu Bin",
+    "Nguyễn Minh",
+    "Nguyễn Mẫn",
+    "Nguyễn Nam Phương",
+    "Nguyễn Nguyên",
+    "Nguyễn Như Hiếu",
+    "Nguyễn Thanh Hải",
+    "Nguyễn Thành Công",
+    "Nguyễn Thành Trung",
+    "Nguyễn Tiến",
+    "Nguyễn Trường Sa",
+    "Nguyễn Việt Lâm",
+    "Nguyễn Văn Cường",
+    "Nguyễn Văn Mỹ",
+    "Nguyễn Đình Kha",
+    "Nguyễn Đình Tuấn",
+    "Nguyễn Đình Ánh",
+    "Nguyễn Đăng Trường",
+    "Nguyễn Đức Ngự",
+    "Nguyễn Đức Thành Duy",
+    "Phan Đức Nguyên Vũ",
+    "Phùng Trần Ngọc",
+    "Phạm Tấn Thịnh",
+    "Trương Công Sỹ",
+    "Trần Minh Hải",
+    "Trần Ngô Đông Phương",
+    "Trần Ngọc Tuấn",
+    "Trần Quốc Khánh",
+    "Trần Thanh Hùng",
+    "Trần Thế Hải",
+    "Trần Viết Duy",
+    "Tạ Minh Thuận",
+    "Võ Phan Chung",
+    "Võ Thành Trung",
+    "Vương Văn Tiến",
+    "Đinh Sỹ Liêm",
+    "Đinh Văn Thảo",
+    "Đoàn Công Minh",
+    "Đặng Hoàng Phương"
+  ],
+  "courses": [
+    {
+      "ma_khoa": "48002K262015",
+      "lop": "B.01K0826",
+      "tu_ngay": "05/08/2026",
+      "den_ngay": "24/10/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Minh Hải",
+          "xe": "43A38936",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Ngọc Tân",
+          "xe": "43A90278",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Văn Mỹ",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Thành Trung",
+          "xe": "43B31663",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Quang Nghĩa",
+          "xe": "43A87749",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Bá Quýnh",
+          "xe": "43A90903",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Tạ Minh Thuận",
+          "xe": "43A81627",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Quốc Khánh",
+          "xe": "43A28637",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43A36395",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Quốc Việt",
+          "xe": "43A04152",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262024",
+      "lop": "BK0726",
+      "tu_ngay": "11/8/2026",
+      "den_ngay": "07/11/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đình Ánh",
+          "xe": "43A34074",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Huỳnh Đức",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trương Công Sỹ",
+          "xe": "43A27493",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Tấn Lai",
+          "xe": "43A29358",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Ngọc Tuấn",
+          "xe": "43A01510",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A32035",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Đức Ngự",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Trường Giang",
+          "xe": "43A29272",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43B30483",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Hồ Minh Tin",
+          "xe": "43A29288",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Bá Đăng Khoa",
+          "xe": "92A39094",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Hữu Bin",
+          "xe": "43A29325",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Thanh Hùng",
+          "xe": "43A29211",
+          "ca": "",
+          "so_hoc_vien": 5
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262032",
+      "lop": "BK0826",
+      "tu_ngay": "18/09/2026",
+      "den_ngay": "15/12/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đình Ánh",
+          "xe": "43A34074",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Huỳnh Đức",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trương Công Sỹ",
+          "xe": "43A27493",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngọc Tuấn",
+          "xe": "43A01510",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A32035",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Thành Nhân",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Trường Giang",
+          "xe": "43A29272",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43B30483",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Hồ Minh Tin",
+          "xe": "43A29288",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Trương Lai",
+          "xe": "92A39094",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Hữu Bin",
+          "xe": "43A29325",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Tấn Lai",
+          "xe": "43A29358",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Thanh Hùng",
+          "xe": "43A29211",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43A29301",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43A29337",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Giao Thanh Tùng",
+          "xe": "43A29282",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Đinh Sỹ Liêm",
+          "xe": "43A27590",
+          "ca": "",
+          "so_hoc_vien": 4
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262034",
+      "lop": "NHCEK1026",
+      "tu_ngay": "11/09/2026",
+      "den_ngay": "15/10/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        },
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262035",
+      "lop": "NHD2K1226",
+      "tu_ngay": "11/09/2026",
+      "den_ngay": "21/10/2026",
+      "groups": [
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 1",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 2",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262038",
+      "lop": "NHCK0526",
+      "tu_ngay": "02/10/2026",
+      "den_ngay": "06/11/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Văn Cường",
+          "xe": "43C16531",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Phạm Tấn Thịnh",
+          "xe": "43C16531",
+          "ca": "Ca 2",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Bá Kiệt",
+          "xe": "43C15832",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Hồ Duy Dũng",
+          "xe": "43C15832",
+          "ca": "Ca 2",
+          "so_hoc_vien": 5
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262041",
+      "lop": "NHCEK1126,C-CE",
+      "tu_ngay": "24/09/2026",
+      "den_ngay": "03/11/2026",
+      "groups": [
+        {
+          "giao_vien": "Đinh Văn Thảo",
+          "xe": "43B19466",
+          "ca": "Ca 1",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Đinh Văn Thảo",
+          "xe": "43B19466",
+          "ca": "Ca 2",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262046& K262047",
+      "lop": "NHDK1126",
+      "tu_ngay": "",
+      "den_ngay": "",
+      "groups": [
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 1",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262048",
+      "lop": "NHCEK1226",
+      "tu_ngay": "16/10/2026",
+      "den_ngay": "20/11/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        },
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262049&K262050",
+      "lop": "NHD2K1426",
+      "tu_ngay": "16/10/2026",
+      "den_ngay": "20/11/2026",
+      "groups": [
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262055",
+      "lop": "NHCEK1326,C-CE",
+      "tu_ngay": "04/11/2026",
+      "den_ngay": "14/12/2026",
+      "groups": [
+        {
+          "giao_vien": "Đinh Văn Thảo",
+          "xe": "43B19466",
+          "ca": "Ca 1",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Đinh Văn Thảo",
+          "xe": "43B19466",
+          "ca": "Ca 2",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B003",
+      "lop": "BK0626",
+      "tu_ngay": "10/07/2026",
+      "den_ngay": "07/10/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đình Ánh",
+          "xe": "43A34074",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Huỳnh Đức",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trương Công Sỹ",
+          "xe": "43A27493",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Tạ Minh Thuận",
+          "xe": "43A29360",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngọc Tuấn",
+          "xe": "43A01510",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A32035",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Đức Ngự",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Trường Giang",
+          "xe": "43A29272",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43B30483",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Hồ Minh Tin",
+          "xe": "43A29288",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Bá Đăng Khoa",
+          "xe": "92A39094",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Hữu Bin",
+          "xe": "43A29325",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Thành Nhân",
+          "xe": "43A29358",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Trần Thanh Hùng",
+          "xe": "43A29211",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43A29301",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43A29337",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Giao Thanh Tùng",
+          "xe": "43A29282",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43A27590",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0105",
+      "lop": "BK0226-L2",
+      "tu_ngay": "09/03/2026",
+      "den_ngay": "31/05/2026",
+      "groups": [
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Tạ Minh Thuận",
+          "xe": "43A29360",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Đức Ngự",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Trần Quốc Khánh",
+          "xe": "43A29358",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Lê Trương Lai",
+          "xe": "92A39094",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43A29211",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Lê Thành Nhân",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 2
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0106",
+      "lop": "B.01K0226",
+      "tu_ngay": "09/03/2026",
+      "den_ngay": "28/05/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Minh Hải",
+          "xe": "43A38936",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Thành Trung",
+          "xe": "43A87749",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Văn Mỹ",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Quang Nghĩa",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Huỳnh Ngọc Tân",
+          "xe": "43A90278",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A27272",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Trường Giang",
+          "xe": "43A90903",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Quốc Việt",
+          "xe": "43A04152",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0107",
+      "lop": "BK0326",
+      "tu_ngay": "27/03/2026",
+      "den_ngay": "20/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đình Ánh",
+          "xe": "43A34074",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Huỳnh Đức",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trương Công Sỹ",
+          "xe": "43A27493",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Tạ Minh Thuận",
+          "xe": "43A29360",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Ngọc Tuấn",
+          "xe": "43A01510",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Quốc Khánh",
+          "xe": "43A29358",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Đức Ngự",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Huỳnh Trường Giang",
+          "xe": "43A29272",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43A29211",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Hồ Minh Tin",
+          "xe": "43A29288",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Mẫn",
+          "xe": "92A39094",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Hữu Bin",
+          "xe": "43A29325",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43A23681",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Giao Thanh Tùng",
+          "xe": "43A29282",
+          "ca": "Ca 1",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Bá Quýnh",
+          "xe": "43A29301",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Thành Nhân",
+          "xe": "43A29282",
+          "ca": "Ca 2",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Huỳnh Bá Đăng Khoa",
+          "xe": "43A27590",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0108",
+      "lop": "B.01K0326",
+      "tu_ngay": "27/03/2026",
+      "den_ngay": "13/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Minh Hải",
+          "xe": "43A38936",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Ngọc Tân",
+          "xe": "43A90278",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Văn Mỹ",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Quang Nghĩa",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A27272",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Quốc Việt",
+          "xe": "43A04152",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43A36395",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0109",
+      "lop": "BK0426",
+      "tu_ngay": "07/05/2026",
+      "den_ngay": "31/07/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đình Ánh",
+          "xe": "43A34074",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Huỳnh Đức",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trương Công Sỹ",
+          "xe": "43A27493",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Tạ Minh Thuận",
+          "xe": "43A29360",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngọc Tuấn",
+          "xe": "43A01510",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A32035",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Đức Ngự",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Bá Quýnh",
+          "xe": "43A29272",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43B30483",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Hồ Minh Tin",
+          "xe": "43A29288",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Trương Lai",
+          "xe": "92A39094",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Hữu Bin",
+          "xe": "43A29325",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Thanh Hải",
+          "xe": "43A23681",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Phạm Tấn Thịnh",
+          "xe": "43A29337",
+          "ca": "Ca 2",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43A29301",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43A29337",
+          "ca": "Ca 1",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Thành Nhân",
+          "xe": "43A29358",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Văn Cường",
+          "xe": "43A27590",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0110",
+      "lop": "B.01K0626",
+      "tu_ngay": "07/05/2026",
+      "den_ngay": "23/07/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Minh Hải",
+          "xe": "43A38936",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Huỳnh Ngọc Tân",
+          "xe": "43A90278",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Văn Mỹ",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Nguyễn Thành Trung",
+          "xe": "43B31663",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Bá Quýnh",
+          "xe": "43A90903",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Quốc Khánh",
+          "xe": "43A28637",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Quốc Việt",
+          "xe": "43A04152",
+          "ca": "",
+          "so_hoc_vien": 3
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0111",
+      "lop": "B.01K0526",
+      "tu_ngay": "01/06/2026",
+      "den_ngay": "20/08/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Minh Hải",
+          "xe": "43A38936",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Ngọc Tân",
+          "xe": "43A90278",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Văn Mỹ",
+          "xe": "43A82518",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Quang Nghĩa",
+          "xe": "43A87749",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Nguyễn Thành Trung",
+          "xe": "43B31663",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Bá Quýnh",
+          "xe": "43A90903",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Quốc Khánh",
+          "xe": "43A28637",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43A36395",
+          "ca": "",
+          "so_hoc_vien": 4
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26B0112",
+      "lop": "BK0526",
+      "tu_ngay": "01/06/2026",
+      "den_ngay": "29/08/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đình Ánh",
+          "xe": "43A34074",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Lê Huỳnh Đức",
+          "xe": "92A09884",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trương Công Sỹ",
+          "xe": "43A27493",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Tạ Minh Thuận",
+          "xe": "43A29360",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Ngọc Tuấn",
+          "xe": "43A01510",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Như Hiếu",
+          "xe": "43A32035",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Đức Ngự",
+          "xe": "43A29259",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Trường Giang",
+          "xe": "43A29272",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Quốc Bảo",
+          "xe": "43A29261",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Thành Công",
+          "xe": "43B30483",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Hồ Minh Tin",
+          "xe": "43A29288",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Võ Phan Chung",
+          "xe": "43A03136",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Hữu Bin",
+          "xe": "43A29325",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Ngô Đông Phương",
+          "xe": "43A29274",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Văn Đông",
+          "xe": "43A67165",
+          "ca": "",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Huỳnh Bá Đăng Khoa",
+          "xe": "43A27590",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43A23681",
+          "ca": "",
+          "so_hoc_vien": 2
+        },
+        {
+          "giao_vien": "Giao Thanh Tùng",
+          "xe": "43A29282",
+          "ca": "",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43A29337",
+          "ca": "",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Trần Thanh Hùng",
+          "xe": "43A29211",
+          "ca": "",
+          "so_hoc_vien": 4
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C0003",
+      "lop": "NHCK0226",
+      "tu_ngay": "22/05/2026",
+      "den_ngay": "21/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Lê Ngọc Hòa",
+          "xe": "43C16531",
+          "ca": "Ca 2",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43C16531",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C0004",
+      "lop": "NHCK0326",
+      "tu_ngay": "22/05/2026",
+      "den_ngay": "21/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Viết Duy",
+          "xe": "43C16531",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Trần Viết Duy",
+          "xe": "43C16531",
+          "ca": "Ca 2",
+          "so_hoc_vien": 7
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C1001",
+      "lop": "C1K0226",
+      "tu_ngay": "09/03/2026",
+      "den_ngay": "07/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đăng Trường",
+          "xe": "43C16569",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43C16569",
+          "ca": "Ca 2",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Đặng Hoàng Phương",
+          "xe": "43B25265",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43C25265",
+          "ca": "Ca 2",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Thế Hải",
+          "xe": "43B09963",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43B09963",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Vương Văn Tiến",
+          "xe": "43C15870",
+          "ca": "Ca 1",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Vương Văn Tiến",
+          "xe": "43C15870",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C1004",
+      "lop": "C1K0426",
+      "tu_ngay": "14/05/2026",
+      "den_ngay": "11/08/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đăng Trường",
+          "xe": "43C16569",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Đặng Hoàng Phương",
+          "xe": "43B25265",
+          "ca": "Ca 1",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43C25265",
+          "ca": "Ca 2",
+          "so_hoc_vien": 5
+        },
+        {
+          "giao_vien": "Trần Thế Hải",
+          "xe": "43B09963",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Vương Văn Tiến",
+          "xe": "43C15870",
+          "ca": "",
+          "so_hoc_vien": 5
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C1005",
+      "lop": "C1K0526",
+      "tu_ngay": "08/06/2026",
+      "den_ngay": "05/09/2026",
+      "groups": [
+        {
+          "giao_vien": "Lê Bá Kiệt",
+          "xe": "43C15844",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Nguyễn Văn Cường",
+          "xe": "43B25295",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Phạm Tấn Thịnh",
+          "xe": "43C15886",
+          "ca": "",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Lê Ngọc Hòa",
+          "xe": "43C16558",
+          "ca": "",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Hồ Duy Dũng",
+          "xe": "43C16443",
+          "ca": "",
+          "so_hoc_vien": 7
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C1006",
+      "lop": "C1K0826",
+      "tu_ngay": "24/07/2026",
+      "den_ngay": "21/10/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Đăng Trường",
+          "xe": "43C16569",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Đặng Hoàng Phương",
+          "xe": "43B25265",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Trần Thế Hải",
+          "xe": "43B09963",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Vương Văn Tiến",
+          "xe": "43C15870",
+          "ca": "",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26C1007",
+      "lop": "C1K0726",
+      "tu_ngay": "",
+      "den_ngay": "",
+      "groups": [
+        {
+          "giao_vien": "Lê Bá Kiệt",
+          "xe": "43C15844",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        },
+        {
+          "giao_vien": "Giao Thanh Tùng",
+          "xe": "43C15844",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Nguyễn Văn Cường",
+          "xe": "43B25295",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43B25295",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Phạm Tấn Thịnh",
+          "xe": "43C15886",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43C15886",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lê Ngọc Hòa",
+          "xe": "43C16558",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Hồ Duy Dũng",
+          "xe": "43C16443",
+          "ca": "Ca 1",
+          "so_hoc_vien": 6
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43C16443",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26CE002",
+      "lop": "NHCEK0326,C-CE",
+      "tu_ngay": "26/03/2026",
+      "den_ngay": "21/04/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26CE003",
+      "lop": "NHCEK0426,C-CE",
+      "tu_ngay": "23/04/2026",
+      "den_ngay": "21/05/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26CE004",
+      "lop": "NHCEK0526,C-CE",
+      "tu_ngay": "22/05/2026",
+      "den_ngay": "17/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26CE005",
+      "lop": "NHCEK0626,C-CE",
+      "tu_ngay": "18/06/2026",
+      "den_ngay": "14/07/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26CE008",
+      "lop": "NHCEK0826,C-CE",
+      "tu_ngay": "11/08/2026",
+      "den_ngay": "08/09/2026",
+      "groups": [
+        {
+          "giao_vien": "Nguyễn Nam Phương",
+          "xe": "43C16506",
+          "ca": "",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D0005& D0006",
+      "lop": "NHDK0326",
+      "tu_ngay": "",
+      "den_ngay": "",
+      "groups": [
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B08917",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D0007&48002K26D0008",
+      "lop": "NHDK0426",
+      "tu_ngay": "23/04/2026",
+      "den_ngay": "12/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Trần Viết Duy",
+          "xe": "43B03663",
+          "ca": "Ca 1",
+          "so_hoc_vien": 9
+        },
+        {
+          "giao_vien": "Trần Viết Duy",
+          "xe": "43B03663",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Lương Văn Quang",
+          "xe": "43B03663",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D0009& D0010",
+      "lop": "NHDK0526",
+      "tu_ngay": "",
+      "den_ngay": "",
+      "groups": [
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 2",
+          "so_hoc_vien": 4
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B08917",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D0011&48002K26D0012",
+      "lop": "NHDK0626",
+      "tu_ngay": "15/06/2026",
+      "den_ngay": "09/08/2026",
+      "groups": [
+        {
+          "giao_vien": "Lương Văn Quang",
+          "xe": "43B03663",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Lương Văn Quang",
+          "xe": "43B03663",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D0013& D0014",
+      "lop": "NHDK0726",
+      "tu_ngay": "28/06/2026",
+      "den_ngay": "25/08/2026",
+      "groups": [
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Phùng Trần Ngọc",
+          "xe": "43B08917",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D0015&48002K26D0016",
+      "lop": "NHDK0826",
+      "tu_ngay": "10/08/2026",
+      "den_ngay": "07/10/2026",
+      "groups": [
+        {
+          "giao_vien": "Lương Văn Quang",
+          "xe": "43B03663",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Lương Văn Quang",
+          "xe": "43B03663",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2005&D2006",
+      "lop": "NHD2K0326",
+      "tu_ngay": "18/03/2026",
+      "den_ngay": "22/04/2026",
+      "groups": [
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "",
+          "so_hoc_vien": 14
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "",
+          "so_hoc_vien": 14
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2007&D2008",
+      "lop": "NHD2K0426",
+      "tu_ngay": "31/03/2026",
+      "den_ngay": "07/05/2026",
+      "groups": [
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 2",
+          "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2011&D2012",
+      "lop": "NHD2K0526",
+      "tu_ngay": "23/04/2026",
+      "den_ngay": "30/05/2026",
+      "groups": [
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 2",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 2",
+          "so_hoc_vien": 7
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2013&D2014&D2015",
+      "lop": "NHD2K0626",
+      "tu_ngay": "08/05/2026",
+      "den_ngay": "14/06/2026",
+      "groups": [
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 2",
+          "so_hoc_vien": 7
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2016&D2017&D2018",
+      "lop": "NHD2K0726",
+      "tu_ngay": "31/05/2026",
+      "den_ngay": "12/07/2026",
+      "groups": [
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2019",
+      "lop": "NHD2K0826",
+      "tu_ngay": "15/06/2026",
+      "den_ngay": "27/07/2026",
+      "groups": [
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 1",
+          "so_hoc_vien": 10
+        },
+        {
+          "giao_vien": "Đoàn Công Minh",
+          "xe": "43B03765",
+          "ca": "Ca 2",
+          "so_hoc_vien": 10
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2020&D2021",
+      "lop": "NHD2K0926",
+      "tu_ngay": "15/07/2026",
+      "den_ngay": "21/08/2026",
+      "groups": [
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 2",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 2",
+          "so_hoc_vien": 8
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K26D2025&D2026",
+      "lop": "NHD2K1126",
+      "tu_ngay": "22/08/2026",
+      "den_ngay": "29/09/2026",
+      "groups": [
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Bùi Kiến Quốc",
+          "xe": "43B03568",
+          "ca": "Ca 2",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Lê Văn Long",
+          "xe": "43B26084",
+          "ca": "Ca 2",
+          "so_hoc_vien": 8
+        }
+      ]
+    }
+  ]
+}
