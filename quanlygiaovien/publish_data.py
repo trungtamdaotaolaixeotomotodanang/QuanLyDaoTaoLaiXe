@@ -46,6 +46,13 @@ REPO_ROOT = APP_DIR.parent  # docs/ phải nằm ở root repo để GitHub Page
 DATA_DIR = APP_DIR / "data"
 DOCS_DIR = REPO_ROOT / "docs"
 PUBLIC_DATA_FILE = DOCS_DIR / "public_data.json"
+# Dữ liệu gọn riêng cho app "Quản lý cấp xăng" (quanlycapxang/, project
+# khác, cùng git repo) - chỉ mã khóa/lớp/ngày/xe/giáo viên/số học viên
+# TÍNH XĂNG (không tên/CMND/ngày sinh/địa chỉ học viên) - KHÔNG giới hạn
+# theo trạng thái khóa (khác public_data.json chỉ giữ khóa "Đang đào tạo"),
+# vì app cấp xăng cần đối chiếu cả khóa đã xong. Xem khối xây dựng trong
+# run_pipeline (biến cap_xang_courses).
+CAP_XANG_DATA_FILE = DOCS_DIR / "cap_xang_data.json"
 FILES_OUT_DIR = DOCS_DIR / "files"
 QR_DIR = APP_DIR / "qr_codes"
 QR_CAPTIONS_FILE = QR_DIR / "_captions.json"
@@ -623,6 +630,7 @@ def run_pipeline(sources=None):
 
     lich_hoc_pdf_cache = {}  # ma_khoa -> rel path (hoặc None), tránh copy trùng
     teaching_now = {}  # ma_gv -> [khoa...]
+    cap_xang_courses = {}  # ma_khoa -> {..., "groups": [...]} - xem CAP_XANG_DATA_FILE
     teacher_phone = {}  # ma_gv -> SĐT (lấy từ cột SĐT trong Excel biên chế xe,
     # khóa nào có nhập trước thì lấy khóa đó) - hiện ở mục "Thông tin giáo
     # viên", không còn hiện riêng trong từng khóa (mục "Xe tập lái") nữa.
@@ -701,6 +709,23 @@ def run_pipeline(sources=None):
                     "noi_dung": f"Biển số '{xe}' (GV {name}, khóa {ma_khoa}) không có trong '{dsxtl_file_name}'.",
                 })
 
+            so_hoc_vien_dem = sum(
+                1 for hv in hoc_vien if not _is_bao_luu((hv.get("ghi_chu") or "").strip())
+            )
+
+            cap_xang_courses.setdefault(ma_khoa, {
+                "ma_khoa": ma_khoa,
+                "lop": lop,
+                "tu_ngay": c.get("tu_ngay", ""),
+                "den_ngay": c.get("den_ngay", ""),
+                "groups": [],
+            })["groups"].append({
+                "giao_vien": dsgv[ma_gv]["ten"],
+                "xe": xe,
+                "ca": g.get("ca", ""),
+                "so_hoc_vien": so_hoc_vien_dem,
+            })
+
             if not is_active:
                 # Khóa đã xong/chưa bắt đầu - đã kiểm tra cảnh báo xong, không
                 # đưa vào hồ sơ công khai "đang dạy" trên web.
@@ -713,7 +738,6 @@ def run_pipeline(sources=None):
                 teacher_phone[ma_gv] = sdt
 
             hoc_vien_display = []
-            so_hoc_vien_dem = 0
             for hv in hoc_vien:
                 ghi_chu = (hv.get("ghi_chu") or "").strip()
                 ten_hv = f"{hv['ho_ten']} ({ghi_chu})" if ghi_chu else hv["ho_ten"]
@@ -726,8 +750,6 @@ def run_pipeline(sources=None):
                         "ngay_tot_nghiep": hv.get("ngay_tot_nghiep", ""),
                     }
                 )
-                if not _is_bao_luu(ghi_chu):
-                    so_hoc_vien_dem += 1
 
             teaching_now.setdefault(ma_gv, []).append(
                 {
@@ -808,6 +830,14 @@ def run_pipeline(sources=None):
     }
     PUBLIC_DATA_FILE.write_text(
         json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+    cap_xang_out = {
+        "generated_at": model.generated_at,
+        "courses": list(cap_xang_courses.values()),
+    }
+    CAP_XANG_DATA_FILE.write_text(
+        json.dumps(cap_xang_out, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
     return {

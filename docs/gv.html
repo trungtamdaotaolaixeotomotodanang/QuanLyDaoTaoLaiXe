@@ -271,7 +271,7 @@ fetch("public_data.json", { cache: "no-store" })
         ["Số điện thoại", gv.dien_thoai],
         ["Ngày tháng năm sinh", gv.ngay_sinh],
         ["Địa chỉ thường trú", gv.dia_chi],
-        ["Hạng lái xe dạy", gv.hang_lai_xe],
+        ["Dạy lái xe hạng", gv.hang_lai_xe],
       ];
       infoRows.forEach(([label, value]) => {
         if (!value) return;
@@ -317,7 +317,7 @@ fetch("public_data.json", { cache: "no-store" })
     if (!khoaList.length) {
       const empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = "Hiện không đang dạy khóa nào.";
+      empty.textContent = "Hiện tại không dạy khóa nào";
       container.appendChild(empty);
       return;
     }

@@ -22,6 +22,7 @@ REPO_ROOT = APP_DIR.parent  # git root thực tế là D:\GTCC (docs/ nằm ở 
 # (dùng chung hàm app_dir() như publish_data.py) để luôn khớp đúng file thật.
 FILES_TO_PUBLISH = [
     "docs/public_data.json",
+    "docs/cap_xang_data.json",  # dữ liệu gọn cho app Quản lý cấp xăng (quanlycapxang/)
     "docs/files",
     str((APP_DIR / "ten_gv_overrides.json").relative_to(REPO_ROOT)),
     str((APP_DIR / "lich_hoc_overrides.json").relative_to(REPO_ROOT)),
