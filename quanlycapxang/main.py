@@ -85,7 +85,9 @@ class MainWindow(QMainWindow):
             self.tab_tong_hop_cap_xang.refresh()
             QMessageBox.information(
                 self, "Hoàn tất",
-                "Đã lấy dữ liệu khóa/xe/giáo viên mới nhất từ GitHub.",
+                "Đã lấy dữ liệu khóa/xe/giáo viên mới nhất từ GitHub.\n\n"
+                "File dữ liệu app đang dùng (đã tải về):\n"
+                f"{CAP_XANG_DATA_JSON}",
             )
         else:
             QMessageBox.warning(self, "Không lấy được dữ liệu mới", message)

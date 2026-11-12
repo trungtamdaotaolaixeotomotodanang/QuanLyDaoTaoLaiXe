@@ -126,7 +126,13 @@ class MainWindow(QMainWindow):
             QMessageBox.information(
                 self, "Hoàn tất",
                 "Đã lấy dữ liệu mới nhất (ngày học gán tay, tên GV sửa tay...) "
-                "từ máy khác/GitHub về.",
+                "từ máy khác/GitHub về.\n\n"
+                "File dữ liệu đã tải về (đã áp dụng ngay):\n"
+                f"{publish_data.NGAY_HOC_OVERRIDES_FILE}\n\n"
+                "File đã tải về nhưng chỉ có hiệu lực sau lần \"Cập nhật && "
+                "Đăng lên web\" kế tiếp:\n"
+                f"{publish_data.TEN_GV_OVERRIDES_FILE}\n"
+                f"{publish_data.LICH_HOC_OVERRIDES_FILE}",
             )
         else:
             QMessageBox.warning(
