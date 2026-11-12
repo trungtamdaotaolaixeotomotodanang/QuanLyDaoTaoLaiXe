@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+import attach_files
 import fuel_norm
 
 RESULT_COLUMNS = [
@@ -29,6 +30,15 @@ RESULT_COLUMNS = [
 ]
 
 ALL_TEACHERS_LABEL = "-- Tất cả giáo viên --"
+
+
+class _TeacherNameItem(QTableWidgetItem):
+    """Ô cột "Giáo viên" - bấm vào tiêu đề cột để sắp xếp theo TÊN (từ cuối
+    cùng), không theo HỌ (mặc định QTableWidgetItem sắp theo nguyên chuỗi
+    "Họ Tên", tức theo họ)."""
+
+    def __lt__(self, other):
+        return attach_files.given_name_sort_key(self.text()) < attach_files.given_name_sort_key(other.text())
 
 
 def _fmt_so(value):
@@ -178,7 +188,7 @@ class DinhMucXangTab(QWidget):
                 _fmt_so(r["tong"]),
             ]
             for col, val in enumerate(values):
-                item = QTableWidgetItem(val)
+                item = _TeacherNameItem(val) if col == 0 else QTableWidgetItem(val)
                 if col >= 5:
                     item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(row_idx, col, item)
