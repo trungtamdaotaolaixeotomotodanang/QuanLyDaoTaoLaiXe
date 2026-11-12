@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-12T08:37:30",
+  "generated_at": "2026-11-12T09:52:01",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -1386,11 +1386,148 @@
     },
     "48002026": {
       "ten": "Lê Văn Long",
-      "dien_thoai": "",
+      "dien_thoai": "SĐT: 0901 171252",
       "ngay_sinh": "03/04/1975",
       "dia_chi": "Phường Hải Châu, Thành phố Đà Nẵng",
       "hang_lai_xe": "D",
-      "khoa_dang_day": [],
+      "khoa_dang_day": [
+        {
+          "ma_khoa": "48002K262053&K262056",
+          "lop": "NHD2K1526",
+          "tu_ngay": "",
+          "den_ngay": "",
+          "xe": "43B26084",
+          "so_hoc_vien": 6,
+          "hoc_vien": [
+            {
+              "ten": "TRẦN NGỌC TRUNG (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "PHẠM VĂN VŨ (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "LƯƠNG TRỌNG DUY VINH (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN VIẾT PHONG (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "VÕ PHƯỚC PHÚC (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "PHAN VĂN HIỆU (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            }
+          ],
+          "lich_hoc_pdf": null,
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/ebd0efed-0974-42d8-a932-b75a89db4ad2"
+        },
+        {
+          "ma_khoa": "48002K262054",
+          "lop": "NHCK0626",
+          "tu_ngay": "",
+          "den_ngay": "",
+          "xe": "43C16531",
+          "so_hoc_vien": 7,
+          "hoc_vien": [
+            {
+              "ten": "HUỲNH PHÚC ÂN (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGÔ ĐÌNH DƯ (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "HUỲNH VĂN HIẾU (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN VĂN HÙNG (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN HỮU HUY (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "ĐÀO VIẾT LINH (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRƯƠNG THANH LỘC (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            }
+          ],
+          "lich_hoc_pdf": null,
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
+        },
+        {
+          "ma_khoa": "48002K262054",
+          "lop": "NHCK0626",
+          "tu_ngay": "",
+          "den_ngay": "",
+          "xe": "43C16531",
+          "so_hoc_vien": 7,
+          "hoc_vien": [
+            {
+              "ten": "BÙI ĐÌNH LONG (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "BÙI MY OANH (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRẦN ĐÌNH PHÁT (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "PHẠM TIẾN TÀI (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "ĐỖ ANH TÂM (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRƯƠNG CÔNG TUẤN (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "VÕ QUỐC VIỆT (C1->C)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            }
+          ],
+          "lich_hoc_pdf": null,
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/1a83bbd1-a443-4929-a928-62b8e137ab04"
+        }
+      ],
       "ho_so_file": "files/ho_so_gv/48002026.pdf",
       "anh_file": "files/anh_gv/48002026.jpg"
     },
@@ -2115,11 +2252,106 @@
     },
     "48002040": {
       "ten": "Bùi Kiến Quốc",
-      "dien_thoai": "",
+      "dien_thoai": "SĐT: 0914 000624",
       "ngay_sinh": "06/12/1968",
       "dia_chi": "Phường Hòa Cường, Thành phố Đà Nẵng",
       "hang_lai_xe": "D2",
-      "khoa_dang_day": [],
+      "khoa_dang_day": [
+        {
+          "ma_khoa": "48002K262053&K262056",
+          "lop": "NHD2K1526",
+          "tu_ngay": "",
+          "den_ngay": "",
+          "xe": "43B03568",
+          "so_hoc_vien": 7,
+          "hoc_vien": [
+            {
+              "ten": "ĐOÀN RÔN (B-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN HOAN (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRẦN TIẾN VŨ (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRẦN PHƯỚC TUẤN (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRẦN LONG VÂN (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN CÔNG THỊNH (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "TRẦN TRUNG TÍN (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            }
+          ],
+          "lich_hoc_pdf": null,
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
+        },
+        {
+          "ma_khoa": "48002K262053&K262056",
+          "lop": "NHD2K1526",
+          "tu_ngay": "",
+          "den_ngay": "",
+          "xe": "43B03568",
+          "so_hoc_vien": 7,
+          "hoc_vien": [
+            {
+              "ten": "VÕ NGỌC TOÀN (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "LÊ TUẤN HUY (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "LÊ VĂN NHẬT LINH (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "BÙI THỊ NGA (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN THANH NHẤT (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "NGUYỄN VĂN NHƯ (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            },
+            {
+              "ten": "MAI ĐỨC ĐẠT (C1-D2)",
+              "ket_qua_thi": "",
+              "ngay_tot_nghiep": ""
+            }
+          ],
+          "lich_hoc_pdf": null,
+          "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/bf670cce-0af1-4da6-8c7a-a25b8f9dc068"
+        }
+      ],
       "ho_so_file": "files/ho_so_gv/48002040.pdf",
       "anh_file": "files/anh_gv/48002040.jpg"
     },
