@@ -1,22 +1,27 @@
 """Tab ĐỊNH MỨC XĂNG: mặc định hiện TẤT CẢ giáo viên đang dạy, hoặc chọn/gõ
 1 giáo viên để lọc riêng - hiện danh sách khóa ĐANG DẠY, định mức xăng
 (lít/học viên) của xe từng khóa (tra theo file "BẢNG ĐỊNH MỨC NL.xlsx" đã
-nhập ở tab CẬP NHẬT DỮ LIỆU - xem fuel_norm.py), số học viên tính xăng
-(KHÔNG tính học viên "Bảo lưu") và tổng số lít xăng của từng khóa + tổng
-cộng toàn bộ các khóa đang hiện trong bảng."""
+chọn ở nút "Chọn file định mức..." - xem fuel_norm.py), số học viên tính
+xăng (KHÔNG tính học viên "Bảo lưu") và tổng số lít xăng của từng khóa +
+tổng cộng toàn bộ các khóa đang hiện trong bảng."""
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QCompleter,
+    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QMessageBox,
+    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
+
+import fuel_norm
 
 RESULT_COLUMNS = [
     "Giáo viên", "Mã khóa", "Lớp", "Xe", "Thời gian học",
@@ -41,10 +46,47 @@ class DinhMucXangTab(QWidget):
         self.model = model
         self._build_ui()
         self._load_filters()
+        self._update_dinh_muc_file_label()
         self._search_by_teacher(ALL_TEACHERS_LABEL)
+
+    def _update_dinh_muc_file_label(self):
+        src = self.model.dinh_muc_source_file
+        self.lbl_dinh_muc_file.setText(
+            f"Đang dùng: {src}" if src else "Chưa chọn file định mức nhiên liệu nào."
+        )
+
+    def _on_pick_dinh_muc_file(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Chọn file định mức nhiên liệu", "", "Excel Files (*.xlsx)"
+        )
+        if not path:
+            return
+        try:
+            fuel_norm.load_and_cache(path)
+        except Exception as exc:
+            QMessageBox.warning(self, "Không đọc được file", str(exc))
+            return
+        self.model.reload()
+        self._update_dinh_muc_file_label()
+        self._search_by_teacher()
+        QMessageBox.information(
+            self, "Hoàn tất",
+            "Đã đọc xong file định mức. Bấm \"⬆ Đẩy phiếu/định mức lên\" ở "
+            "góc trên để máy khác cũng thấy file này.",
+        )
 
     def _build_ui(self):
         outer = QVBoxLayout(self)
+
+        file_box = QGroupBox("File định mức nhiên liệu")
+        file_layout = QHBoxLayout(file_box)
+        self.lbl_dinh_muc_file = QLabel("")
+        self.lbl_dinh_muc_file.setWordWrap(True)
+        file_layout.addWidget(self.lbl_dinh_muc_file, 1)
+        btn_pick_dinh_muc = QPushButton("Chọn file định mức...")
+        btn_pick_dinh_muc.clicked.connect(self._on_pick_dinh_muc_file)
+        file_layout.addWidget(btn_pick_dinh_muc)
+        outer.addWidget(file_box)
 
         box = QGroupBox("Tra cứu định mức xăng theo giáo viên")
         form_layout = QHBoxLayout(box)
@@ -97,9 +139,10 @@ class DinhMucXangTab(QWidget):
 
     def refresh(self):
         """Nạp lại danh sách giáo viên + tra cứu lại lựa chọn đang chọn (nếu
-        có) sau khi tab CẬP NHẬT DỮ LIỆU xử lý xong dữ liệu mới."""
+        có) - gọi sau khi bấm "Lấy dữ liệu mới nhất" ở main.py."""
         teacher_text = self.cbo_teacher.currentText().strip()
         self._load_filters()
+        self._update_dinh_muc_file_label()
         if teacher_text and teacher_text != ALL_TEACHERS_LABEL:
             idx = self.cbo_teacher.findText(teacher_text)
             if idx >= 0:
@@ -150,7 +193,7 @@ class DinhMucXangTab(QWidget):
             ds = ", ".join(f"{r['xe']} ({r['ma_khoa']})" for r in thieu)
             self.lbl_missing.setText(
                 f"Chưa tra được định mức cho {len(thieu)} xe/khóa - cần bổ sung vào "
-                f"file định mức nhiên liệu (tab CẬP NHẬT DỮ LIỆU): {ds}"
+                f"file định mức nhiên liệu (nút \"Chọn file định mức...\" ở trên): {ds}"
             )
         else:
             self.lbl_missing.setText("")

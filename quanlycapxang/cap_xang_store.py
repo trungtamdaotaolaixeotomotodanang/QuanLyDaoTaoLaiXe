@@ -1,37 +1,47 @@
-"""Lưu trữ phiếu cấp xăng (phieu_cap_xang.json) - sổ ghi mỗi lần THỰC TẾ cấp
-xăng cho giáo viên theo khóa học/xe, dùng cho tab CẤP XĂNG. Khác với
-fuel_norm.py (định mức - mức ĐƯỢC PHÉP cấp) và dinh_muc_xang.json (cache từ
-file Excel định mức) - file này là sổ nhập tay, lưu local, không import từ
-Excel."""
+"""Lưu trữ phiếu cấp xăng (shared_data/phieu_cap_xang.json) - sổ ghi mỗi lần
+THỰC TẾ cấp xăng cho giáo viên theo khóa học/xe, dùng cho tab CẤP XĂNG. Khác
+với fuel_norm.py (định mức - mức ĐƯỢC PHÉP cấp) và dinh_muc_xang.json (cache
+từ file Excel định mức) - file này là sổ nhập tay.
+
+Nằm trong shared_data/ (cố định theo REPO_ROOT, không theo APP_DIR - xem
+quanlygiaovien/publish_data.py để biết lý do) để đồng bộ được qua git giữa
+nhiều máy - xem main.py nút "⬆ Đẩy phiếu/định mức lên" (chủ động, không tự
+push mỗi lần gõ 1 ô, vì ghi phiếu có thể rất nhiều lần/ngày).
+
+id mỗi phiếu là UUID (không phải số tự tăng) - để 2 máy cùng thêm phiếu mới
+trước khi đồng bộ với nhau không bao giờ bị trùng id, tránh ghi đè nhầm lên
+nhau lúc gộp qua git."""
 import json
+import uuid
 
 from runtime_paths import app_dir
 
 APP_DIR = app_dir()
-STORE_FILE = APP_DIR / "phieu_cap_xang.json"
+REPO_ROOT = APP_DIR.parent
+SHARED_DATA_DIR = REPO_ROOT / "shared_data"
+STORE_FILE = SHARED_DATA_DIR / "phieu_cap_xang.json"
 
 
 def load():
     if not STORE_FILE.exists():
-        return {"next_id": 1, "records": []}
+        return {"records": []}
     data = json.loads(STORE_FILE.read_text(encoding="utf-8"))
-    data.setdefault("next_id", 1)
     data.setdefault("records", [])
     return data
 
 
 def _save(data):
+    SHARED_DATA_DIR.mkdir(exist_ok=True)
     STORE_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def add_record(fields):
     """fields: dict gồm giao_vien, ma_khoa, lop, xe, ngay_cap (dd/mm/yyyy),
-    so_phieu, mat_hang, so_luong (float), ghi_chu, phan_loai_so. Gán id tự
-    tăng, lưu lại, trả về record vừa thêm (kèm "id")."""
+    so_phieu, mat_hang, so_luong (float), ghi_chu, phan_loai_so. Gán id UUID,
+    lưu lại, trả về record vừa thêm (kèm "id")."""
     data = load()
-    record = {"id": data["next_id"], **fields}
+    record = {"id": uuid.uuid4().hex, **fields}
     data["records"].append(record)
-    data["next_id"] += 1
     _save(data)
     return record
 

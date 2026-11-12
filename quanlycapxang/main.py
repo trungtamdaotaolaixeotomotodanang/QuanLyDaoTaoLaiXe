@@ -23,6 +23,7 @@ from tab_tong_hop_cap_xang import TongHopCapXangTab
 APP_DIR = app_dir()
 REPO_ROOT = APP_DIR.parent
 CAP_XANG_DATA_JSON = REPO_ROOT / "docs" / "cap_xang_data.json"
+SHARED_DATA_DIR = REPO_ROOT / "shared_data"
 
 
 class _SyncWorker(QThread):
@@ -34,6 +35,20 @@ class _SyncWorker(QThread):
     def run(self):
         try:
             ok, message = git_sync.sync_from_remote()
+        except Exception as exc:
+            ok, message = False, str(exc)
+        self.finished_result.emit(ok, message)
+
+
+class _PushWorker(QThread):
+    """Chạy git_sync.push_shared_data() ở thread riêng - xem
+    MainWindow._on_push_clicked."""
+
+    finished_result = Signal(bool, str)
+
+    def run(self):
+        try:
+            ok, message = git_sync.push_shared_data("Cập nhật phiếu/định mức cấp xăng")
         except Exception as exc:
             ok, message = False, str(exc)
         self.finished_result.emit(ok, message)
@@ -57,8 +72,11 @@ class MainWindow(QMainWindow):
 
         self.btn_sync = QPushButton("🔄 Lấy dữ liệu mới nhất")
         self.btn_sync.clicked.connect(self._on_sync_clicked)
+        self.btn_push = QPushButton("⬆ Đẩy phiếu/định mức lên")
+        self.btn_push.clicked.connect(self._on_push_clicked)
         top_row = QHBoxLayout()
         top_row.addStretch()
+        top_row.addWidget(self.btn_push)
         top_row.addWidget(self.btn_sync)
 
         central = QWidget()
@@ -85,12 +103,36 @@ class MainWindow(QMainWindow):
             self.tab_tong_hop_cap_xang.refresh()
             QMessageBox.information(
                 self, "Hoàn tất",
-                "Đã lấy dữ liệu khóa/xe/giáo viên mới nhất từ GitHub.\n\n"
-                "File dữ liệu app đang dùng (đã tải về):\n"
-                f"{CAP_XANG_DATA_JSON}",
+                "Đã lấy dữ liệu khóa/xe/giáo viên + phiếu/định mức (máy khác "
+                "đã đẩy lên) mới nhất từ GitHub.\n\n"
+                "File dữ liệu đã tải về:\n"
+                f"{CAP_XANG_DATA_JSON}\n"
+                f"{SHARED_DATA_DIR / 'phieu_cap_xang.json'}\n"
+                f"{SHARED_DATA_DIR / 'dinh_muc_xang.json'}",
             )
         else:
             QMessageBox.warning(self, "Không lấy được dữ liệu mới", message)
+
+    def _on_push_clicked(self):
+        self.btn_push.setEnabled(False)
+        self.btn_push.setText("Đang đẩy lên...")
+        self._push_worker = _PushWorker()
+        self._push_worker.finished_result.connect(self._on_push_done)
+        self._push_worker.start()
+
+    def _on_push_done(self, ok, message):
+        self.btn_push.setEnabled(True)
+        self.btn_push.setText("⬆ Đẩy phiếu/định mức lên")
+        if ok:
+            QMessageBox.information(
+                self, "Hoàn tất",
+                f"{message}\n\n"
+                "File đã đẩy lên (máy khác bấm \"🔄 Lấy dữ liệu mới nhất\" sẽ thấy):\n"
+                f"{SHARED_DATA_DIR / 'phieu_cap_xang.json'}\n"
+                f"{SHARED_DATA_DIR / 'dinh_muc_xang.json'}",
+            )
+        else:
+            QMessageBox.warning(self, "Không đẩy lên được", message)
 
 
 def main():

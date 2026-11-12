@@ -23,7 +23,12 @@ import attach_files
 from runtime_paths import app_dir
 
 APP_DIR = app_dir()
-CACHE_FILE = APP_DIR / "dinh_muc_xang.json"
+REPO_ROOT = APP_DIR.parent
+SHARED_DATA_DIR = REPO_ROOT / "shared_data"
+# Nằm trong shared_data/ (đồng bộ qua git, xem main.py nút "Đẩy phiếu/định
+# mức lên") để máy khác cũng dùng được định mức vừa nhập Excel, không cần
+# tự import lại file Excel gốc trên từng máy.
+CACHE_FILE = SHARED_DATA_DIR / "dinh_muc_xang.json"
 
 # Loại bỏ artifact kiểu "...TÊNB18:B20" lẫn vào nội dung do lỗi nhập liệu
 # nguồn - xem quanlygiaovien/convert_excel_to_json.py (clean_text gốc).
@@ -97,6 +102,7 @@ def load_and_cache(path):
     nhanh ở lần mở app sau, không cần chọn lại file. Trả về dict đã lưu."""
     rows = parse_dinh_muc_file(path)
     data = {"source_file": str(path), "rows": rows}
+    SHARED_DATA_DIR.mkdir(exist_ok=True)
     CACHE_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     return data
 
