@@ -24,15 +24,16 @@ DIST_EXE = APP_DIR / "dist" / "main.exe"
 # Mọi file/thư mục mà app đọc qua APP_DIR lúc chạy (xem các "APP_DIR / ..."
 # trong publish_data.py, login_dialog.py, teacher_card.py, style.py) - phải
 # liệt kê đủ ở đây, thiếu file nào thì bản release sẽ thiếu đúng dữ liệu đó.
+# Không còn liệt kê lich_hoc/ngay_hoc/ten_gv_overrides.json ở đây - các
+# file này giờ nằm cố định ở REPO_ROOT/shared_data/ (không theo APP_DIR
+# nữa, xem publish_data.py), nên release/ và quanlygiaovien/ tự dùng
+# CHUNG 1 bản duy nhất, không cần đồng bộ qua lại.
 FILES = [
     "data.json",
     "app_settings.json",
     "data_sources.json",
-    "lich_hoc_overrides.json",
-    "ngay_hoc_overrides.json",
     "giao_vien_extra.json",
     "xe_extra.json",
-    "ten_gv_overrides.json",
     "login_logo.png",
     "app_icon.ico",
 ]

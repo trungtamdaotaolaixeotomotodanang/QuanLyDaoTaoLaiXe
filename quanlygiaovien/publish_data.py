@@ -43,6 +43,13 @@ from runtime_paths import app_dir
 
 APP_DIR = app_dir()
 REPO_ROOT = APP_DIR.parent  # docs/ phải nằm ở root repo để GitHub Pages phục vụ được
+# 3 file override bên dưới (lich_hoc/ngay_hoc/ten_gv) tính theo REPO_ROOT,
+# KHÔNG theo APP_DIR - vì APP_DIR đổi theo tên thư mục chứa main.exe (có
+# thể khác nhau giữa các máy/các lần gửi release), nếu tính theo APP_DIR
+# thì git sẽ coi đó là 1 file KHÁC mỗi khi đổi tên thư mục, làm mất đồng
+# bộ giữa các máy (đã gặp thực tế). shared_data/ cố định vị trí bất kể
+# APP_DIR tên gì, miễn còn nằm trong đúng git clone.
+SHARED_DATA_DIR = REPO_ROOT / "shared_data"
 DATA_DIR = APP_DIR / "data"
 DOCS_DIR = REPO_ROOT / "docs"
 PUBLIC_DATA_FILE = DOCS_DIR / "public_data.json"
@@ -58,7 +65,7 @@ QR_DIR = APP_DIR / "qr_codes"
 QR_CAPTIONS_FILE = QR_DIR / "_captions.json"
 APP_SETTINGS_FILE = APP_DIR / "app_settings.json"
 DATA_SOURCES_FILE = APP_DIR / "data_sources.json"
-LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> TÊN
+LICH_HOC_OVERRIDES_FILE = SHARED_DATA_DIR / "lich_hoc_overrides.json"  # mã khóa -> TÊN
 # file lịch học PDF gán tay (xem tab LỊCH HỌC - nút "Cập nhật"/"Chọn file",
 # set_lich_hoc_override) - ưu tiên hơn so khớp tự động theo mã lớp
 # (attach_files.find_lich_hoc_pdf/resolve_lich_hoc_pdf), để không phụ thuộc
@@ -66,7 +73,7 @@ LICH_HOC_OVERRIDES_FILE = APP_DIR / "lich_hoc_overrides.json"  # mã khóa -> T�
 # đối) và commit qua git (giống ten_gv_overrides.json) nên dùng chung được
 # giữa các máy - máy nào cũng cần có 1 file tên này trong "lich_hoc_files"
 # (data_sources.json) của máy đó thì mới áp dụng được.
-NGAY_HOC_OVERRIDES_FILE = APP_DIR / "ngay_hoc_overrides.json"  # mã khóa -> {tu_ngay,
+NGAY_HOC_OVERRIDES_FILE = SHARED_DATA_DIR / "ngay_hoc_overrides.json"  # mã khóa -> {tu_ngay,
 # den_ngay} gán tay (xem tab PHÂN XE - nút "Xem chi tiết...", set_ngay_hoc_overrides_bulk)
 # - chỉ áp dụng khi file Excel "Sổ phân công GV" KHÔNG có ngày (convert_excel_to_json.
 # _find_period trả về rỗng); file Excel vẫn luôn là nguồn chính, sửa đúng Excel rồi
@@ -75,7 +82,7 @@ NGAY_HOC_OVERRIDES_FILE = APP_DIR / "ngay_hoc_overrides.json"  # mã khóa -> {t
 PHOTOS_DIR = APP_DIR / "anh_gv"  # ảnh đại diện giáo viên - lưu local, bản resize sẽ copy sang docs/files
 GV_EXTRA_FILE = APP_DIR / "giao_vien_extra.json"  # hạng lái xe dạy - tách khỏi DSGV, lưu local theo MaGV
 XE_EXTRA_FILE = APP_DIR / "xe_extra.json"  # link giấy tờ xe (nhập tay) - lưu local theo biển số chuẩn hoá
-TEN_GV_OVERRIDES_FILE = APP_DIR / "ten_gv_overrides.json"  # tên GV trong Excel không khớp DSGV - xử lý tay
+TEN_GV_OVERRIDES_FILE = SHARED_DATA_DIR / "ten_gv_overrides.json"  # tên GV trong Excel không khớp DSGV - xử lý tay
 # từ hộp thoại cảnh báo lúc cập nhật (xem set_ten_gv_override) - giá trị là
 # mã GV đúng (tên viết tắt của GV khác) hoặc "ignore" (GV đã nghỉ, không còn
 # trong DSGV) - commit qua git nên dùng chung được giữa các máy.
@@ -202,6 +209,7 @@ def load_ten_gv_overrides():
 
 
 def save_ten_gv_overrides(data):
+    SHARED_DATA_DIR.mkdir(exist_ok=True)
     TEN_GV_OVERRIDES_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -230,6 +238,7 @@ def load_ngay_hoc_overrides():
 
 
 def save_ngay_hoc_overrides(data):
+    SHARED_DATA_DIR.mkdir(exist_ok=True)
     NGAY_HOC_OVERRIDES_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -389,6 +398,7 @@ def load_lich_hoc_overrides():
 
 
 def save_lich_hoc_overrides(data):
+    SHARED_DATA_DIR.mkdir(exist_ok=True)
     LICH_HOC_OVERRIDES_FILE.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )

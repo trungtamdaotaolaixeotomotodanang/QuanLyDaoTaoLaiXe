@@ -12,21 +12,18 @@ APP_DIR = app_dir()
 REPO_ROOT = APP_DIR.parent  # git root thực tế là D:\GTCC (docs/ nằm ở đây)
 
 # ten_gv_overrides.json/lich_hoc_overrides.json/ngay_hoc_overrides.json được
-# publish_data.py lưu trong APP_DIR - không hardcode "quanlygiaovien/..." ở
-# đây vì APP_DIR (tính từ runtime_paths.app_dir(), theo vị trí main.exe) có
-# thể KHÁC thư mục "quanlygiaovien" nếu .exe không được đặt trong 1 thư mục
-# tên đúng "dist" - lúc đó git add sẽ add nhầm 1 file đứng yên (không phải
-# file thật đang được ghi), khiến máy khác không đồng bộ được ngày gán tay/
-# tên GV override (từng gặp thực tế: file ngay_hoc_overrides.json không hề
-# được commit mặc dù app báo lưu + đăng web thành công). Tính theo APP_DIR
-# (dùng chung hàm app_dir() như publish_data.py) để luôn khớp đúng file thật.
+# publish_data.py lưu trong shared_data/ (cố định theo REPO_ROOT) - KHÔNG
+# theo APP_DIR nữa, vì APP_DIR đổi theo tên thư mục chứa main.exe (có thể
+# khác nhau giữa các máy/các lần gửi release) - trước đây tính theo APP_DIR
+# nên đổi tên thư mục là git coi như 1 file khác, mất đồng bộ giữa các máy
+# (từng gặp thực tế). Giờ hardcode thẳng đường dẫn cố định như docs/... .
 FILES_TO_PUBLISH = [
     "docs/public_data.json",
     "docs/cap_xang_data.json",  # dữ liệu gọn cho app Quản lý cấp xăng (quanlycapxang/)
     "docs/files",
-    str((APP_DIR / "ten_gv_overrides.json").relative_to(REPO_ROOT)),
-    str((APP_DIR / "lich_hoc_overrides.json").relative_to(REPO_ROOT)),
-    str((APP_DIR / "ngay_hoc_overrides.json").relative_to(REPO_ROOT)),
+    "shared_data/ten_gv_overrides.json",
+    "shared_data/lich_hoc_overrides.json",
+    "shared_data/ngay_hoc_overrides.json",
 ]
 
 # Khi chạy từ file .exe đã build (không có console riêng - xem main.spec
