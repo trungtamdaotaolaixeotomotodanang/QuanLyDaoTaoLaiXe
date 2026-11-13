@@ -333,7 +333,7 @@ fetch("public_data.json", { cache: "no-store" })
 
       const title = document.createElement("div");
       title.className = "khoa-title";
-      title.textContent = `${idx + 1}. Khóa ${k.ma_khoa} (${k.lop})`;
+      title.textContent = `${idx + 1}. Khóa ${k.ma_khoa} (${k.lop})${k.ca ? " - " + k.ca : ""}`;
       card.appendChild(title);
 
       card.appendChild(row("📅 Thời gian đào tạo", `${k.tu_ngay} → ${k.den_ngay}`));
