@@ -2,10 +2,23 @@
 1 giáo viên để lọc riêng - hiện danh sách khóa ĐANG DẠY, định mức xăng
 (lít/học viên) của xe từng khóa (tra theo file "BẢNG ĐỊNH MỨC NL.xlsx" đã
 chọn ở nút "Chọn file định mức..." - xem fuel_norm.py), số học viên tính
-xăng (KHÔNG tính học viên "Bảo lưu") và tổng số lít xăng của từng khóa +
-tổng cộng toàn bộ các khóa đang hiện trong bảng."""
+xăng (KHÔNG tính học viên "Bảo lưu"), tổng số lít xăng của từng khóa, số lít
+ĐÃ CẤP thực tế (cộng dồn các phiếu đã ghi ở tab CẤP XĂNG, khớp theo khóa+xe)
+và CÒN LẠI = tổng định mức - đã cấp (tô đỏ nếu âm, tức đã cấp vượt định
+mức) - đúng cột "CÒN LẠI" trước đây phải tự tính tay trên Excel, nay app tự
+tính + luôn cập nhật theo phiếu mới nhất. + tổng cộng toàn bộ các khóa đang
+hiện trong bảng.
+
+Khóa đã cấp VƯỢT định mức: tô cả dòng màu đỏ nhạt + dòng cảnh báo tổng hợp
+phía trên bảng liệt kê số khóa vượt/tổng số lít vượt; tick "Chỉ hiện khóa
+vượt định mức" để bảng chỉ còn các khóa đó (xử lý nhanh, không phải dò từng
+dòng). Nút "Xuất Excel..." xuất đúng bảng đang hiện."""
+from datetime import datetime
+
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QCompleter,
     QFileDialog,
@@ -23,13 +36,25 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import fuel_norm
+from excel_export import ReportWorkbook
 
 RESULT_COLUMNS = [
     "Giáo viên", "Mã khóa", "Lớp", "Xe", "Thời gian học",
-    "Số HV tính xăng", "Định mức/HV (lít)", "Tổng (lít)",
+    "Số HV tính xăng", "Định mức/HV (lít)", "Tổng (lít)", "Đã cấp (lít)", "Còn lại (lít)",
+]
+EXPORT_COLUMNS = [
+    "Giáo viên", "Mã khóa", "Lớp", "Xe", "Ca", "Từ ngày", "Đến ngày",
+    "Số HV tính xăng", "Định mức/HV (lít)", "Tổng định mức (lít)", "Đã cấp (lít)",
+    "Còn lại (lít)", "Vượt định mức",
 ]
 
 ALL_TEACHERS_LABEL = "-- Tất cả giáo viên --"
+_MAU_DONG_VUOT = QColor("#fde7e7")  # nền cả dòng khi đã cấp vượt định mức
+_MAU_CHU_VUOT = QColor("#b3261e")
+
+
+def _is_vuot(r):
+    return r["con_lai"] is not None and r["con_lai"] < 0
 
 
 class _TeacherNameItem(QTableWidgetItem):
@@ -107,11 +132,28 @@ class DinhMucXangTab(QWidget):
         self.cbo_teacher.lineEdit().setPlaceholderText("Nhập hoặc chọn tên giáo viên...")
         self.cbo_teacher.currentTextChanged.connect(self._search_by_teacher)
         form_layout.addWidget(self.cbo_teacher, 1)
+        form_layout.addSpacing(12)
+        self.chk_vuot = QCheckBox("Chỉ hiện khóa vượt định mức")
+        self.chk_vuot.toggled.connect(lambda _: self._search_by_teacher())
+        form_layout.addWidget(self.chk_vuot)
+        self.btn_export = QPushButton("Xuất Excel...")
+        self.btn_export.setToolTip("Xuất đúng bảng đang hiện (theo giáo viên/bộ lọc đang chọn) ra file Excel.")
+        self.btn_export.clicked.connect(self._on_export)
+        form_layout.addWidget(self.btn_export)
         outer.addWidget(box)
 
         self.lbl_summary = QLabel("")
         self.lbl_summary.setWordWrap(True)
         outer.addWidget(self.lbl_summary)
+
+        self.lbl_vuot = QLabel("")
+        self.lbl_vuot.setWordWrap(True)
+        self.lbl_vuot.setStyleSheet(
+            "color: #b3261e; font-weight: 700; background: #fde7e7; "
+            "border: 1px solid #f3b7b7; border-radius: 4px; padding: 6px;"
+        )
+        self.lbl_vuot.hide()
+        outer.addWidget(self.lbl_vuot)
 
         self.table = QTableWidget()
         self.table.setColumnCount(len(RESULT_COLUMNS))
@@ -167,12 +209,34 @@ class DinhMucXangTab(QWidget):
         name = name.strip()
         if not name or name == ALL_TEACHERS_LABEL:
             rows = self.model.fuel_rows_for_teacher(None)
-            self._show_rows(rows, f"Tất cả giáo viên đang dạy: {len(rows)} khóa")
+            summary = f"Tất cả giáo viên đang dạy: {len(rows)} khóa"
+        else:
+            rows = self.model.fuel_rows_for_teacher(name)
+            summary = f"Các khóa giáo viên '{name}' đang dạy: {len(rows)} khóa"
+
+        vuot = [r for r in rows if _is_vuot(r)]
+        self._update_vuot_banner(vuot)
+        if self.chk_vuot.isChecked():
+            rows = vuot
+            summary += f" - đang chỉ hiện {len(rows)} khóa vượt định mức"
+        self._show_rows(rows, summary)
+
+    def _update_vuot_banner(self, vuot):
+        if not vuot:
+            self.lbl_vuot.hide()
             return
-        rows = self.model.fuel_rows_for_teacher(name)
-        self._show_rows(rows, f"Các khóa giáo viên '{name}' đang dạy: {len(rows)} khóa")
+        tong_vuot = sum(-r["con_lai"] for r in vuot)
+        ds = ", ".join(
+            f"{r['giao_vien']} - {r['ma_khoa']} ({r['xe']}): vượt {_fmt_so(-r['con_lai'])} lít"
+            for r in vuot
+        )
+        self.lbl_vuot.setText(
+            f"⚠ {len(vuot)} khóa đã cấp VƯỢT định mức, tổng vượt {_fmt_so(tong_vuot)} lít: {ds}"
+        )
+        self.lbl_vuot.show()
 
     def _show_rows(self, rows, summary_text):
+        self._current_rows = rows
         self.table.setSortingEnabled(False)
         self.table.setRowCount(len(rows))
         for row_idx, r in enumerate(rows):
@@ -186,17 +250,29 @@ class DinhMucXangTab(QWidget):
                 str(r["so_hoc_vien"]),
                 _fmt_so(r["dinh_muc"]),
                 _fmt_so(r["tong"]),
+                _fmt_so(r["da_cap"]),
+                _fmt_so(r["con_lai"]),
             ]
+            vuot = _is_vuot(r)
             for col, val in enumerate(values):
                 item = _TeacherNameItem(val) if col == 0 else QTableWidgetItem(val)
                 if col >= 5:
                     item.setTextAlignment(Qt.AlignCenter)
+                if vuot:
+                    item.setBackground(_MAU_DONG_VUOT)
+                    if col == 9:
+                        item.setForeground(_MAU_CHU_VUOT)
                 self.table.setItem(row_idx, col, item)
         self.table.setSortingEnabled(True)
         self.lbl_summary.setText(summary_text)
 
         tong_cong = sum(r["tong"] for r in rows if r["tong"] is not None)
-        self.lbl_total.setText(f"Tổng cộng: {_fmt_so(tong_cong)} lít xăng ({len(rows)} khóa đang dạy)")
+        tong_da_cap = sum(r["da_cap"] for r in rows)
+        tong_con_lai = sum(r["con_lai"] for r in rows if r["con_lai"] is not None)
+        self.lbl_total.setText(
+            f"Tổng cộng: {_fmt_so(tong_cong)} lít xăng ({len(rows)} khóa đang dạy) - "
+            f"đã cấp {_fmt_so(tong_da_cap)} lít - còn lại {_fmt_so(tong_con_lai)} lít"
+        )
 
         thieu = [r for r in rows if r["dinh_muc"] is None]
         if thieu:
@@ -207,3 +283,32 @@ class DinhMucXangTab(QWidget):
             )
         else:
             self.lbl_missing.setText("")
+
+    # ---------------- xuất Excel ----------------
+    def _on_export(self):
+        rows = getattr(self, "_current_rows", [])
+        if not rows:
+            QMessageBox.information(self, "Không có dữ liệu", "Bảng đang trống, không có gì để xuất.")
+            return
+        default_name = f"DinhMucXang_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        path, _ = QFileDialog.getSaveFileName(self, "Xuất Excel", default_name, "Excel Files (*.xlsx)")
+        if not path:
+            return
+        try:
+            report = ReportWorkbook()
+            report.add_sheet("Dinh muc xang", EXPORT_COLUMNS, [dinh_muc_export_row(r) for r in rows])
+            report.save(path)
+        except Exception as exc:
+            QMessageBox.warning(self, "Không xuất được", str(exc))
+            return
+        QMessageBox.information(self, "Hoàn tất", f"Đã xuất {len(rows)} khóa ra:\n{path}")
+
+
+def dinh_muc_export_row(r):
+    """1 dòng Excel cho 1 khóa/xe (xem CapXangModel.fuel_rows_for_teacher) -
+    dùng chung với sheet "Định mức" trong báo cáo ở tab TỔNG HỢP CẤP XĂNG."""
+    return [
+        r["giao_vien"], r["ma_khoa"], r["lop"], r["xe"], r.get("ca", ""),
+        r["tu_ngay"], r["den_ngay"], r["so_hoc_vien"], r["dinh_muc"], r["tong"],
+        r["da_cap"], r["con_lai"], "Có" if _is_vuot(r) else "",
+    ]

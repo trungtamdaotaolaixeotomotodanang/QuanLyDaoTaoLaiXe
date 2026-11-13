@@ -93,6 +93,29 @@ class MainWindow(QMainWindow):
         self._sync_worker.finished_result.connect(self._on_sync_done)
         self._sync_worker.start()
 
+    def start_background_sync(self):
+        """Tự lấy dữ liệu mới nhất ngay lúc mở app - chạy NỀN (không chặn
+        cửa sổ chính) và ÂM THẦM (không hiện hộp thoại dù thành công hay lỗi
+        mạng/offline - đúng tinh thần "best-effort" lúc mở app, xem nút
+        "🔄 Lấy dữ liệu mới nhất" nếu muốn thử lại có báo kết quả rõ ràng).
+        Trước đây gọi git_sync.sync_from_remote() trực tiếp trong main() làm
+        cả app bị treo tới khi xong (hoặc treo vô thời hạn nếu mạng chập
+        chờn, do chưa có timeout) - giờ cửa sổ đã hiện ra ngay, sync chạy sau."""
+        self.btn_sync.setEnabled(False)
+        self.btn_sync.setText("Đang lấy dữ liệu...")
+        self._startup_sync_worker = _SyncWorker()
+        self._startup_sync_worker.finished_result.connect(self._on_startup_sync_done)
+        self._startup_sync_worker.start()
+
+    def _on_startup_sync_done(self, ok, _message):
+        self.btn_sync.setEnabled(True)
+        self.btn_sync.setText("🔄 Lấy dữ liệu mới nhất")
+        if ok:
+            self.model.reload()
+            self.tab_dinh_muc_xang.refresh()
+            self.tab_cap_xang.refresh()
+            self.tab_tong_hop_cap_xang.refresh()
+
     def _on_sync_done(self, ok, message):
         self.btn_sync.setEnabled(True)
         self.btn_sync.setText("🔄 Lấy dữ liệu mới nhất")
@@ -139,17 +162,13 @@ def main():
     app = QApplication(sys.argv)
     apply_style(app)
 
-    # Best-effort lúc mở app - lỗi mạng/offline thì bỏ qua, vẫn mở app bình
-    # thường với dữ liệu cục bộ hiện có (xem nút "Lấy dữ liệu mới nhất" để
-    # thử lại giữa chừng, có báo rõ kết quả hơn).
-    try:
-        git_sync.sync_from_remote()
-    except Exception:
-        pass
-
     model = CapXangModel(CAP_XANG_DATA_JSON)
     window = MainWindow(model)
     window.show()
+    # Hiện cửa sổ với dữ liệu cục bộ hiện có TRƯỚC, rồi mới âm thầm lấy dữ
+    # liệu mới nhất ở nền (xem start_background_sync) - không chặn app chờ
+    # mạng như trước đây.
+    window.start_background_sync()
     sys.exit(app.exec())
 
 

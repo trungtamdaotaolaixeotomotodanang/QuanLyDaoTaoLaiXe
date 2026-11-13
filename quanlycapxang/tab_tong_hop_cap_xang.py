@@ -7,11 +7,26 @@ giáo viên) trong 1 bảng, không giới hạn theo 1 giáo viên như tab C�
 - Bấm vào tên cột để sắp xếp theo cột đó (bấm lại đổi tăng/giảm) - giữ Shift
   bấm thêm cột khác để sắp theo nhiều cấp (vd Giáo viên trước, Ngày cấp sau).
   Kéo tiêu đề cột để đổi thứ tự hiển thị các cột.
-- Nút "Xóa" ở cuối mỗi dòng để xóa phiếu đó - sửa chi tiết thì quay lại tab
-  CẤP XĂNG (chọn đúng giáo viên)."""
-from datetime import date, datetime
+- Chọn 1 dòng rồi bấm "Xóa dòng đã chọn" (hoặc chuột phải -> Xóa) để xóa
+  phiếu đó. (Không còn nút "Xóa" riêng ở mỗi dòng như trước - hàng trăm nút
+  cùng lúc làm bảng dựng lại rất chậm/đơ khi dữ liệu nhiều; chọn dòng rồi
+  xóa 1 nút chung vừa nhanh vừa nhẹ hơn hẳn.)
+- SỬA TRỰC TIẾP: double-click vào bất kỳ ô nào (trừ dòng tiêu đề nhóm) để
+  sửa, Enter/rời ô để lưu ngay - không cần quay lại tab CẤP XĂNG nữa. Hữu
+  ích nhất cho các phiếu không khớp khóa/xe đang phân công hiện tại (nhập
+  tay mã khóa cũ/tên viết tắt...) - trước đây các phiếu này chỉ xem/xóa
+  được ở đây, không sửa được ở đâu cả.
+- Lọc thêm theo Biển số; "Kỳ nhanh" chọn sẵn tháng này/tháng trước/quý
+  này/năm nay cho báo cáo định kỳ, không phải bấm lịch 2 lần.
+- PHIẾU KHÔNG KHỚP PHÂN CÔNG ("mồ côi" - xem CapXangModel.orphan_reason): tô
+  cam nhạt + rê chuột thấy lý do; ô "Phân công" lọc riêng chỉ các phiếu này
+  để rà soát định kỳ (sửa lại mã khóa/xe/tên cho khớp, hoặc xóa).
+- "Xuất Excel...": xuất theo đúng bộ lọc đang chọn, nhiều sheet (chi tiết +
+  tổng theo giáo viên/khóa-xe/biển số/tháng + bảng giáo viên x tháng + định
+  mức), mỗi sheet là bảng Excel có nút lọc/sort sẵn."""
+from datetime import date, datetime, timedelta
 
-from PySide6.QtCore import QDate, Qt
+from PySide6.QtCore import QDate, Qt, QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QApplication,
@@ -19,10 +34,12 @@ from PySide6.QtWidgets import (
     QComboBox,
     QCompleter,
     QDateEdit,
+    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QMenu,
     QMessageBox,
     QPushButton,
     QStyle,
@@ -34,18 +51,29 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import cap_xang_store
+from excel_export import ReportWorkbook
 from style import icon as _icon
+from tab_cap_xang import parse_so_luong
+from tab_dinh_muc_xang import EXPORT_COLUMNS as _DINH_MUC_COLUMNS, dinh_muc_export_row
+
+_SO_LUONG_GHI_CHU = (
+    "Gõ 1 số (vd 50) hoặc SỐ PHIẾUxSỐ LÍT, nhiều phiếu cách nhau bằng dấu "
+    "phẩy (vd 2x30, 4x20) - xem hướng dẫn ở tab CẤP XĂNG."
+)
 
 _ALL_LABEL = "-- Tất cả --"
 GROUP_OPTIONS = ["Không nhóm", "Giáo viên", "Khóa học", "Biển số"]
+PERIOD_OPTIONS = ["Tùy chọn", "Tuần này", "Tháng này", "Tháng trước", "Quý này", "Năm nay"]
+MATCH_OPTIONS = ["Tất cả phiếu", "Chỉ phiếu khớp phân công", "Chỉ phiếu KHÔNG khớp (mồ côi)"]
+_MAU_MO_COI = QColor("#fff1dc")  # nền dòng phiếu không khớp phân công hiện tại
 
 _COLUMN_LABELS = [
     "Giáo viên", "Khóa học", "Lớp", "Biển số", "Ngày cấp", "Số phiếu/Quyển",
-    "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú", "",
+    "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú",
 ]
 _COLUMN_FIELDS = [
     "giao_vien", "ma_khoa", "lop", "xe", "ngay_cap", "so_phieu",
-    "mat_hang", "so_luong", "phan_loai_so", "ghi_chu", None,
+    "mat_hang", "so_luong", "phan_loai_so", "ghi_chu",
 ]
 
 _HUONG_DAN_HTML = (
@@ -55,8 +83,20 @@ _HUONG_DAN_HTML = (
     "<ul>"
     "<li>Lọc theo <b>Giáo viên</b> / <b>Khóa học</b> (để \"-- Tất cả --\" để "
     "xem hết).</li>"
+    "<li>Lọc thêm theo <b>Biển số</b> nếu cần xem riêng 1 xe.</li>"
     "<li><b>Khoảng ngày</b>: bỏ tick \"Tất cả thời gian\" để lọc theo 1 "
-    "khoảng ngày cấp cụ thể (vd làm báo cáo theo tháng).</li>"
+    "khoảng ngày cấp cụ thể, hoặc chọn <b>Kỳ nhanh</b> (tháng này/tháng "
+    "trước/quý này/năm nay) - app tự điền Từ ngày/Đến ngày.</li>"
+    "<li><b>Phân công</b>: lọc riêng các phiếu <b>KHÔNG khớp</b> khóa/xe/giáo "
+    "viên đang phân công (tô cam nhạt, rê chuột vào dòng để xem lý do) - "
+    "thường là phiếu cũ của khóa đã kết thúc/xe đã đổi hoặc gõ nhầm mã; các "
+    "phiếu này vẫn tính vào tổng nhưng không hiện ở lưới Chi tiết tab CẤP "
+    "XĂNG và không trừ vào \"Còn lại\" của khóa nào ở tab ĐỊNH MỨC XĂNG - sửa "
+    "trực tiếp cho khớp (double-click ô) hoặc xóa.</li>"
+    "<li><b>Xuất Excel...</b>: xuất theo đúng bộ lọc đang chọn ra file nhiều "
+    "sheet (chi tiết từng phiếu, tổng theo giáo viên / khóa-xe / biển số / "
+    "tháng, bảng giáo viên x tháng, định mức-đã cấp-còn lại) - mỗi sheet là "
+    "bảng có nút lọc/sort sẵn khi mở trong Excel.</li>"
     "<li><b>Nhóm theo</b>: gom các phiếu theo Giáo viên/Khóa học/Biển số "
     "thành từng nhóm có tổng số lít/số phiếu riêng - bấm vào nhóm để thu/mở.</li>"
     "<li><b>Bấm vào tên cột</b> (vd \"Ngày cấp\", \"Số lượng\"...) để sắp xếp "
@@ -65,9 +105,13 @@ _HUONG_DAN_HTML = (
     "viên sắp theo Ngày cấp).</li>"
     "<li>Có thể <b>kéo tiêu đề cột</b> sang trái/phải để đổi thứ tự hiển thị "
     "các cột theo ý muốn.</li>"
-    "<li>Nút <b>\"Xóa\"</b> ở cuối mỗi dòng để xóa phiếu đó - muốn sửa chi "
-    "tiết (ngày/số lượng/ghi chú...) thì quay lại tab CẤP XĂNG, chọn đúng "
-    "giáo viên.</li>"
+    "<li>Chọn 1 dòng rồi bấm <b>\"Xóa dòng đã chọn\"</b> (hoặc chuột phải vào "
+    "dòng đó -> Xóa) để xóa phiếu.</li>"
+    "<li><b>Double-click vào 1 ô</b> (trừ dòng tiêu đề nhóm) để sửa trực "
+    "tiếp, Enter/rời ô để lưu ngay - không cần quay lại tab CẤP XĂNG. Cột "
+    "\"Ngày cấp\" phải đúng dạng dd/mm/yyyy, cột \"Số lượng\" gõ như hướng "
+    "dẫn ở tab CẤP XĂNG (vd 2x30, 4x20) - gõ sai sẽ báo lỗi và giữ nguyên "
+    "giá trị cũ.</li>"
     "</ul>"
 )
 
@@ -85,11 +129,51 @@ def _parse_ngay(text):
         return None
 
 
+def _period_range(label, today):
+    """(từ ngày, đến ngày) cho 1 lựa chọn "Kỳ nhanh" - kỳ đang diễn ra thì
+    tính tới hôm nay."""
+    if label == "Tuần này":
+        return today - timedelta(days=today.weekday()), today
+    if label == "Tháng này":
+        return today.replace(day=1), today
+    if label == "Tháng trước":
+        end = today.replace(day=1) - timedelta(days=1)
+        return end.replace(day=1), end
+    if label == "Quý này":
+        first_month = 3 * ((today.month - 1) // 3) + 1
+        return today.replace(month=first_month, day=1), today
+    if label == "Năm nay":
+        return today.replace(month=1, day=1), today
+    return today, today
+
+
+def _month_key(r):
+    d = _parse_ngay(r.get("ngay_cap", ""))
+    return (d.year, d.month) if d else None
+
+
+def _month_label(key):
+    return f"{key[1]:02d}/{key[0]}" if key else "(không rõ ngày)"
+
+
+def _aggregate(records, key_fn):
+    """Gộp phiếu theo key_fn(r) -> {key: {"n": số dòng, "phieu": số phiếu,
+    "lit": tổng lít}} (giữ thứ tự xuất hiện)."""
+    agg = {}
+    for r in records:
+        a = agg.setdefault(key_fn(r), {"n": 0, "phieu": 0, "lit": 0.0})
+        a["n"] += 1
+        a["phieu"] += r.get("so_phieu_count") or 1
+        a["lit"] += r.get("so_luong") or 0
+    return agg
+
+
 class TongHopCapXangTab(QWidget):
     def __init__(self, model, parent=None):
         super().__init__(parent)
         self.model = model
         self._sort_keys = [("ngay_cap", False)]  # mặc định: ngày cấp mới nhất trước
+        self._orphan_reasons = {}
         self._build_ui()
         self._populate_filters()
         self._render()
@@ -118,6 +202,14 @@ class TongHopCapXangTab(QWidget):
         row1.addWidget(self.cbo_khoa, 1)
 
         row1.addSpacing(16)
+        row1.addWidget(QLabel("Biển số:"))
+        self.cbo_xe = QComboBox()
+        self.cbo_xe.setEditable(True)
+        self.cbo_xe.setInsertPolicy(QComboBox.NoInsert)
+        self.cbo_xe.currentTextChanged.connect(lambda _: self._render())
+        row1.addWidget(self.cbo_xe, 1)
+
+        row1.addSpacing(16)
         row1.addWidget(QLabel("Nhóm theo:"))
         self.cbo_group = QComboBox()
         self.cbo_group.addItems(GROUP_OPTIONS)
@@ -135,13 +227,19 @@ class TongHopCapXangTab(QWidget):
         self.chk_all_time.toggled.connect(self._on_toggle_all_time)
         row2.addWidget(self.chk_all_time)
 
+        row2.addWidget(QLabel("Kỳ nhanh:"))
+        self.cbo_period = QComboBox()
+        self.cbo_period.addItems(PERIOD_OPTIONS)
+        self.cbo_period.currentIndexChanged.connect(self._on_period_changed)
+        row2.addWidget(self.cbo_period)
+
         row2.addWidget(QLabel("Từ ngày:"))
         self.date_from = QDateEdit()
         self.date_from.setCalendarPopup(True)
         self.date_from.setDisplayFormat("dd/MM/yyyy")
         self.date_from.setDate(QDate.currentDate().addMonths(-1))
         self.date_from.setEnabled(False)
-        self.date_from.dateChanged.connect(lambda _: self._render())
+        self.date_from.dateChanged.connect(self._on_date_edited)
         row2.addWidget(self.date_from)
 
         row2.addWidget(QLabel("Đến ngày:"))
@@ -150,10 +248,29 @@ class TongHopCapXangTab(QWidget):
         self.date_to.setDisplayFormat("dd/MM/yyyy")
         self.date_to.setDate(QDate.currentDate())
         self.date_to.setEnabled(False)
-        self.date_to.dateChanged.connect(lambda _: self._render())
+        self.date_to.dateChanged.connect(self._on_date_edited)
         row2.addWidget(self.date_to)
 
+        row2.addSpacing(16)
+        row2.addWidget(QLabel("Phân công:"))
+        self.cbo_match = QComboBox()
+        self.cbo_match.addItems(MATCH_OPTIONS)
+        self.cbo_match.setToolTip(
+            "Phiếu KHÔNG khớp = giáo viên/mã khóa/xe trên phiếu không trùng với "
+            "phân công hiện có (rê chuột vào dòng cam để xem lý do)."
+        )
+        self.cbo_match.currentIndexChanged.connect(lambda _: self._render())
+        row2.addWidget(self.cbo_match)
+
         row2.addStretch(1)
+        self.btn_export = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogSaveButton), "Xuất Excel...")
+        self.btn_export.setToolTip("Xuất các phiếu đang hiện (theo bộ lọc) ra file Excel nhiều sheet.")
+        self.btn_export.clicked.connect(self._on_export)
+        row2.addWidget(self.btn_export)
+        self.btn_delete_selected = QPushButton("Xóa dòng đã chọn")
+        self.btn_delete_selected.setEnabled(False)
+        self.btn_delete_selected.clicked.connect(self._on_delete_selected)
+        row2.addWidget(self.btn_delete_selected)
         btn_help = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogHelpButton), "Hướng dẫn")
         btn_help.clicked.connect(self._show_help)
         row2.addWidget(btn_help)
@@ -167,6 +284,10 @@ class TongHopCapXangTab(QWidget):
         self.tree.setSortingEnabled(False)
         self.tree.setAlternatingRowColors(True)
         self.tree.setRootIsDecorated(True)
+        self.tree.itemSelectionChanged.connect(self._on_selection_changed)
+        self.tree.itemChanged.connect(self._on_item_changed)
+        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree.customContextMenuRequested.connect(self._on_context_menu)
         header = self.tree.header()
         header.setSortIndicatorShown(True)
         header.setSectionsMovable(True)
@@ -216,6 +337,20 @@ class TongHopCapXangTab(QWidget):
         completer_k.setFilterMode(Qt.MatchContains)
         self.cbo_khoa.setCompleter(completer_k)
 
+        xe_text = self.cbo_xe.currentText().strip()
+        xes = sorted(cap_xang_store.distinct_values("xe"))
+        self.cbo_xe.blockSignals(True)
+        self.cbo_xe.clear()
+        self.cbo_xe.addItem(_ALL_LABEL)
+        self.cbo_xe.addItems(xes)
+        idx3 = self.cbo_xe.findText(xe_text) if xe_text else 0
+        self.cbo_xe.setCurrentIndex(idx3 if idx3 >= 0 else 0)
+        self.cbo_xe.blockSignals(False)
+        completer_x = QCompleter(xes, self)
+        completer_x.setCaseSensitivity(Qt.CaseInsensitive)
+        completer_x.setFilterMode(Qt.MatchContains)
+        self.cbo_xe.setCompleter(completer_x)
+
     def refresh(self):
         """Nạp lại danh sách giáo viên/khóa + dữ liệu phiếu từ đĩa - gọi khi
         chuyển sang tab này (xem showEvent) và khi tab CẬP NHẬT DỮ LIỆU xử lý
@@ -226,7 +361,52 @@ class TongHopCapXangTab(QWidget):
     def _on_toggle_all_time(self, checked):
         self.date_from.setEnabled(not checked)
         self.date_to.setEnabled(not checked)
+        if checked:
+            self._set_period_silently(0)
         self._render()
+
+    def _set_period_silently(self, index):
+        self.cbo_period.blockSignals(True)
+        self.cbo_period.setCurrentIndex(index)
+        self.cbo_period.blockSignals(False)
+
+    def _on_date_edited(self, _date):
+        # Người dùng tự chỉnh ngày -> không còn đúng kỳ nhanh đã chọn nữa
+        self._set_period_silently(0)
+        self._render()
+
+    def _on_period_changed(self, index):
+        if index == 0:
+            return
+        start, end = _period_range(PERIOD_OPTIONS[index], date.today())
+        self.date_from.blockSignals(True)
+        self.date_to.blockSignals(True)
+        self.date_from.setDate(QDate(start.year, start.month, start.day))
+        self.date_to.setDate(QDate(end.year, end.month, end.day))
+        self.date_from.blockSignals(False)
+        self.date_to.blockSignals(False)
+        if self.chk_all_time.isChecked():
+            # toggled -> _on_toggle_all_time -> _render (và không reset kỳ vì checked=False)
+            self.chk_all_time.setChecked(False)
+        else:
+            self._render()
+
+    def _filter_description(self):
+        """Mô tả ngắn bộ lọc đang áp dụng - ghi vào hộp thoại sau khi xuất
+        Excel để người dùng biết file chứa gì."""
+        parts = []
+        for label, cbo in (("Giáo viên", self.cbo_teacher), ("Khóa", self.cbo_khoa), ("Biển số", self.cbo_xe)):
+            text = cbo.currentText().strip()
+            if text and text != _ALL_LABEL:
+                parts.append(f"{label}: {text}")
+        if not self.chk_all_time.isChecked():
+            parts.append(
+                f"Ngày cấp: {self.date_from.date().toString('dd/MM/yyyy')} - "
+                f"{self.date_to.date().toString('dd/MM/yyyy')}"
+            )
+        if self.cbo_match.currentIndex() > 0:
+            parts.append(self.cbo_match.currentText())
+        return "; ".join(parts) if parts else "Tất cả phiếu, mọi thời gian"
 
     def _filtered_records(self):
         all_records = cap_xang_store.load()["records"]
@@ -241,6 +421,11 @@ class TongHopCapXangTab(QWidget):
         if khoa and khoa != _ALL_LABEL:
             recs = [r for r in recs if r.get("ma_khoa", "") == khoa]
 
+        xe = self.cbo_xe.currentText().strip()
+        if xe and xe != _ALL_LABEL:
+            plate = attach_files.normalize_plate(xe)
+            recs = [r for r in recs if attach_files.normalize_plate(r.get("xe", "")) == plate]
+
         if not self.chk_all_time.isChecked():
             start = self.date_from.date().toPython()
             end = self.date_to.date().toPython()
@@ -250,6 +435,15 @@ class TongHopCapXangTab(QWidget):
                 return d is not None and start <= d <= end
 
             recs = [r for r in recs if _trong_khoang(r)]
+
+        # id -> lý do không khớp phân công (None = khớp) - tính 1 lần cho các
+        # phiếu qua được các bộ lọc trên, dùng lại lúc tô màu/tooltip/xuất.
+        self._orphan_reasons = {r["id"]: self.model.orphan_reason(r) for r in recs}
+        match_mode = self.cbo_match.currentIndex()
+        if match_mode == 1:
+            recs = [r for r in recs if self._orphan_reasons[r["id"]] is None]
+        elif match_mode == 2:
+            recs = [r for r in recs if self._orphan_reasons[r["id"]] is not None]
 
         return recs
 
@@ -308,27 +502,42 @@ class TongHopCapXangTab(QWidget):
         return None, None
 
     def _add_leaf(self, r, parent):
+        # KHÔNG gắn 1 QPushButton "Xóa" riêng cho mỗi dòng nữa (xem
+        # _on_delete_selected/_on_context_menu) - dựng hàng trăm widget cùng
+        # lúc mỗi lần _render() làm bảng bị chậm/đơ khi dữ liệu nhiều. Id của
+        # phiếu được gắn vào item qua UserRole (cột 0) để lấy lại lúc xóa.
         so_luong_display = r.get("so_luong_text") or _fmt_so(r.get("so_luong"))
         values = [
             r.get("giao_vien", ""), r.get("ma_khoa", ""), r.get("lop", ""), r.get("xe", ""),
             r.get("ngay_cap", ""), r.get("so_phieu", ""), r.get("mat_hang", ""),
-            so_luong_display, r.get("phan_loai_so", ""), r.get("ghi_chu", ""), "",
+            so_luong_display, r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
         ]
         item = QTreeWidgetItem(values)
+        item.setData(0, Qt.ItemDataRole.UserRole, r["id"])
+        reason = self._orphan_reasons.get(r["id"])
+        if reason:
+            tip = f"Phiếu KHÔNG khớp phân công hiện tại: {reason}."
+            for col in range(len(values)):
+                item.setBackground(col, _MAU_MO_COI)
+                item.setToolTip(col, tip)
         if parent is None:
             self.tree.addTopLevelItem(item)
         else:
             parent.addChild(item)
-        btn = QPushButton("Xóa")
-        btn.clicked.connect(lambda _checked=False, rid=r["id"]: self._on_delete(rid))
-        self.tree.setItemWidget(item, len(_COLUMN_LABELS) - 1, btn)
         return item
 
     def _render(self):
         records = self._filtered_records()
         records = self._sorted_records(records)
         group_mode = self.cbo_group.currentText()
+        # id -> record (dict gốc, SỐNG cùng self qua các lần sửa) - dùng để
+        # lấy giá trị cũ lúc sửa 1 ô (xem _on_item_changed), không phải đọc
+        # lại từ đĩa mỗi lần gõ.
+        self._records_by_id = {r["id"]: r for r in records}
 
+        # setText() khi dựng bảng cũng phát itemChanged - chặn tạm để khỏi
+        # chạy nhầm _on_item_changed (tưởng người dùng vừa sửa) lúc đang dựng.
+        self.tree.blockSignals(True)
         self.tree.clear()
         if group_mode == "Không nhóm":
             for r in records:
@@ -349,6 +558,7 @@ class TongHopCapXangTab(QWidget):
                 tong_lit = sum(x.get("so_luong") or 0 for x in recs)
                 tong_phieu = sum(x.get("so_phieu_count") or 1 for x in recs)
                 group_item = QTreeWidgetItem([f"{label}  —  {len(recs)} phiếu, {_fmt_so(tong_lit)} lít"])
+                group_item.setFlags(group_item.flags() & ~Qt.ItemIsEditable)
                 group_item.setFirstColumnSpanned(True)
                 font = group_item.font(0)
                 font.setBold(True)
@@ -359,17 +569,48 @@ class TongHopCapXangTab(QWidget):
                 for r in recs:
                     self._add_leaf(r, parent=group_item)
 
-        for col in range(len(_COLUMN_LABELS) - 1):
+        self.tree.blockSignals(False)
+
+        for col in range(len(_COLUMN_LABELS)):
             self.tree.resizeColumnToContents(col)
+        self._on_selection_changed()
 
         if not records:
             self.lbl_total.setText("Không có phiếu nào khớp điều kiện lọc.")
             return
         tong_lit = sum(r.get("so_luong") or 0 for r in records)
         tong_phieu = sum(r.get("so_phieu_count") or 1 for r in records)
-        self.lbl_total.setText(
-            f"Tổng cộng: {_fmt_so(tong_lit)} lít ({tong_phieu} phiếu, {len(records)} dòng)"
-        )
+        text = f"Tổng cộng: {_fmt_so(tong_lit)} lít ({tong_phieu} phiếu, {len(records)} dòng)"
+        so_mo_coi = sum(1 for r in records if self._orphan_reasons.get(r["id"]))
+        if so_mo_coi:
+            text += f"  —  trong đó {so_mo_coi} dòng KHÔNG khớp phân công (tô cam)"
+        self.lbl_total.setText(text)
+
+    def _selected_record_id(self):
+        """Id phiếu của dòng đang chọn - None nếu không chọn dòng nào hoặc
+        đang chọn dòng tiêu đề nhóm (không mang id phiếu)."""
+        item = self.tree.currentItem()
+        if item is None:
+            return None
+        return item.data(0, Qt.ItemDataRole.UserRole)
+
+    def _on_selection_changed(self):
+        self.btn_delete_selected.setEnabled(self._selected_record_id() is not None)
+
+    def _on_context_menu(self, pos):
+        item = self.tree.itemAt(pos)
+        if item is None or item.data(0, Qt.ItemDataRole.UserRole) is None:
+            return
+        self.tree.setCurrentItem(item)
+        menu = QMenu(self)
+        menu.addAction("Xóa", self._on_delete_selected)
+        menu.exec(self.tree.viewport().mapToGlobal(pos))
+
+    def _on_delete_selected(self):
+        record_id = self._selected_record_id()
+        if record_id is None:
+            return
+        self._on_delete(record_id)
 
     def _on_delete(self, record_id):
         confirm = QMessageBox.question(self, "Xác nhận", "Xóa phiếu cấp xăng này?")
@@ -377,3 +618,155 @@ class TongHopCapXangTab(QWidget):
             return
         cap_xang_store.delete_record(record_id)
         self._render()
+
+    # ---------------- sửa trực tiếp trên bảng ----------------
+    def _revert_cell(self, item, column, old_text):
+        """Đặt lại ô về giá trị cũ (nhập sai/không hợp lệ) - chặn tạm tín
+        hiệu để khỏi gọi lại chính _on_item_changed cho giá trị cũ này."""
+        self.tree.blockSignals(True)
+        item.setText(column, old_text)
+        self.tree.blockSignals(False)
+
+    def _on_item_changed(self, item, column):
+        record_id = item.data(0, Qt.ItemDataRole.UserRole)
+        if record_id is None or column >= len(_COLUMN_FIELDS):
+            return
+        record = self._records_by_id.get(record_id)
+        if record is None:
+            return
+
+        field = _COLUMN_FIELDS[column]
+        new_text = item.text(column).strip()
+
+        if field == "ngay_cap":
+            old_text = record.get("ngay_cap", "")
+            parsed = _parse_ngay(new_text)
+            if parsed is None:
+                QMessageBox.warning(self, "Ngày không hợp lệ", "Gõ ngày theo dạng dd/mm/yyyy.")
+                self._revert_cell(item, column, old_text)
+                return
+            new_text = parsed.strftime("%d/%m/%Y")
+            fields = {"ngay_cap": new_text}
+        elif field == "so_luong":
+            old_text = record.get("so_luong_text") or _fmt_so(record.get("so_luong"))
+            tong_lit, tong_phieu = parse_so_luong(new_text)
+            if tong_lit is None:
+                QMessageBox.warning(self, "Số lượng không đúng định dạng", _SO_LUONG_GHI_CHU)
+                self._revert_cell(item, column, old_text)
+                return
+            if tong_lit <= 0:
+                QMessageBox.warning(self, "Số lượng không hợp lệ", "Số lượng phải lớn hơn 0 - xóa cả phiếu thì dùng \"Xóa dòng đã chọn\".")
+                self._revert_cell(item, column, old_text)
+                return
+            fields = {"so_luong": tong_lit, "so_luong_text": new_text, "so_phieu_count": tong_phieu}
+        else:
+            old_text = record.get(field, "") or ""
+            fields = {field: new_text}
+
+        if new_text == old_text:
+            return  # không đổi gì thật sự (vd chỉ bấm vào ô rồi Enter) - khỏi ghi/dựng lại
+
+        cap_xang_store.update_record(record_id, fields)
+        record.update(fields)
+        # Dựng lại ngay sau khi tín hiệu hiện tại (itemChanged) xử lý xong -
+        # tránh sửa cây đang phát tín hiệu ngay trong lúc nó chưa chạy xong,
+        # giống cách các tab khác xử lý (xem tab_cap_xang.py _make_commit_handler).
+        QTimer.singleShot(0, self._render)
+
+    # ---------------- xuất Excel ----------------
+    def _on_export(self):
+        records = self._sorted_records(self._filtered_records())
+        if not records:
+            QMessageBox.information(self, "Không có dữ liệu", "Không có phiếu nào khớp bộ lọc để xuất.")
+            return
+        default_name = f"CapXang_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        path, _ = QFileDialog.getSaveFileName(self, "Xuất Excel", default_name, "Excel Files (*.xlsx)")
+        if not path:
+            return
+        try:
+            self._write_report(path, records)
+        except Exception as exc:
+            QMessageBox.warning(self, "Không xuất được", str(exc))
+            return
+        QMessageBox.information(
+            self, "Hoàn tất",
+            f"Đã xuất {len(records)} dòng phiếu ra:\n{path}\n\nBộ lọc đã áp dụng: {self._filter_description()}",
+        )
+
+    def _write_report(self, path, records):
+        report = ReportWorkbook()
+
+        def _ngay(r):
+            return _parse_ngay(r.get("ngay_cap", "")) or r.get("ngay_cap", "")
+
+        report.add_sheet(
+            "Chi tiet phieu",
+            ["Giáo viên", "Khóa học", "Lớp", "Biển số", "Ngày cấp", "Số phiếu/Quyển", "Mặt hàng",
+             "Số lượng (lít)", "Số phiếu", "Phân loại sổ", "Ghi chú", "Khớp phân công"],
+            [
+                [
+                    r.get("giao_vien", ""), r.get("ma_khoa", ""), r.get("lop", ""), r.get("xe", ""),
+                    _ngay(r), r.get("so_phieu", ""), r.get("mat_hang", ""), r.get("so_luong") or 0,
+                    r.get("so_phieu_count") or 1, r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
+                    "Không - " + self._orphan_reasons[r["id"]] if self._orphan_reasons.get(r["id"]) else "Có",
+                ]
+                for r in records
+            ],
+        )
+
+        by_gv = _aggregate(records, lambda r: r.get("giao_vien", ""))
+        report.add_sheet(
+            "Theo giao vien",
+            ["Giáo viên", "Số dòng", "Số phiếu", "Tổng (lít)"],
+            [
+                [gv, a["n"], a["phieu"], a["lit"]]
+                for gv, a in sorted(by_gv.items(), key=lambda kv: attach_files.given_name_sort_key(kv[0]))
+            ],
+        )
+
+        by_khoa = _aggregate(
+            records, lambda r: (r.get("ma_khoa", ""), r.get("lop", ""), r.get("xe", ""), r.get("giao_vien", ""))
+        )
+        report.add_sheet(
+            "Theo khoa-xe",
+            ["Khóa học", "Lớp", "Biển số", "Giáo viên", "Số dòng", "Số phiếu", "Tổng (lít)"],
+            [[*key, a["n"], a["phieu"], a["lit"]] for key, a in sorted(by_khoa.items())],
+        )
+
+        by_xe = _aggregate(records, lambda r: r.get("xe", ""))
+        report.add_sheet(
+            "Theo bien so",
+            ["Biển số", "Số dòng", "Số phiếu", "Tổng (lít)"],
+            [[xe, a["n"], a["phieu"], a["lit"]] for xe, a in sorted(by_xe.items())],
+        )
+
+        months = sorted({_month_key(r) for r in records}, key=lambda k: (k is None, k))
+        by_thang = _aggregate(records, _month_key)
+        report.add_sheet(
+            "Theo thang",
+            ["Tháng", "Số dòng", "Số phiếu", "Tổng (lít)"],
+            [[_month_label(m), by_thang[m]["n"], by_thang[m]["phieu"], by_thang[m]["lit"]] for m in months],
+        )
+
+        by_gv_thang = _aggregate(records, lambda r: (r.get("giao_vien", ""), _month_key(r)))
+        pivot_rows = []
+        for gv in sorted(by_gv, key=attach_files.given_name_sort_key):
+            cells = [by_gv_thang[(gv, m)]["lit"] if (gv, m) in by_gv_thang else None for m in months]
+            pivot_rows.append([gv, *cells, by_gv[gv]["lit"]])
+        report.add_sheet(
+            "GV theo thang (lit)",
+            ["Giáo viên", *(_month_label(m) for m in months), "Tổng (lít)"],
+            pivot_rows,
+        )
+
+        teacher = self.cbo_teacher.currentText().strip()
+        dinh_muc_rows = self.model.fuel_rows_for_teacher(
+            teacher if teacher and teacher != _ALL_LABEL else None
+        )
+        report.add_sheet(
+            "Dinh muc - con lai",
+            _DINH_MUC_COLUMNS,
+            [dinh_muc_export_row(r) for r in dinh_muc_rows],
+        )
+
+        report.save(path)

@@ -17,18 +17,40 @@ APP_DIR = app_dir()
 REPO_ROOT = APP_DIR.parent  # git root thực tế là thư mục chứa cả quanlygiaovien/ lẫn quanlycapxang/
 
 _CREATE_NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+# Mạng chậm/rớt (vd wifi yếu, VPN treo) từng làm "git fetch"/"git push" treo
+# VÔ THỜI HẠN, kéo theo cả app bị đơ (sync_from_remote() gọi lúc mở app, chưa
+# kịp hiện cửa sổ) - đặt timeout để tệ nhất cũng chỉ chờ từng ấy giây rồi báo
+# lỗi mạng, không treo app mãi.
+_GIT_TIMEOUT_S = 20
+
+
+class _TimedOutResult:
+    """Giả lập subprocess.CompletedProcess khi timeout - để chỗ gọi _run()
+    xử lý y như lỗi git bình thường (chỉ cần .returncode/.stdout/.stderr)."""
+
+    def __init__(self, stderr):
+        self.returncode = 1
+        self.stdout = ""
+        self.stderr = stderr
 
 
 def _run(args):
-    return subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        creationflags=_CREATE_NO_WINDOW,
-    )
+    try:
+        return subprocess.run(
+            ["git", *args],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            creationflags=_CREATE_NO_WINDOW,
+            timeout=_GIT_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired:
+        return _TimedOutResult(
+            f"Lệnh 'git {' '.join(args)}' không phản hồi sau {_GIT_TIMEOUT_S}s "
+            "(mạng chậm hoặc mất kết nối)."
+        )
 
 
 def sync_from_remote():
