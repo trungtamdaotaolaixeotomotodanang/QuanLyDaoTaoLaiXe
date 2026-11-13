@@ -2,7 +2,8 @@ import re
 from datetime import datetime
 
 from openpyxl import Workbook
-from openpyxl.worksheet.table import Table, TableStyleInfo
+from openpyxl.worksheet.filters import AutoFilter
+from openpyxl.worksheet.table import Table, TableColumn, TableStyleInfo
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCompleter,
@@ -47,12 +48,22 @@ def _add_filter_table(ws, table_name, table_id):
     nút lọc/sort trên từng cột tiêu đề. table_name/table_id phải duy nhất
     trong cả workbook - Table() mặc định id=1 cho mọi bảng, nếu để nguyên
     thì file có nhiều sheet sẽ bị Excel báo lỗi cần "Repair" khi mở (trùng id
-    giữa các bảng ở các sheet khác nhau), nên phải tự gán id tăng dần."""
+    giữa các bảng ở các sheet khác nhau), nên phải tự gán id tăng dần.
+
+    Table() cũng KHÔNG tự điền tableColumns (openpyxl không tự làm khi gọi
+    ws.add_table - phải tự tạo, tên phải khớp đúng text ở dòng tiêu đề),
+    thiếu phần này cũng khiến Excel báo lỗi cần "Repair" khi mở."""
     if ws.max_row < 2:
         return
-    last_col = ws.cell(row=1, column=ws.max_column).column_letter
+    last_col_idx = ws.max_column
+    last_col = ws.cell(row=1, column=last_col_idx).column_letter
     ref = f"A1:{last_col}{ws.max_row}"
     table = Table(id=table_id, displayName=table_name, ref=ref)
+    table.tableColumns = [
+        TableColumn(id=col, name=str(ws.cell(row=1, column=col).value))
+        for col in range(1, last_col_idx + 1)
+    ]
+    table.autoFilter = AutoFilter(ref=ref)
     table.tableStyleInfo = TableStyleInfo(
         name="TableStyleMedium2", showRowStripes=True,
     )
