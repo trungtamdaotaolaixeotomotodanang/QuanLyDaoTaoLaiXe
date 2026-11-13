@@ -226,3 +226,4 @@ __marimo__/
 # app in thẻ chạy được ngay khi gửi cho máy khác, nên vẫn commit lên git.
 !/quanlygiaovien/data/khunganhnen.jpg
 !/quanlygiaovien/data/khunganhnen_co_anh.jpg
+!/quanlygiaovien/data/matsau.jpg

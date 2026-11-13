@@ -34,6 +34,17 @@ from runtime_paths import app_dir
 
 APP_DIR = app_dir()
 BG_PATH = APP_DIR / "data" / "khunganhnen.jpg"  # ảnh nền thẻ đã thiết kế sẵn (nếu có)
+# Ảnh mặt sau thẻ (quy định sử dụng thẻ) - GIỐNG NHAU cho mọi giáo viên, không
+# cần dán ảnh/ghi tên gì thêm, chỉ cần crop/resize đúng khổ thẻ (xem
+# generate_card_back_image).
+BG_BACK_PATH = APP_DIR / "data" / "matsau.jpg"
+# Vùng bao trọn khung/viền bo góc xanh trên matsau.jpg (đo trực tiếp trên ảnh
+# nền hiện tại, kích thước gốc 1632x964 - phải đo lại nếu đổi ảnh) - cũng
+# phải crop bỏ viền trắng thừa xung quanh TRƯỚC khi resize về đúng khổ thẻ
+# (giống hệt lý do ở _BG_CONTENT_BBOX của mặt trước), để viền xanh ở ảnh mặt
+# sau sau khi resize chạm đúng mép thẻ - KHỚP với viền xanh ở mặt trước
+# (cũng chạm mép thẻ sau khi crop+resize), đảm bảo in 2 mặt thẳng hàng nhau.
+_BG_BACK_CONTENT_BBOX = (18, 19, 1616, 938)
 # Bản sao của BG_PATH nhưng đã xoá khung/viền xanh + icon placeholder ở vùng
 # ảnh giáo viên (xem _ensure_bg_photo_variant) - dùng khi giáo viên ĐÃ có
 # ảnh, để dán ảnh vào vùng trống hoàn toàn thay vì phải canh khớp pixel với
@@ -497,9 +508,25 @@ def generate_card_image(data: CardData) -> Image.Image:
     return _generate_card_image_procedural(data)
 
 
+def generate_card_back_image() -> "Image.Image | None":
+    """Ảnh mặt sau (quy định sử dụng thẻ), đã crop bỏ viền trắng thừa +
+    resize về đúng khổ thẻ (CARD_W_MM x CARD_H_MM) - xem _BG_BACK_CONTENT_BBOX.
+    Giống nhau cho mọi giáo viên. Trả về None nếu chưa có data/matsau.jpg
+    (bỏ qua trang mặt sau, không chặn xuất mặt trước)."""
+    if not BG_BACK_PATH.exists():
+        return None
+    img = Image.open(BG_BACK_PATH).convert("RGB").crop(_BG_BACK_CONTENT_BBOX)
+    card_w, card_h = _mm(CARD_W_MM), _mm(CARD_H_MM)
+    return img.resize((card_w, card_h), Image.LANCZOS)
+
+
 def generate_cards_pdf(items, output_path):
-    """items: list CardData. Xuất 1 file PDF, tối đa CARDS_PER_PAGE thẻ/trang.
-    Trả về số trang đã xuất."""
+    """items: list CardData. Xuất 1 file PDF, tối đa CARDS_PER_PAGE thẻ/trang
+    (mặt trước). Thêm ĐÚNG 1 trang mặt sau vào cuối (xem
+    generate_card_back_image) - cùng toạ độ ô lưới với mặt trước, lấp đầy cả
+    CARDS_PER_PAGE ô (dù trang mặt trước cuối có ít thẻ hơn) để in 2 mặt:
+    trang mặt sau này dùng chung (ép ngược) cho MỌI trang mặt trước, vì mặt
+    sau giống hệt nhau ở mọi thẻ. Trả về số trang đã xuất (gồm cả mặt sau)."""
     if not items:
         raise ValueError("Không có giáo viên nào để xuất thẻ.")
 
@@ -508,6 +535,10 @@ def generate_cards_pdf(items, output_path):
     gap_x = (page_w - GRID_COLS * card_w) // (GRID_COLS + 1)
     gap_y = (page_h - GRID_ROWS * card_h) // (GRID_ROWS + 1)
 
+    def _slot_xy(slot):
+        row, col = divmod(slot, GRID_COLS)
+        return gap_x + col * (card_w + gap_x), gap_y + row * (card_h + gap_y)
+
     pages = []
     page_img = None
     for i, data in enumerate(items):
@@ -515,10 +546,14 @@ def generate_cards_pdf(items, output_path):
         if slot == 0:
             page_img = Image.new("RGB", (page_w, page_h), "white")
             pages.append(page_img)
-        row, col = divmod(slot, GRID_COLS)
-        x = gap_x + col * (card_w + gap_x)
-        y = gap_y + row * (card_h + gap_y)
-        page_img.paste(generate_card_image(data), (x, y))
+        page_img.paste(generate_card_image(data), _slot_xy(slot))
+
+    back_img = generate_card_back_image()
+    if back_img is not None:
+        back_page = Image.new("RGB", (page_w, page_h), "white")
+        for slot in range(CARDS_PER_PAGE):
+            back_page.paste(back_img, _slot_xy(slot))
+        pages.append(back_page)
 
     output_path = Path(output_path)
     pages[0].save(output_path, save_all=True, append_images=pages[1:], resolution=DPI)

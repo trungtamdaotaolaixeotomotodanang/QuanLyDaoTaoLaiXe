@@ -147,13 +147,21 @@ class DataModel:
 
     def summarize_by_hang(self, rows):
         """Gộp các dòng kết quả tra cứu (xem search_by_teacher/search_by_course)
-        theo hạng (suy ra từ mã lớp, xem parse_hang) -> tổng số học viên mỗi
-        hạng. Trả về list [(hang, so_hoc_vien)] sắp theo tên hạng."""
+        theo (năm khai giảng, hạng) - năm suy từ năm của tu_ngay, không đọc
+        được thì "?"; hạng suy từ mã lớp (xem parse_hang). Trả về
+        (summary, total): summary là list [(nam, hang, so_hoc_vien)] sắp
+        theo năm rồi theo hạng, total là tổng số học viên của mọi rows."""
         totals = {}
+        total = 0
         for r in rows:
+            start = _parse_date(r.get("tu_ngay", ""))
+            nam = str(start.year) if start else "?"
             hang = parse_hang(r.get("lop", "")) or "?"
-            totals[hang] = totals.get(hang, 0) + r.get("so_hoc_vien", 0)
-        return sorted(totals.items())
+            so_hv = r.get("so_hoc_vien", 0)
+            totals[(nam, hang)] = totals.get((nam, hang), 0) + so_hv
+            total += so_hv
+        summary = [(nam, hang, so_hv) for (nam, hang), so_hv in sorted(totals.items())]
+        return summary, total
 
     def search_by_course(self, ma_khoa):
         """Trả về list các dòng (mỗi dòng = 1 giáo viên/xe trong khóa đó)."""

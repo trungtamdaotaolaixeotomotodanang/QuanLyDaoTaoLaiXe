@@ -87,6 +87,29 @@ TEN_GV_OVERRIDES_FILE = SHARED_DATA_DIR / "ten_gv_overrides.json"  # tên GV tro
 # mã GV đúng (tên viết tắt của GV khác) hoặc "ignore" (GV đã nghỉ, không còn
 # trong DSGV) - commit qua git nên dùng chung được giữa các máy.
 
+
+def _load_json_safe(path):
+    """Đọc JSON, dùng cho 3 file override đồng bộ qua git (ten_gv/lich_hoc/
+    ngay_hoc) - các file này có thể bị hỏng trên máy khách (vd xung đột git
+    để sót, ghi dở lúc mất điện/crash) mà KHÔNG được làm sập cả app lúc mở
+    lên (đã gặp thực tế: JSONDecodeError ở load_ngay_hoc_overrides làm app
+    không mở được). Lỗi thì đổi tên file hỏng sang .broken (không ghi đè nếu
+    đã có từ lần trước) để còn xem lại sau, rồi coi như chưa có gì (trả {})."""
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+        broken = path.with_suffix(path.suffix + ".broken")
+        try:
+            if broken.exists():
+                broken.unlink()
+            path.rename(broken)
+        except OSError:
+            pass
+        return {}
+
+
 BASE_URL = "https://trungtamdaotaolaixeotomotodanang.github.io/QuanLyDaoTaoLaiXe/gv.html"
 
 DEFAULT_XE_FOLDER_NAME = "Xe tập lái"
@@ -203,9 +226,7 @@ def set_xe_link(plate_norm, link):
 # bỏ qua, không báo lại) hoặc mã GV đúng (tên trong Excel là viết tắt/ghi
 # sai của giáo viên này). run_pipeline() áp dụng ở lần chạy kế tiếp.
 def load_ten_gv_overrides():
-    if TEN_GV_OVERRIDES_FILE.exists():
-        return json.loads(TEN_GV_OVERRIDES_FILE.read_text(encoding="utf-8"))
-    return {}
+    return _load_json_safe(TEN_GV_OVERRIDES_FILE)
 
 
 def save_ten_gv_overrides(data):
@@ -232,9 +253,7 @@ def set_ten_gv_override(ten_goc, value):
 
 
 def load_ngay_hoc_overrides():
-    if NGAY_HOC_OVERRIDES_FILE.exists():
-        return json.loads(NGAY_HOC_OVERRIDES_FILE.read_text(encoding="utf-8"))
-    return {}
+    return _load_json_safe(NGAY_HOC_OVERRIDES_FILE)
 
 
 def save_ngay_hoc_overrides(data):
@@ -392,9 +411,7 @@ def load_lich_hoc_overrides():
     LICH_HOC_OVERRIDES_FILE) - việc file đó có tồn tại/khớp được trên máy
     này hay không do attach_files.resolve_lich_hoc_pdf tự kiểm tra (so với
     "lich_hoc_files" của máy này), không lọc ở đây."""
-    if LICH_HOC_OVERRIDES_FILE.exists():
-        return json.loads(LICH_HOC_OVERRIDES_FILE.read_text(encoding="utf-8"))
-    return {}
+    return _load_json_safe(LICH_HOC_OVERRIDES_FILE)
 
 
 def save_lich_hoc_overrides(data):
@@ -765,6 +782,10 @@ def run_pipeline(sources=None):
                 {
                     "ma_khoa": ma_khoa,
                     "lop": lop,
+                    "ca": g.get("ca", ""),  # "Ca 1"/"Ca 2" - 1 GV dạy nhiều ca cùng
+                    # khóa/xe thì mỗi ca vẫn là 1 thẻ riêng ở gv.html (title.
+                    # textContent), không có "ca" thì 2 thẻ giống hệt nhau,
+                    # không phân biệt được (xem gv.html dòng gần "Khóa ${k.ma_khoa}").
                     "tu_ngay": c.get("tu_ngay", ""),
                     "den_ngay": c.get("den_ngay", ""),
                     "xe": xe,

@@ -14,8 +14,8 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QColor, QGuiApplication, QPixmap
+from PySide6.QtCore import Qt, QThread, QUrl, Signal
+from PySide6.QtGui import QColor, QDesktopServices, QGuiApplication, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -185,6 +185,12 @@ class DanhSachGiaoVienTab(QWidget):
         self.btn_export_all = QPushButton("Xuất tất cả giáo viên (PDF)")
         self.btn_export_all.clicked.connect(self._on_export_all)
         export_row.addWidget(self.btn_export_all)
+        self.btn_open_web = QPushButton(
+            _icon(self, QStyle.StandardPixmap.SP_DriveNetIcon), "Mở trang web của GV này"
+        )
+        self.btn_open_web.setToolTip("Mở link gv.html của giáo viên này (link giống mã QR trên thẻ).")
+        self.btn_open_web.clicked.connect(self._on_open_web)
+        export_row.addWidget(self.btn_open_web)
         export_row.addStretch(1)
         right_layout.addLayout(export_row)
 
@@ -204,6 +210,7 @@ class DanhSachGiaoVienTab(QWidget):
         for w in (
             self.btn_choose_photo, self.btn_paste_photo, self.btn_remove_photo,
             self.btn_edit_photo, self.txt_hang, self.btn_save_hang, self.btn_export_one,
+            self.btn_open_web,
         ):
             w.setEnabled(enabled)
 
@@ -519,6 +526,13 @@ class DanhSachGiaoVienTab(QWidget):
             QMessageBox.information(self, "Hoàn tất", message)
         else:
             QMessageBox.warning(self, "Chưa đăng lên web được", message)
+
+    # ---- mở trang web ----
+    def _on_open_web(self):
+        if not self._current_ma_gv:
+            return
+        url = f"{publish_data.BASE_URL}?id={self._current_ma_gv}"
+        QDesktopServices.openUrl(QUrl(url))
 
     # ---- xuất PDF ----
     def _on_export_one(self):
