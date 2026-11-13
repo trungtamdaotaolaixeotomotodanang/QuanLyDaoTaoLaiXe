@@ -58,7 +58,11 @@ def _add_filter_table(ws, table_name, table_id):
     last_col_idx = ws.max_column
     last_col = ws.cell(row=1, column=last_col_idx).column_letter
     ref = f"A1:{last_col}{ws.max_row}"
-    table = Table(id=table_id, displayName=table_name, ref=ref)
+    # totalsRowShown mặc định là "có dòng tổng" (true) theo chuẩn OOXML nếu
+    # bỏ trống - bảng này KHÔNG có dòng tổng, phải tắt rõ ràng (totalsRowShown
+    # =False), nếu không Excel coi dòng dữ liệu cuối là dòng tổng -> lệch cấu
+    # trúc -> báo lỗi cần "Repair" khi mở (dù tableColumns/autoFilter đã đúng).
+    table = Table(id=table_id, displayName=table_name, ref=ref, totalsRowShown=False)
     table.tableColumns = [
         TableColumn(id=col, name=str(ws.cell(row=1, column=col).value))
         for col in range(1, last_col_idx + 1)
