@@ -222,6 +222,9 @@ __marimo__/
 # Hồ sơ / tài liệu cá nhân nhạy cảm - không đưa lên GitHub (repo public)
 /data/
 /quanlygiaovien/data/*
+# Sổ cấp nhiên liệu gốc (tên giáo viên/biển số thật) - dùng cho tab XÁC THỰC
+# EXCEL (chọn file để rà lỗi), KHÔNG đưa lên git.
+/quanlycapxang/data/
 # Ảnh nền khung thẻ giáo viên (không chứa dữ liệu cá nhân) - CẦN có sẵn để
 # app in thẻ chạy được ngay khi gửi cho máy khác, nên vẫn commit lên git.
 !/quanlygiaovien/data/khunganhnen.jpg

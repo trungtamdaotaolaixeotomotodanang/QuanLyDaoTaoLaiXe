@@ -53,6 +53,7 @@ class CapXangModel:
         self._courses_by_lop = {}
         self._teacher_norms = {attach_files.normalize_name(n) for n in self.all_teacher_names}
         self._assignment_keys = set()
+        self._known_plates = set()
         for c in self.courses:
             ma_khoa = c.get("ma_khoa", "")
             self._courses_by_code[ma_khoa] = c
@@ -61,6 +62,23 @@ class CapXangModel:
                 name_norm = attach_files.normalize_name(g.get("giao_vien", ""))
                 self._teacher_norms.add(name_norm)
                 self._assignment_keys.add((name_norm, ma_khoa, g.get("xe", "")))
+                if g.get("xe"):
+                    self._known_plates.add(attach_files.normalize_plate(g["xe"]))
+
+    def is_known_teacher(self, name):
+        return attach_files.normalize_name(name) in self._teacher_norms
+
+    def is_known_course_or_lop(self, value):
+        """value có thể là mã khóa (vd "48002K262024") hoặc mã lớp (vd
+        "BK0726") - dùng cho tab XÁC THỰC EXCEL (file thô không phải lúc nào
+        cũng ghi đúng mã khóa đầy đủ, có khi chỉ ghi mã lớp)."""
+        return value in self._courses_by_code or value in self._courses_by_lop
+
+    def is_known_plate(self, plate):
+        return attach_files.normalize_plate(plate) in self._known_plates
+
+    def courses_for_lop(self, lop):
+        return self._courses_by_lop.get(lop, [])
 
     @staticmethod
     def _assignments_text(course, limit=6):
@@ -72,7 +90,7 @@ class CapXangModel:
         text = "; ".join(pairs[:limit])
         return text + (f"; ... ({len(pairs)} cặp)" if len(pairs) > limit else "")
 
-    def _suggest_teachers(self, name):
+    def suggest_teachers(self, name):
         """Tên giáo viên trong danh sách gần giống `name` (trùng tên gọi -
         từ cuối, hoặc chứa nhau sau khi chuẩn hóa) - để gợi ý sửa."""
         norm = attach_files.normalize_name(name)
@@ -108,7 +126,7 @@ class CapXangModel:
             return None
 
         if name_norm not in self._teacher_norms:
-            goi_y = self._suggest_teachers(giao_vien)
+            goi_y = self.suggest_teachers(giao_vien)
             fix = "Sửa ô Giáo viên thành đúng tên trong danh sách giáo viên"
             fix += f" - gần giống: {', '.join(goi_y)}." if goi_y else " (không tìm thấy tên nào gần giống)."
             return {
