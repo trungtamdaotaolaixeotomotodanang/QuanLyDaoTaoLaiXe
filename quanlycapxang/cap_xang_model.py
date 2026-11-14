@@ -295,6 +295,19 @@ class CapXangModel:
                 info["con_lai"] = info["tong"] - info["da_cap"]
         return result
 
+    def phieu_for_khoa_xe(self, ma_khoa, xe):
+        """TOÀN BỘ phiếu cấp xăng khớp CHÍNH XÁC (mã khóa, xe) - đúng các
+        phiếu được cộng vào "Đã cấp" ở _da_cap_by_khoa_xe/fuel_rows_for_teacher
+        - để hiện chi tiết từng lần cấp làm căn cứ cho cột "Còn lại" (xem tab
+        ĐỊNH MỨC XĂNG). Sắp theo ngày cấp tăng dần (không đọc được ngày thì
+        xếp cuối)."""
+        recs = [
+            r for r in cap_xang_store.load()["records"]
+            if r.get("ma_khoa", "") == ma_khoa and r.get("xe", "") == xe
+        ]
+        recs.sort(key=lambda r: _parse_date(r.get("ngay_cap", "")) or datetime.max)
+        return recs
+
     def fuel_rows_for_teacher(self, name=None, statuses=("Đang đào tạo",)):
         """Trả về list các khóa của giáo viên `name` - hoặc TẤT CẢ giáo viên
         nếu `name` rỗng/None - có trạng thái nằm trong `statuses` (mặc định

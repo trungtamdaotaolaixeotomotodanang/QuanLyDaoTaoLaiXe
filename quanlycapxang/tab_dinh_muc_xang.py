@@ -13,7 +13,13 @@ hiện trong bảng.
 Khóa đã cấp VƯỢT định mức: tô cả dòng màu đỏ nhạt + dòng cảnh báo tổng hợp
 phía trên bảng liệt kê số khóa vượt/tổng số lít vượt; tick "Chỉ hiện khóa
 vượt định mức" để bảng chỉ còn các khóa đó (xử lý nhanh, không phải dò từng
-dòng). Nút "Xuất Excel..." xuất đúng bảng đang hiện."""
+dòng). Nút "Xuất Excel..." xuất đúng bảng đang hiện.
+
+Bấm vào 1 dòng trong bảng -> phía dưới hiện CĂN CỨ tính "Còn lại" (định mức/
+HV lấy từ đâu x số học viên = tổng định mức) + liệt kê TỪNG LẦN cấp xăng
+thực tế đã cộng vào "Đã cấp" (ngày/số lượng/mặt hàng - đúng các phiếu khớp
+mã khóa+xe ở tab CẤP XĂNG) - để biết đã cấp gồm những lần nào và dựa vào đâu
+mà nói là vượt."""
 from datetime import datetime
 
 from PySide6.QtCore import Qt
@@ -48,6 +54,8 @@ EXPORT_COLUMNS = [
     "Số HV tính xăng", "Định mức/HV (lít)", "Tổng định mức (lít)", "Đã cấp (lít)",
     "Còn lại (lít)", "Vượt định mức",
 ]
+
+_CHI_TIET_COLUMNS = ["Ngày cấp", "Số phiếu/Quyển", "Mặt hàng", "Số lượng (lít)", "Phân loại sổ", "Ghi chú"]
 
 ALL_TEACHERS_LABEL = "-- Tất cả giáo viên --"
 # Lọc theo trạng thái khóa - mặc định chỉ khóa đang dạy; "Đã đào tạo" để
@@ -174,6 +182,7 @@ class DinhMucXangTab(QWidget):
         self.table.setAlternatingRowColors(True)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table.setSortingEnabled(True)
+        self.table.itemSelectionChanged.connect(self._on_row_selected)
         outer.addWidget(self.table, 1)
 
         self.lbl_total = QLabel("")
@@ -184,6 +193,22 @@ class DinhMucXangTab(QWidget):
         self.lbl_missing.setWordWrap(True)
         self.lbl_missing.setStyleSheet("color: #b3261e;")
         outer.addWidget(self.lbl_missing)
+
+        detail_box = QGroupBox("Căn cứ \"Còn lại\" + chi tiết từng lần cấp (dòng đang chọn)")
+        detail_layout = QVBoxLayout(detail_box)
+        self.lbl_explain = QLabel("Chọn 1 dòng ở bảng trên để xem căn cứ tính \"Còn lại\" và chi tiết từng lần cấp.")
+        self.lbl_explain.setWordWrap(True)
+        self.lbl_explain.setTextFormat(Qt.TextFormat.RichText)
+        detail_layout.addWidget(self.lbl_explain)
+        self.tbl_chi_tiet = QTableWidget()
+        self.tbl_chi_tiet.setColumnCount(len(_CHI_TIET_COLUMNS))
+        self.tbl_chi_tiet.setHorizontalHeaderLabels(_CHI_TIET_COLUMNS)
+        self.tbl_chi_tiet.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tbl_chi_tiet.setAlternatingRowColors(True)
+        self.tbl_chi_tiet.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tbl_chi_tiet.setMaximumHeight(220)
+        detail_layout.addWidget(self.tbl_chi_tiet)
+        outer.addWidget(detail_box)
 
     def _load_filters(self):
         teachers = self.model.all_teachers()
@@ -270,6 +295,8 @@ class DinhMucXangTab(QWidget):
             vuot = is_vuot(r)
             for col, val in enumerate(values):
                 item = _TeacherNameItem(val) if col == 0 else QTableWidgetItem(val)
+                if col == 0:
+                    item.setData(Qt.ItemDataRole.UserRole, r)
                 if col >= 5:
                     item.setTextAlignment(Qt.AlignCenter)
                 if vuot:
@@ -279,6 +306,9 @@ class DinhMucXangTab(QWidget):
                 self.table.setItem(row_idx, col, item)
         self.table.setSortingEnabled(True)
         self.lbl_summary.setText(summary_text)
+        if rows:
+            self.table.selectRow(0)
+        self._on_row_selected()
 
         tong_cong = sum(r["tong"] for r in rows if r["tong"] is not None)
         tong_da_cap = sum(r["da_cap"] for r in rows)
@@ -297,6 +327,59 @@ class DinhMucXangTab(QWidget):
             )
         else:
             self.lbl_missing.setText("")
+
+    # ---------------- chi tiết dòng đang chọn ----------------
+    def _on_row_selected(self):
+        items = self.table.selectedItems()
+        r = self.table.item(items[0].row(), 0).data(Qt.ItemDataRole.UserRole) if items else None
+        if r is None:
+            self.lbl_explain.setText(
+                "Chọn 1 dòng ở bảng trên để xem căn cứ tính \"Còn lại\" và chi tiết từng lần cấp."
+            )
+            self.tbl_chi_tiet.setRowCount(0)
+            return
+
+        if r["dinh_muc"] is None:
+            can_cu = (
+                f"Chưa tra được định mức cho xe {r['xe']} (chưa có trong file định mức nhiên liệu) "
+                "- không tính được tổng định mức để so sánh."
+            )
+        else:
+            theo = "xe này + đúng giáo viên này" if r["matched_by"] == "xe+gv" else "chỉ riêng xe này (chưa có định mức ghi riêng cho giáo viên này)"
+            can_cu = (
+                f"Định mức <b>{_fmt_so(r['dinh_muc'])} lít/học viên</b> (tra theo {theo} trong file định mức) "
+                f"× <b>{r['so_hoc_vien']} học viên</b> tính xăng (không tính học viên \"Bảo lưu\") "
+                f"= tổng định mức <b>{_fmt_so(r['tong'])} lít</b> cho khóa {r['ma_khoa']} - xe {r['xe']}."
+            )
+        can_cu += (
+            f"<br>Đã cấp thực tế = cộng TẤT CẢ phiếu cấp xăng khớp đúng mã khóa <b>{r['ma_khoa']}</b> + "
+            f"biển số <b>{r['xe']}</b> (liệt kê bên dưới) = <b>{_fmt_so(r['da_cap'])} lít</b>."
+        )
+        if r["con_lai"] is not None:
+            if is_vuot(r):
+                can_cu += (
+                    f"<br>Còn lại = {_fmt_so(r['tong'])} − {_fmt_so(r['da_cap'])} = "
+                    f"<b style=\"color:#b3261e\">{_fmt_so(r['con_lai'])} lít "
+                    f"(ĐÃ CẤP VƯỢT {_fmt_so(-r['con_lai'])} lít so với định mức)</b>."
+                )
+            else:
+                can_cu += f"<br>Còn lại = {_fmt_so(r['tong'])} − {_fmt_so(r['da_cap'])} = <b>{_fmt_so(r['con_lai'])} lít</b> (chưa vượt)."
+        self.lbl_explain.setText(can_cu)
+
+        phieu = self.model.phieu_for_khoa_xe(r["ma_khoa"], r["xe"])
+        self.tbl_chi_tiet.setRowCount(len(phieu))
+        for row_idx, p in enumerate(phieu):
+            so_luong_display = p.get("so_luong_text") or _fmt_so(p.get("so_luong"))
+            values = [
+                p.get("ngay_cap", ""), p.get("so_phieu", ""), p.get("mat_hang", ""),
+                so_luong_display, p.get("phan_loai_so", ""), p.get("ghi_chu", ""),
+            ]
+            for col, val in enumerate(values):
+                self.tbl_chi_tiet.setItem(row_idx, col, QTableWidgetItem(val))
+        if not phieu:
+            self.lbl_explain.setText(
+                self.lbl_explain.text() + "<br><i>Chưa có phiếu cấp xăng nào khớp mã khóa + biển số này.</i>"
+            )
 
     # ---------------- xuất Excel ----------------
     def _on_export(self):
