@@ -56,13 +56,18 @@ from style import icon as _icon
 VIEW_MODES = ["Chi tiết (nhập liệu)", "Tổng theo khóa học", "Tổng theo tuần", "Tổng theo tháng"]
 
 GRID_COLUMNS = [
-    "Khóa học", "Lớp", "Biển số", "Thời gian học",
+    "Khóa học", "Lớp", "Biển số", "Thời gian học", "Còn lại (lít)",
     "Ngày cấp", "Số phiếu/Quyển", "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú", "",
 ]
-MATRIX_FROZEN_COLUMNS = ["Khóa học", "Lớp", "Biển số"]
+# Chỉ số cột lưới Chi tiết - dùng tên thay số rải rác để thêm/bớt cột không sót
+_COL_CON_LAI, _COL_NGAY, _COL_SO_PHIEU, _COL_MAT_HANG = 4, 5, 6, 7
+_COL_SO_LUONG, _COL_PHAN_LOAI, _COL_GHI_CHU, _COL_XOA = 8, 9, 10, 11
+MATRIX_FROZEN_COLUMNS = ["Khóa học", "Lớp", "Biển số", "Còn lại (lít)"]
 _WEEKDAY_VN = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
 
 _MAU_DONG_TRONG = QColor("#eaf3ff")  # dòng trống cuối mỗi khóa/xe - chỗ gõ số cấp tiếp theo
+_MAU_CHU_VUOT = QColor("#b3261e")  # "Còn lại" âm - đã cấp vượt định mức
+_MAU_CHU_SAP_HET = QColor("#b26a00")  # "Còn lại" còn dưới 10% định mức
 _MAU_NGOAI_PHAM_VI = QColor("#e4e4e4")  # ô ngày ngoài thời gian học của khóa - không cho gõ
 _MAU_CUOI_TUAN = QColor("#fff6e0")  # tô nhạt cột Thứ 7/CN cho dễ nhìn
 
@@ -121,6 +126,11 @@ nhận trước).</li>
 <li><b>Ngày cấp bắt buộc nằm trong khoảng thời gian học của khóa đó</b> (từ
 ngày khai giảng đến ngày kết thúc) - gõ ngày ngoài khoảng này sẽ bị báo lỗi và
 không lưu.</li>
+<li>Cột <b>"Còn lại (lít)"</b> = tổng định mức của khóa/xe (định mức/học viên x
+số học viên) trừ số đã cấp - cập nhật ngay sau mỗi phiếu; <span style="color:#b26a00">
+màu cam</span> khi còn dưới 10%, <span style="color:#b3261e">màu đỏ</span> khi đã
+vượt. Rê chuột vào ô để xem cách tính. Gõ phiếu làm <b>vượt định mức</b> thì app
+hỏi lại trước khi lưu - chọn "No" sẽ không lưu.</li>
 </ul>
 {_HUONG_DAN_SO_LUONG_HTML}
 """
@@ -221,6 +231,34 @@ def _parse_ngay(text):
         return datetime.strptime((text or "").strip(), "%d/%m/%Y").date()
     except ValueError:
         return None
+
+
+def _con_lai_item(allowance):
+    """Ô "Còn lại (lít)" cho 1 khóa/xe (xem CapXangModel.allowances_for_teacher)
+    - đỏ nếu đã vượt, cam nếu còn dưới 10% định mức, tooltip ghi cách tính."""
+    if not allowance or allowance["tong"] is None:
+        item = QTableWidgetItem("—")
+        item.setToolTip(
+            "Chưa có định mức cho xe này trong file định mức nhiên liệu "
+            "(tab ĐỊNH MỨC XĂNG -> \"Chọn file định mức...\")."
+        )
+    else:
+        con_lai = allowance["con_lai"]
+        item = QTableWidgetItem(_fmt_so(con_lai))
+        item.setToolTip(
+            f"Định mức {_fmt_so(allowance['dinh_muc'])} lít/HV x {allowance['so_hv']} HV = "
+            f"{_fmt_so(allowance['tong'])} lít; đã cấp {_fmt_so(allowance['da_cap'])} lít."
+        )
+        if con_lai < 0:
+            item.setForeground(_MAU_CHU_VUOT)
+        elif allowance["tong"] > 0 and con_lai < 0.1 * allowance["tong"]:
+            item.setForeground(_MAU_CHU_SAP_HET)
+        font = item.font()
+        font.setBold(True)
+        item.setFont(font)
+    item.setTextAlignment(Qt.AlignCenter)
+    item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+    return item
 
 
 def parse_so_luong(text):
@@ -624,31 +662,37 @@ class CapXangTab(QWidget):
             row_specs.append((g, None))
 
         self.table.setRowCount(len(row_specs))
-        self.table.horizontalHeaderItem(7).setToolTip(_GHI_CHU_SO_LUONG)
+        self.table.horizontalHeaderItem(_COL_SO_LUONG).setToolTip(_GHI_CHU_SO_LUONG)
+        allowances = self.model.allowances_for_teacher(name)
         tong_so_luong = 0.0
         for row_idx, (g, r) in enumerate(row_specs):
             thoi_gian = f"{g.get('tu_ngay') or '?'} → {g.get('den_ngay') or '?'}"
+            allowance = allowances.get((g["ma_khoa"], g["xe"]))
             for col, text in enumerate([g["ma_khoa"], g["lop"], g["xe"], thoi_gian]):
                 item = QTableWidgetItem(text)
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 if r is None:
                     item.setBackground(_MAU_DONG_TRONG)
                 self.table.setItem(row_idx, col, item)
+            con_lai_item = _con_lai_item(allowance)
+            if r is None:
+                con_lai_item.setBackground(_MAU_DONG_TRONG)
+            self.table.setItem(row_idx, _COL_CON_LAI, con_lai_item)
 
             date_edit = QDateEdit()
             date_edit.setCalendarPopup(True)
             date_edit.setDisplayFormat("dd/MM/yyyy")
             ngay = _parse_ngay(r["ngay_cap"]) if r else None
             date_edit.setDate(QDate(ngay.year, ngay.month, ngay.day) if ngay else QDate.currentDate())
-            self.table.setCellWidget(row_idx, 4, date_edit)
+            self.table.setCellWidget(row_idx, _COL_NGAY, date_edit)
 
             txt_so_phieu = QLineEdit(r.get("so_phieu", "") if r else "")
-            self.table.setCellWidget(row_idx, 5, txt_so_phieu)
+            self.table.setCellWidget(row_idx, _COL_SO_PHIEU, txt_so_phieu)
 
             cbo_mat_hang = _EditableCombo(
                 mat_hang_goi_y, r.get("mat_hang", "") if r else mat_hang_mac_dinh
             )
-            self.table.setCellWidget(row_idx, 6, cbo_mat_hang)
+            self.table.setCellWidget(row_idx, _COL_MAT_HANG, cbo_mat_hang)
 
             txt_so_luong = QLineEdit()
             txt_so_luong.setValidator(QRegularExpressionValidator(_SO_LUONG_KY_TU_RE))
@@ -657,15 +701,15 @@ class CapXangTab(QWidget):
             if r:
                 txt_so_luong.setText(r.get("so_luong_text") or _fmt_so(r.get("so_luong")))
                 tong_so_luong += r.get("so_luong") or 0
-            self.table.setCellWidget(row_idx, 7, txt_so_luong)
+            self.table.setCellWidget(row_idx, _COL_SO_LUONG, txt_so_luong)
 
             cbo_phan_loai = _EditableCombo(
                 phan_loai_goi_y, r.get("phan_loai_so", "") if r else phan_loai_mac_dinh
             )
-            self.table.setCellWidget(row_idx, 8, cbo_phan_loai)
+            self.table.setCellWidget(row_idx, _COL_PHAN_LOAI, cbo_phan_loai)
 
             txt_ghi_chu = QLineEdit(r.get("ghi_chu", "") if r else "")
-            self.table.setCellWidget(row_idx, 9, txt_ghi_chu)
+            self.table.setCellWidget(row_idx, _COL_GHI_CHU, txt_ghi_chu)
 
             widgets = {
                 "date": date_edit,
@@ -675,7 +719,7 @@ class CapXangTab(QWidget):
                 "phan_loai_so": cbo_phan_loai,
                 "ghi_chu": txt_ghi_chu,
             }
-            commit = self._make_commit_handler(name, g, r, widgets)
+            commit = self._make_commit_handler(name, g, r, widgets, allowance)
             date_edit.editingFinished.connect(commit)
             txt_so_phieu.editingFinished.connect(commit)
             cbo_mat_hang.lineEdit().editingFinished.connect(commit)
@@ -686,16 +730,40 @@ class CapXangTab(QWidget):
             if r is not None:
                 btn_xoa = QPushButton("Xóa")
                 btn_xoa.clicked.connect(lambda _checked=False, rid=r["id"]: self._on_delete(rid))
-                self.table.setCellWidget(row_idx, 10, btn_xoa)
+                self.table.setCellWidget(row_idx, _COL_XOA, btn_xoa)
             else:
                 placeholder = QTableWidgetItem("")
                 placeholder.setFlags(placeholder.flags() & ~Qt.ItemIsEditable)
                 placeholder.setBackground(_MAU_DONG_TRONG)
-                self.table.setItem(row_idx, 10, placeholder)
+                self.table.setItem(row_idx, _COL_XOA, placeholder)
 
         self.lbl_total.setText(f"Tổng cộng đã cấp: {_fmt_so(tong_so_luong)} lít")
 
-    def _make_commit_handler(self, name, assignment, record, widgets):
+    def _confirm_vuot_dinh_muc(self, assignment, allowance, new_lit, old_lit):
+        """Hỏi lại nếu phiếu sắp lưu làm khóa/xe này VƯỢT định mức (đã cấp -
+        số cũ của chính phiếu/ô đang sửa + số mới > tổng định mức). Trả về
+        True nếu được phép lưu (không vượt, chưa có định mức để so, hoặc
+        người dùng vẫn đồng ý cấp)."""
+        if not allowance or allowance["tong"] is None:
+            return True
+        sau_khi_cap = allowance["da_cap"] - old_lit + new_lit
+        vuot = sau_khi_cap - allowance["tong"]
+        if vuot <= 0:
+            return True
+        con_lai_truoc = allowance["tong"] - (allowance["da_cap"] - old_lit)
+        answer = QMessageBox.question(
+            self, "Vượt định mức xăng",
+            f"Khóa {assignment['ma_khoa']} - xe {assignment['xe']} chỉ còn "
+            f"{_fmt_so(con_lai_truoc)} lít (định mức {_fmt_so(allowance['tong'])} lít, "
+            f"đã cấp {_fmt_so(allowance['da_cap'] - old_lit)} lít).\n"
+            f"Phiếu này {_fmt_so(new_lit)} lít -> VƯỢT định mức {_fmt_so(vuot)} lít.\n\n"
+            "Vẫn cấp và lưu phiếu này?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        return answer == QMessageBox.StandardButton.Yes
+
+    def _make_commit_handler(self, name, assignment, record, widgets, allowance=None):
         def commit():
             so_luong_text = widgets["so_luong"].text().strip()
             if record is None and not so_luong_text:
@@ -724,6 +792,11 @@ class CapXangTab(QWidget):
                     f"Ngày cấp ({ngay_cap.strftime('%d/%m/%Y')}) sau ngày khóa "
                     f"'{assignment['ma_khoa']}' kết thúc học ({assignment['den_ngay']}).",
                 )
+                return
+
+            old_lit = (record.get("so_luong") or 0) if record else 0
+            if not self._confirm_vuot_dinh_muc(assignment, allowance, tong_lit, old_lit):
+                QTimer.singleShot(0, self._reload)  # trả ô về giá trị đã lưu
                 return
 
             fields = {
@@ -881,6 +954,7 @@ class CapXangTab(QWidget):
         self.date_table.horizontalHeader().setFixedHeight(header_h)
         self.date_table.setRowCount(len(rows_spec))
 
+        allowances = self.model.allowances_for_teacher(name)
         tong_so_luong = 0.0
         tong_so_phieu = 0
         for row_idx, g in enumerate(rows_spec):
@@ -888,6 +962,8 @@ class CapXangTab(QWidget):
                 item = QTableWidgetItem(text)
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.frozen_table.setItem(row_idx, col, item)
+            allowance = allowances.get((g["ma_khoa"], g["xe"]))
+            self.frozen_table.setItem(row_idx, 3, _con_lai_item(allowance))
 
             tu = _parse_ngay(g.get("tu_ngay", ""))
             den = _parse_ngay(g.get("den_ngay", ""))
@@ -912,9 +988,11 @@ class CapXangTab(QWidget):
                 if d.weekday() >= 5:
                     cell.setStyleSheet("background-color: #fff6e0;")
                 matched_ids = [r["id"] for r in matched]
+                old_lit = sum(r.get("so_luong") or 0 for r in matched)
                 cell.editingFinished.connect(
                     self._make_matrix_commit_handler(
-                        name, g, d, matched_ids, cell, mat_hang_mac_dinh, phan_loai_mac_dinh
+                        name, g, d, matched_ids, cell, mat_hang_mac_dinh, phan_loai_mac_dinh,
+                        allowance, old_lit,
                     )
                 )
                 self.date_table.setCellWidget(row_idx, col, cell)
@@ -931,7 +1009,8 @@ class CapXangTab(QWidget):
         self.lbl_total.setText(f"Tổng cộng: {_fmt_so(tong_so_luong)} lít ({tong_so_phieu} phiếu)")
 
     def _make_matrix_commit_handler(self, name, assignment, ngay, matched_ids, widget,
-                                     mat_hang_mac_dinh, phan_loai_mac_dinh):
+                                     mat_hang_mac_dinh, phan_loai_mac_dinh,
+                                     allowance=None, old_lit=0):
         def commit():
             text = widget.text().strip()
             tong_lit, tong_phieu = parse_so_luong(text)
@@ -944,6 +1023,12 @@ class CapXangTab(QWidget):
                     for rid in matched_ids:
                         cap_xang_store.delete_record(rid)
                     QTimer.singleShot(0, self._reload)
+                return
+
+            if tong_lit == old_lit and len(matched_ids) == 1:
+                return  # không đổi số lít - khỏi hỏi vượt định mức/ghi lại
+            if not self._confirm_vuot_dinh_muc(assignment, allowance, tong_lit, old_lit):
+                QTimer.singleShot(0, self._reload)  # trả ô về giá trị đã lưu
                 return
 
             if len(matched_ids) == 1:

@@ -150,20 +150,52 @@ class CapXangModel:
             totals[key] = totals.get(key, 0.0) + (r.get("so_luong") or 0)
         return totals
 
-    def fuel_rows_for_teacher(self, name=None):
-        """Trả về list các khóa ĐANG DẠY (trạng thái "Đang đào tạo") của giáo
-        viên `name` - hoặc TẤT CẢ giáo viên nếu `name` rỗng/None - kèm định
-        mức xăng/học viên của xe, số học viên tính xăng (đã lọc sẵn "Bảo
-        lưu" từ docs/cap_xang_data.json), tổng số lít xăng của khóa đó (None
-        nếu không tra được định mức cho xe), số lít ĐÃ CẤP thực tế (xem tab
-        CẤP XĂNG) và CÒN LẠI = tổng định mức - đã cấp (None nếu chưa có định
-        mức để so sánh) - đúng cột "CÒN LẠI" trước đây phải tự tính tay trên
-        Excel."""
+    def allowances_for_teacher(self, name):
+        """Định mức/đã cấp/còn lại cho TỪNG khóa+xe giáo viên `name` từng được
+        phân công (mọi trạng thái - đúng các dòng tab CẤP XĂNG liệt kê) ->
+        dict (ma_khoa, xe) -> {"dinh_muc", "so_hv", "tong", "da_cap",
+        "con_lai"}. Nhiều "ca" cùng khóa+xe thì cộng dồn số học viên (phiếu
+        cấp xăng không phân biệt ca). Không có định mức cho xe -> tong/con_lai
+        None (vẫn có da_cap). Dùng để hiện cột "Còn lại" + cảnh báo vượt định
+        mức NGAY LÚC NHẬP ở tab CẤP XĂNG - thay vì phải sang tab ĐỊNH MỨC
+        XĂNG mới biết (lúc đó đã cấp xong rồi)."""
+        name_norm = attach_files.normalize_name(name)
+        da_cap_map = self._da_cap_by_khoa_xe()
+        result = {}
+        for c in self.courses:
+            for g in c.get("groups", []):
+                if attach_files.normalize_name(g.get("giao_vien", "")) != name_norm:
+                    continue
+                key = (c["ma_khoa"], g.get("xe", ""))
+                info = result.get(key)
+                if info is None:
+                    dinh_muc, _ = self.lookup_dinh_muc(g.get("xe", ""), name)
+                    info = result[key] = {
+                        "dinh_muc": dinh_muc, "so_hv": 0, "tong": None,
+                        "da_cap": da_cap_map.get(key, 0.0), "con_lai": None,
+                    }
+                info["so_hv"] += g.get("so_hoc_vien", 0)
+        for info in result.values():
+            if info["dinh_muc"] is not None:
+                info["tong"] = info["dinh_muc"] * info["so_hv"]
+                info["con_lai"] = info["tong"] - info["da_cap"]
+        return result
+
+    def fuel_rows_for_teacher(self, name=None, statuses=("Đang đào tạo",)):
+        """Trả về list các khóa của giáo viên `name` - hoặc TẤT CẢ giáo viên
+        nếu `name` rỗng/None - có trạng thái nằm trong `statuses` (mặc định
+        chỉ khóa ĐANG DẠY; None = mọi trạng thái, để quyết toán cả khóa đã
+        kết thúc) - kèm định mức xăng/học viên của xe, số học viên tính xăng
+        (đã lọc sẵn "Bảo lưu" từ docs/cap_xang_data.json), tổng số lít xăng
+        của khóa đó (None nếu không tra được định mức cho xe), số lít ĐÃ CẤP
+        thực tế (xem tab CẤP XĂNG) và CÒN LẠI = tổng định mức - đã cấp (None
+        nếu chưa có định mức để so sánh) - đúng cột "CÒN LẠI" trước đây phải
+        tự tính tay trên Excel."""
         name_norm = attach_files.normalize_name(name) if name else None
         da_cap_map = self._da_cap_by_khoa_xe()
         rows = []
         for c in self.courses:
-            if self.status_of(c) != "Đang đào tạo":
+            if statuses is not None and self.status_of(c) not in statuses:
                 continue
             for g in c.get("groups", []):
                 giao_vien = g.get("giao_vien", "")

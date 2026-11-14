@@ -1,5 +1,6 @@
 """Tab ĐỊNH MỨC XĂNG: mặc định hiện TẤT CẢ giáo viên đang dạy, hoặc chọn/gõ
-1 giáo viên để lọc riêng - hiện danh sách khóa ĐANG DẠY, định mức xăng
+1 giáo viên để lọc riêng - hiện danh sách khóa ĐANG DẠY (ô "Khóa" đổi sang
+"Đã đào tạo"/"Tất cả trạng thái" để quyết toán cả khóa đã kết thúc), định mức xăng
 (lít/học viên) của xe từng khóa (tra theo file "BẢNG ĐỊNH MỨC NL.xlsx" đã
 chọn ở nút "Chọn file định mức..." - xem fuel_norm.py), số học viên tính
 xăng (KHÔNG tính học viên "Bảo lưu"), tổng số lít xăng của từng khóa, số lít
@@ -49,6 +50,9 @@ EXPORT_COLUMNS = [
 ]
 
 ALL_TEACHERS_LABEL = "-- Tất cả giáo viên --"
+# Lọc theo trạng thái khóa - mặc định chỉ khóa đang dạy; "Đã đào tạo" để
+# quyết toán xăng từng khóa đã kết thúc (trước đây không xem được ở đâu).
+STATUS_OPTIONS = ["Đang đào tạo", "Đã đào tạo", "Chưa đào tạo", "Tất cả trạng thái"]
 _MAU_DONG_VUOT = QColor("#fde7e7")  # nền cả dòng khi đã cấp vượt định mức
 _MAU_CHU_VUOT = QColor("#b3261e")
 
@@ -133,6 +137,13 @@ class DinhMucXangTab(QWidget):
         self.cbo_teacher.currentTextChanged.connect(self._search_by_teacher)
         form_layout.addWidget(self.cbo_teacher, 1)
         form_layout.addSpacing(12)
+        form_layout.addWidget(QLabel("Khóa:"))
+        self.cbo_status = QComboBox()
+        self.cbo_status.addItems(STATUS_OPTIONS)
+        self.cbo_status.setToolTip("Chọn \"Đã đào tạo\" để xem/quyết toán xăng các khóa đã kết thúc.")
+        self.cbo_status.currentIndexChanged.connect(lambda _: self._search_by_teacher())
+        form_layout.addWidget(self.cbo_status)
+        form_layout.addSpacing(12)
         self.chk_vuot = QCheckBox("Chỉ hiện khóa vượt định mức")
         self.chk_vuot.toggled.connect(lambda _: self._search_by_teacher())
         form_layout.addWidget(self.chk_vuot)
@@ -207,12 +218,15 @@ class DinhMucXangTab(QWidget):
         if name is None:
             name = self.cbo_teacher.currentText()
         name = name.strip()
+        status = self.cbo_status.currentText()
+        statuses = None if status == STATUS_OPTIONS[-1] else (status,)
+        status_text = "mọi trạng thái" if statuses is None else status.lower()
         if not name or name == ALL_TEACHERS_LABEL:
-            rows = self.model.fuel_rows_for_teacher(None)
-            summary = f"Tất cả giáo viên đang dạy: {len(rows)} khóa"
+            rows = self.model.fuel_rows_for_teacher(None, statuses)
+            summary = f"Tất cả giáo viên, khóa {status_text}: {len(rows)} khóa"
         else:
-            rows = self.model.fuel_rows_for_teacher(name)
-            summary = f"Các khóa giáo viên '{name}' đang dạy: {len(rows)} khóa"
+            rows = self.model.fuel_rows_for_teacher(name, statuses)
+            summary = f"Giáo viên '{name}', khóa {status_text}: {len(rows)} khóa"
 
         vuot = [r for r in rows if _is_vuot(r)]
         self._update_vuot_banner(vuot)
@@ -270,7 +284,7 @@ class DinhMucXangTab(QWidget):
         tong_da_cap = sum(r["da_cap"] for r in rows)
         tong_con_lai = sum(r["con_lai"] for r in rows if r["con_lai"] is not None)
         self.lbl_total.setText(
-            f"Tổng cộng: {_fmt_so(tong_cong)} lít xăng ({len(rows)} khóa đang dạy) - "
+            f"Tổng cộng: {_fmt_so(tong_cong)} lít xăng ({len(rows)} khóa) - "
             f"đã cấp {_fmt_so(tong_da_cap)} lít - còn lại {_fmt_so(tong_con_lai)} lít"
         )
 
