@@ -19,6 +19,7 @@ from style import apply_style
 from tab_cap_xang import CapXangTab
 from tab_dinh_muc_xang import DinhMucXangTab
 from tab_tong_hop_cap_xang import TongHopCapXangTab
+from tab_tong_quan import TongQuanTab
 from tab_xac_thuc_excel import XacThucExcelTab
 
 APP_DIR = app_dir()
@@ -68,6 +69,10 @@ class MainWindow(QMainWindow):
         self.tab_xac_thuc_excel = XacThucExcelTab(model)
 
         tabs = QTabWidget()
+        self.tab_tong_quan = TongQuanTab(
+            model, tabs=tabs, tab_dinh_muc=self.tab_dinh_muc_xang, tab_tong_hop=self.tab_tong_hop_cap_xang,
+        )
+        tabs.addTab(self.tab_tong_quan, "TỔNG QUAN")
         tabs.addTab(self.tab_dinh_muc_xang, "ĐỊNH MỨC XĂNG")
         tabs.addTab(self.tab_cap_xang, "CẤP XĂNG")
         tabs.addTab(self.tab_tong_hop_cap_xang, "TỔNG HỢP CẤP XĂNG")
@@ -119,6 +124,7 @@ class MainWindow(QMainWindow):
             self.tab_cap_xang.refresh()
             self.tab_tong_hop_cap_xang.refresh()
             self.tab_xac_thuc_excel.refresh()
+            self.tab_tong_quan.refresh()
 
     def _on_sync_done(self, ok, message):
         self.btn_sync.setEnabled(True)
@@ -129,6 +135,7 @@ class MainWindow(QMainWindow):
             self.tab_cap_xang.refresh()
             self.tab_tong_hop_cap_xang.refresh()
             self.tab_xac_thuc_excel.refresh()
+            self.tab_tong_quan.refresh()
             QMessageBox.information(
                 self, "Hoàn tất",
                 "Đã lấy dữ liệu khóa/xe/giáo viên + phiếu/định mức (máy khác "

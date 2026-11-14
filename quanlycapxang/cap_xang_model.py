@@ -80,6 +80,48 @@ class CapXangModel:
     def courses_for_lop(self, lop):
         return self._courses_by_lop.get(lop, [])
 
+    def known_khoa_xe_pairs(self):
+        """Tập (mã khóa, xe) của MỌI khóa/nhóm hiện có (không lọc theo giáo
+        viên) - đúng những cặp mà _da_cap_by_khoa_xe/fuel_rows_for_teacher
+        dùng để cộng phiếu vào "Đã cấp" của 1 khóa. Khác với orphan_reason()
+        (khớp CẢ BỘ BA giáo viên+khóa+xe, dùng để báo phiếu cần sửa tay) -
+        đây chỉ cần khóa+xe đúng, dùng để biết 1 phiếu có được TÍNH vào Đã
+        cấp của khóa nào hay không (dù giáo viên trên phiếu có ghi sai)."""
+        return {(c["ma_khoa"], g.get("xe", "")) for c in self.courses for g in c.get("groups", [])}
+
+    def overview_stats(self):
+        """Số liệu tổng hợp cho tab TỔNG QUAN - tính lại từ các hàm đã có
+        (orphan_reason/fuel_rows_for_teacher), không tạo thêm quy tắc mới,
+        để không bao giờ lệch với số hiện ở tab TỔNG HỢP CẤP XĂNG/ĐỊNH MỨC
+        XĂNG. Phạm vi "khóa vượt định mức"/"thiếu định mức" tính trên TẤT
+        CẢ trạng thái khóa (kể cả đã kết thúc), vì mục đích là rà soát toàn
+        bộ, không chỉ việc đang làm hôm nay."""
+        all_records = cap_xang_store.load()["records"]
+        orphans = [(r, self.orphan_reason(r)) for r in all_records]
+        orphans = [(r, d) for r, d in orphans if d]
+
+        known_pairs = self.known_khoa_xe_pairs()
+        tong_lit_khong_gan_khoa = sum(
+            r.get("so_luong") or 0 for r in all_records
+            if (r.get("ma_khoa", ""), r.get("xe", "")) not in known_pairs
+        )
+
+        all_khoa_rows = self.fuel_rows_for_teacher(None, statuses=None)
+        vuot_rows = [r for r in all_khoa_rows if r["con_lai"] is not None and r["con_lai"] < 0]
+        thieu_rows = [r for r in all_khoa_rows if r["dinh_muc"] is None]
+
+        return {
+            "so_phieu_tong": len(all_records),
+            "tong_lit_tatca": sum(r.get("so_luong") or 0 for r in all_records),
+            "so_phieu_mo_coi": len(orphans),
+            "tong_lit_mo_coi": sum(r.get("so_luong") or 0 for r, _ in orphans),
+            "tong_lit_khong_gan_khoa": tong_lit_khong_gan_khoa,
+            "so_khoa_tong": len(all_khoa_rows),
+            "so_khoa_vuot": len(vuot_rows),
+            "tong_lit_vuot": sum(-r["con_lai"] for r in vuot_rows),
+            "so_khoa_thieu_dinh_muc": len(thieu_rows),
+        }
+
     @staticmethod
     def _assignments_text(course, limit=6):
         pairs = []
