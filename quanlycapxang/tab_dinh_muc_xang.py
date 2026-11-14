@@ -37,7 +37,7 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import fuel_norm
-from excel_export import ReportWorkbook
+from excel_export import GHI_CHU_TO_DO, ReportWorkbook
 
 RESULT_COLUMNS = [
     "Giáo viên", "Mã khóa", "Lớp", "Xe", "Thời gian học",
@@ -57,7 +57,7 @@ _MAU_DONG_VUOT = QColor("#fde7e7")  # nền cả dòng khi đã cấp vượt đ
 _MAU_CHU_VUOT = QColor("#b3261e")
 
 
-def _is_vuot(r):
+def is_vuot(r):
     return r["con_lai"] is not None and r["con_lai"] < 0
 
 
@@ -228,7 +228,7 @@ class DinhMucXangTab(QWidget):
             rows = self.model.fuel_rows_for_teacher(name, statuses)
             summary = f"Giáo viên '{name}', khóa {status_text}: {len(rows)} khóa"
 
-        vuot = [r for r in rows if _is_vuot(r)]
+        vuot = [r for r in rows if is_vuot(r)]
         self._update_vuot_banner(vuot)
         if self.chk_vuot.isChecked():
             rows = vuot
@@ -267,7 +267,7 @@ class DinhMucXangTab(QWidget):
                 _fmt_so(r["da_cap"]),
                 _fmt_so(r["con_lai"]),
             ]
-            vuot = _is_vuot(r)
+            vuot = is_vuot(r)
             for col, val in enumerate(values):
                 item = _TeacherNameItem(val) if col == 0 else QTableWidgetItem(val)
                 if col >= 5:
@@ -310,12 +310,15 @@ class DinhMucXangTab(QWidget):
             return
         try:
             report = ReportWorkbook()
-            report.add_sheet("Dinh muc xang", EXPORT_COLUMNS, [dinh_muc_export_row(r) for r in rows])
+            report.add_sheet(
+                "Dinh muc xang", EXPORT_COLUMNS,
+                [dinh_muc_export_row(r) for r in rows], highlight=[is_vuot(r) for r in rows],
+            )
             report.save(path)
         except Exception as exc:
             QMessageBox.warning(self, "Không xuất được", str(exc))
             return
-        QMessageBox.information(self, "Hoàn tất", f"Đã xuất {len(rows)} khóa ra:\n{path}")
+        QMessageBox.information(self, "Hoàn tất", f"Đã xuất {len(rows)} khóa ra:\n{path}\n\n{GHI_CHU_TO_DO}")
 
 
 def dinh_muc_export_row(r):
@@ -324,5 +327,5 @@ def dinh_muc_export_row(r):
     return [
         r["giao_vien"], r["ma_khoa"], r["lop"], r["xe"], r.get("ca", ""),
         r["tu_ngay"], r["den_ngay"], r["so_hoc_vien"], r["dinh_muc"], r["tong"],
-        r["da_cap"], r["con_lai"], "Có" if _is_vuot(r) else "",
+        r["da_cap"], r["con_lai"], "Có" if is_vuot(r) else "",
     ]

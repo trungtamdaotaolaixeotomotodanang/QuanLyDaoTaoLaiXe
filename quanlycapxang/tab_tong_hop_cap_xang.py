@@ -51,10 +51,10 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import cap_xang_store
-from excel_export import ReportWorkbook
+from excel_export import GHI_CHU_TO_DO, ReportWorkbook
 from style import icon as _icon
 from tab_cap_xang import parse_so_luong
-from tab_dinh_muc_xang import EXPORT_COLUMNS as _DINH_MUC_COLUMNS, dinh_muc_export_row
+from tab_dinh_muc_xang import EXPORT_COLUMNS as _DINH_MUC_COLUMNS, dinh_muc_export_row, is_vuot
 
 _SO_LUONG_GHI_CHU = (
     "Gõ 1 số (vd 50) hoặc SỐ PHIẾUxSỐ LÍT, nhiều phiếu cách nhau bằng dấu "
@@ -714,7 +714,7 @@ class TongHopCapXangTab(QWidget):
             return
         QMessageBox.information(
             self, "Hoàn tất",
-            f"Đã xuất {len(records)} dòng phiếu ra:\n{path}\n\nBộ lọc đã áp dụng: {self._filter_description()}",
+            f"Đã xuất {len(records)} dòng phiếu ra:\n{path}\n\nBộ lọc đã áp dụng: {self._filter_description()}\n\n{GHI_CHU_TO_DO}",
         )
 
     def _write_report(self, path, records):
@@ -738,6 +738,7 @@ class TongHopCapXangTab(QWidget):
                 for r in records
                 for diag in (self._orphan_reasons.get(r["id"]),)
             ],
+            highlight=[bool(self._orphan_reasons.get(r["id"])) for r in records],
         )
 
         by_gv = _aggregate(records, lambda r: r.get("giao_vien", ""))
@@ -753,10 +754,16 @@ class TongHopCapXangTab(QWidget):
         by_khoa = _aggregate(
             records, lambda r: (r.get("ma_khoa", ""), r.get("lop", ""), r.get("xe", ""), r.get("giao_vien", ""))
         )
+        orphan_keys = {
+            (r.get("ma_khoa", ""), r.get("lop", ""), r.get("xe", ""), r.get("giao_vien", ""))
+            for r in records if self._orphan_reasons.get(r["id"])
+        }
+        khoa_keys = sorted(by_khoa)
         report.add_sheet(
             "Theo khoa-xe",
             ["Khóa học", "Lớp", "Biển số", "Giáo viên", "Số dòng", "Số phiếu", "Tổng (lít)"],
-            [[*key, a["n"], a["phieu"], a["lit"]] for key, a in sorted(by_khoa.items())],
+            [[*key, by_khoa[key]["n"], by_khoa[key]["phieu"], by_khoa[key]["lit"]] for key in khoa_keys],
+            highlight=[key in orphan_keys for key in khoa_keys],
         )
 
         by_xe = _aggregate(records, lambda r: r.get("xe", ""))
@@ -793,6 +800,7 @@ class TongHopCapXangTab(QWidget):
             "Dinh muc - con lai",
             _DINH_MUC_COLUMNS,
             [dinh_muc_export_row(r) for r in dinh_muc_rows],
+            highlight=[is_vuot(r) for r in dinh_muc_rows],
         )
 
         report.save(path)

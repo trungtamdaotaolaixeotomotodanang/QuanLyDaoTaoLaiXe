@@ -52,7 +52,7 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import cap_xang_store
-from excel_export import ReportWorkbook
+from excel_export import GHI_CHU_TO_DO, ReportWorkbook
 from style import icon as _icon
 
 VIEW_MODES = ["Chi tiết (nhập liệu)", "Tổng theo khóa học", "Tổng theo tuần", "Tổng theo tháng"]
@@ -233,6 +233,11 @@ def _parse_ngay(text):
         return datetime.strptime((text or "").strip(), "%d/%m/%Y").date()
     except ValueError:
         return None
+
+
+def _vuot(allowance):
+    """Khóa/xe đã cấp vượt định mức (Còn lại âm)? False nếu chưa có định mức."""
+    return bool(allowance) and allowance["con_lai"] is not None and allowance["con_lai"] < 0
 
 
 def _con_lai_item(allowance):
@@ -860,7 +865,9 @@ class CapXangTab(QWidget):
         except Exception as exc:
             QMessageBox.warning(self, "Không xuất được", str(exc))
             return
-        QMessageBox.information(self, "Hoàn tất", f"Đã xuất {n} dòng phiếu của '{name}' ra:\n{path}")
+        QMessageBox.information(
+            self, "Hoàn tất", f"Đã xuất {n} dòng phiếu của '{name}' ra:\n{path}\n\n{GHI_CHU_TO_DO}"
+        )
 
     @staticmethod
     def _phieu_row(g, allowance, r):
@@ -890,29 +897,35 @@ class CapXangTab(QWidget):
         ]
 
     def _write_export(self, path):
-        """Trả về số dòng phiếu đã xuất."""
+        """Trả về số dòng phiếu đã xuất. Dòng của khóa/xe đã cấp vượt định
+        mức (Còn lại âm) được tô đỏ ở mọi sheet."""
         report = ReportWorkbook()
         state = self._export_state
         if state[0] == "grid":
             _, _name, row_specs, allowances = state
-            phieu = [
-                self._phieu_row(g, allowances.get((g["ma_khoa"], g["xe"])), r)
-                for g, r in row_specs if r is not None
-            ]
-            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu)
-            seen, khoa_xe = set(), []
+            phieu, phieu_vuot = [], []
+            for g, r in row_specs:
+                if r is None:
+                    continue
+                allowance = allowances.get((g["ma_khoa"], g["xe"]))
+                phieu.append(self._phieu_row(g, allowance, r))
+                phieu_vuot.append(_vuot(allowance))
+            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu, highlight=phieu_vuot)
+            seen, khoa_xe, khoa_xe_vuot = set(), [], []
             for g, _r in row_specs:
                 key = (g["ma_khoa"], g["xe"])
                 if key not in seen:
                     seen.add(key)
                     khoa_xe.append(self._khoa_xe_row(g, allowances.get(key)))
-            report.add_sheet("Theo khoa-xe", self._KHOA_XE_COLUMNS, khoa_xe)
+                    khoa_xe_vuot.append(_vuot(allowances.get(key)))
+            report.add_sheet("Theo khoa-xe", self._KHOA_XE_COLUMNS, khoa_xe, highlight=khoa_xe_vuot)
         else:
             _, _name, rows_spec, dates, rec_by_key, allowances = state
             date_keys = [d.strftime("%d/%m/%Y") for d in dates]
-            matrix_rows, phieu = [], []
+            matrix_rows, matrix_vuot, phieu, phieu_vuot = [], [], [], []
             for g in rows_spec:
                 allowance = allowances.get((g["ma_khoa"], g["xe"]))
+                vuot = _vuot(allowance)
                 cells, tong_ky = [], 0.0
                 for dk in date_keys:
                     matched = rec_by_key.get((g["ma_khoa"], g["xe"], dk), [])
@@ -920,17 +933,19 @@ class CapXangTab(QWidget):
                     cells.append(lit if matched else None)
                     tong_ky += lit
                     phieu.extend(self._phieu_row(g, allowance, r) for r in matched)
+                    phieu_vuot.extend(vuot for _ in matched)
                 matrix_rows.append([
                     g["ma_khoa"], g["lop"], g["xe"], allowance["con_lai"] if allowance else None,
                     *cells, tong_ky,
                 ])
+                matrix_vuot.append(vuot)
             report.add_sheet(
                 "Ma tran ngay",
                 ["Khóa học", "Lớp", "Biển số", "Còn lại (lít)",
                  *(f"{_WEEKDAY_VN[d.weekday()]} {d.strftime('%d/%m')}" for d in dates), "Tổng kỳ (lít)"],
-                matrix_rows,
+                matrix_rows, highlight=matrix_vuot,
             )
-            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu)
+            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu, highlight=phieu_vuot)
         report.save(path)
         return len(phieu)
 

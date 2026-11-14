@@ -10,13 +10,21 @@ quanlygiaovien/tab_tra_cuu.py):
   Excel coi dòng dữ liệu cuối là dòng tổng -> lệch cấu trúc)."""
 import re
 from datetime import date
+from itertools import repeat
 
 from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.filters import AutoFilter
 from openpyxl.worksheet.table import Table, TableColumn, TableStyleInfo
 
 _SHEET_NAME_INVALID_RE = re.compile(r"[\\/*?:\[\]]")
 DATE_FORMAT = "dd/mm/yyyy"
+# Dòng "cần xem lại" (phiếu không khớp phân công / đã cấp vượt định mức) - tô
+# đỏ nhạt cả dòng + chữ đỏ đậm. Định dạng ô trực tiếp đè lên kiểu sọc của
+# Table nên vẫn nổi bật khi mở trong Excel.
+_FILL_CAN_XEM = PatternFill(fill_type="solid", start_color="FFFDE7E7", end_color="FFFDE7E7")
+_FONT_CAN_XEM = Font(color="FFB3261E", bold=True)
+GHI_CHU_TO_DO = "Dòng tô đỏ trong file = cần xem lại (phiếu không khớp phân công hoặc đã cấp vượt định mức)."
 
 
 class ReportWorkbook:
@@ -37,17 +45,21 @@ class ReportWorkbook:
         self._used_names.add(name)
         return name
 
-    def add_sheet(self, title, header, rows):
+    def add_sheet(self, title, header, rows, highlight=None):
         """Thêm 1 sheet: dòng tiêu đề + các dòng dữ liệu (list/tuple cùng độ
         dài với header). Ô kiểu date được ghi là ngày thật (lọc/sort theo
-        ngày được trong Excel), số được ghi là số (cộng được)."""
+        ngày được trong Excel), số được ghi là số (cộng được). `highlight`:
+        list bool cùng độ dài rows - True = tô đỏ cả dòng (cần xem lại)."""
         ws = self.wb.create_sheet(self._safe_sheet_name(title))
         ws.append(list(header))
-        for r in rows:
+        for r, can_xem in zip(rows, highlight if highlight is not None else repeat(False)):
             ws.append(list(r))
             for cell in ws[ws.max_row]:
                 if isinstance(cell.value, date):
                     cell.number_format = DATE_FORMAT
+                if can_xem:
+                    cell.fill = _FILL_CAN_XEM
+                    cell.font = _FONT_CAN_XEM
         ws.freeze_panes = "A2"
         self._table_count += 1
         _add_filter_table(ws, f"Tbl{self._table_count}", self._table_count)
