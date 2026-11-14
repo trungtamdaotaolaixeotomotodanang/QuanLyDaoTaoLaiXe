@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QCompleter,
     QDateEdit,
     QDialog,
+    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
@@ -51,6 +52,7 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import cap_xang_store
+from excel_export import ReportWorkbook
 from style import icon as _icon
 
 VIEW_MODES = ["Chi tiết (nhập liệu)", "Tổng theo khóa học", "Tổng theo tuần", "Tổng theo tháng"]
@@ -324,6 +326,7 @@ class CapXangTab(QWidget):
         today = datetime.now().date()
         self._week_start = today - timedelta(days=today.weekday())
         self._month = (today.year, today.month)
+        self._export_state = None  # dữ liệu của bảng đang hiện, để "Xuất Excel" (xem _on_export)
         self._build_ui()
         self._load_teachers()
         self._reload()
@@ -352,6 +355,14 @@ class CapXangTab(QWidget):
         self.cbo_view_mode.addItems(VIEW_MODES)
         self.cbo_view_mode.currentIndexChanged.connect(lambda _: self._reload())
         form_layout.addWidget(self.cbo_view_mode)
+        form_layout.addSpacing(12)
+        self.btn_export = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogSaveButton), "Xuất Excel...")
+        self.btn_export.setToolTip(
+            "Xuất đúng bảng đang hiện của giáo viên này ra Excel (chế độ Chi tiết: từng phiếu + "
+            "tổng theo khóa/xe; chế độ ma trận: bảng ngày như đang thấy + chi tiết phiếu trong kỳ)."
+        )
+        self.btn_export.clicked.connect(self._on_export)
+        form_layout.addWidget(self.btn_export)
         outer.addWidget(box)
 
         self.nav_stack = QStackedWidget()
@@ -573,6 +584,7 @@ class CapXangTab(QWidget):
     def _reload(self, *_args):
         name = self.cbo_teacher.currentText().strip()
         mode = self.cbo_view_mode.currentIndex()
+        self._export_state = None
 
         # Bảng bị dựng lại từ đầu mỗi lần nạp lại (sau khi lưu 1 ô, đổi
         # tuần/tháng...) - tự nhớ lại vị trí cuộn + ô đang gõ trước khi dựng,
@@ -738,6 +750,7 @@ class CapXangTab(QWidget):
                 self.table.setItem(row_idx, _COL_XOA, placeholder)
 
         self.lbl_total.setText(f"Tổng cộng đã cấp: {_fmt_so(tong_so_luong)} lít")
+        self._export_state = ("grid", name, row_specs, allowances)
 
     def _confirm_vuot_dinh_muc(self, assignment, allowance, new_lit, old_lit):
         """Hỏi lại nếu phiếu sắp lưu làm khóa/xe này VƯỢT định mức (đã cấp -
@@ -829,6 +842,97 @@ class CapXangTab(QWidget):
             return
         cap_xang_store.delete_record(record_id)
         self._reload()
+
+    # ---------------- xuất Excel ----------------
+    def _on_export(self):
+        if not self._export_state:
+            QMessageBox.information(self, "Không có dữ liệu", "Chọn giáo viên để có bảng cần xuất.")
+            return
+        name = self._export_state[1]
+        mode = self.cbo_view_mode.currentText().split(" (")[0].replace(" ", "")
+        safe_name = re.sub(r"[^\w]+", "_", name, flags=re.UNICODE).strip("_")
+        default_name = f"CapXang_{safe_name}_{mode}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        path, _ = QFileDialog.getSaveFileName(self, "Xuất Excel", default_name, "Excel Files (*.xlsx)")
+        if not path:
+            return
+        try:
+            n = self._write_export(path)
+        except Exception as exc:
+            QMessageBox.warning(self, "Không xuất được", str(exc))
+            return
+        QMessageBox.information(self, "Hoàn tất", f"Đã xuất {n} dòng phiếu của '{name}' ra:\n{path}")
+
+    @staticmethod
+    def _phieu_row(g, allowance, r):
+        return [
+            g["ma_khoa"], g["lop"], g["xe"], g.get("tu_ngay", ""), g.get("den_ngay", ""),
+            allowance["con_lai"] if allowance else None,
+            _parse_ngay(r.get("ngay_cap", "")) or r.get("ngay_cap", ""),
+            r.get("so_phieu", ""), r.get("mat_hang", ""), r.get("so_luong") or 0,
+            r.get("so_phieu_count") or 1, r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
+        ]
+
+    _PHIEU_COLUMNS = [
+        "Khóa học", "Lớp", "Biển số", "Từ ngày", "Đến ngày", "Còn lại (lít)", "Ngày cấp",
+        "Số phiếu/Quyển", "Mặt hàng", "Số lượng (lít)", "Số phiếu", "Phân loại sổ", "Ghi chú",
+    ]
+    _KHOA_XE_COLUMNS = [
+        "Khóa học", "Lớp", "Biển số", "Từ ngày", "Đến ngày", "Số HV tính xăng",
+        "Định mức/HV (lít)", "Tổng định mức (lít)", "Đã cấp (lít)", "Còn lại (lít)",
+    ]
+
+    @staticmethod
+    def _khoa_xe_row(g, allowance):
+        a = allowance or {}
+        return [
+            g["ma_khoa"], g["lop"], g["xe"], g.get("tu_ngay", ""), g.get("den_ngay", ""),
+            a.get("so_hv"), a.get("dinh_muc"), a.get("tong"), a.get("da_cap", 0), a.get("con_lai"),
+        ]
+
+    def _write_export(self, path):
+        """Trả về số dòng phiếu đã xuất."""
+        report = ReportWorkbook()
+        state = self._export_state
+        if state[0] == "grid":
+            _, _name, row_specs, allowances = state
+            phieu = [
+                self._phieu_row(g, allowances.get((g["ma_khoa"], g["xe"])), r)
+                for g, r in row_specs if r is not None
+            ]
+            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu)
+            seen, khoa_xe = set(), []
+            for g, _r in row_specs:
+                key = (g["ma_khoa"], g["xe"])
+                if key not in seen:
+                    seen.add(key)
+                    khoa_xe.append(self._khoa_xe_row(g, allowances.get(key)))
+            report.add_sheet("Theo khoa-xe", self._KHOA_XE_COLUMNS, khoa_xe)
+        else:
+            _, _name, rows_spec, dates, rec_by_key, allowances = state
+            date_keys = [d.strftime("%d/%m/%Y") for d in dates]
+            matrix_rows, phieu = [], []
+            for g in rows_spec:
+                allowance = allowances.get((g["ma_khoa"], g["xe"]))
+                cells, tong_ky = [], 0.0
+                for dk in date_keys:
+                    matched = rec_by_key.get((g["ma_khoa"], g["xe"], dk), [])
+                    lit = sum(r.get("so_luong") or 0 for r in matched)
+                    cells.append(lit if matched else None)
+                    tong_ky += lit
+                    phieu.extend(self._phieu_row(g, allowance, r) for r in matched)
+                matrix_rows.append([
+                    g["ma_khoa"], g["lop"], g["xe"], allowance["con_lai"] if allowance else None,
+                    *cells, tong_ky,
+                ])
+            report.add_sheet(
+                "Ma tran ngay",
+                ["Khóa học", "Lớp", "Biển số", "Còn lại (lít)",
+                 *(f"{_WEEKDAY_VN[d.weekday()]} {d.strftime('%d/%m')}" for d in dates), "Tổng kỳ (lít)"],
+                matrix_rows,
+            )
+            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu)
+        report.save(path)
+        return len(phieu)
 
     # ---------------- ma trận ngày (theo khóa/tuần/tháng) ----------------
     def _clear_matrix(self):
@@ -1004,6 +1108,7 @@ class CapXangTab(QWidget):
             self.date_table.setRowHeight(row_idx, h)
             self.frozen_table.setRowHeight(row_idx, h)
 
+        self._export_state = ("matrix", name, rows_spec, dates, rec_by_key, allowances)
         self.frozen_table.resizeColumnsToContents()
         self.date_table.horizontalHeader().setDefaultSectionSize(76)
         self.lbl_total.setText(f"Tổng cộng: {_fmt_so(tong_so_luong)} lít ({tong_so_phieu} phiếu)")

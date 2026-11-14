@@ -88,11 +88,14 @@ _HUONG_DAN_HTML = (
     "khoảng ngày cấp cụ thể, hoặc chọn <b>Kỳ nhanh</b> (tháng này/tháng "
     "trước/quý này/năm nay) - app tự điền Từ ngày/Đến ngày.</li>"
     "<li><b>Phân công</b>: lọc riêng các phiếu <b>KHÔNG khớp</b> khóa/xe/giáo "
-    "viên đang phân công (tô cam nhạt, rê chuột vào dòng để xem lý do) - "
-    "thường là phiếu cũ của khóa đã kết thúc/xe đã đổi hoặc gõ nhầm mã; các "
-    "phiếu này vẫn tính vào tổng nhưng không hiện ở lưới Chi tiết tab CẤP "
-    "XĂNG và không trừ vào \"Còn lại\" của khóa nào ở tab ĐỊNH MỨC XĂNG - sửa "
-    "trực tiếp cho khớp (double-click ô) hoặc xóa.</li>"
+    "viên đang phân công (tô cam nhạt). <b>Bấm vào dòng</b> -> ô cam dưới bảng "
+    "ghi rõ sai ở ô nào và cách sửa (gợi ý mã khóa/tên/biển số đúng nếu suy ra "
+    "được). 3 loại: (1) <i>ô Khóa học trống</i> - phiếu nhập từ Excel cũ chỉ có mã "
+    "lớp, khóa đã kết thúc không còn trong dữ liệu -> KHÔNG cần sửa, vẫn tính "
+    "vào tổng; (2) <i>tên giáo viên lạ</i> -> sửa ô Giáo viên theo gợi ý; (3) "
+    "<i>khóa có nhưng giáo viên/xe không đúng phân công</i> -> sửa ô Giáo viên "
+    "hoặc Biển số theo gợi ý. Phiếu không khớp không hiện ở lưới Chi tiết tab "
+    "CẤP XĂNG và không trừ vào \"Còn lại\" của khóa nào ở tab ĐỊNH MỨC XĂNG.</li>"
     "<li><b>Xuất Excel...</b>: xuất theo đúng bộ lọc đang chọn ra file nhiều "
     "sheet (chi tiết từng phiếu, tổng theo giáo viên / khóa-xe / biển số / "
     "tháng, bảng giáo viên x tháng, định mức-đã cấp-còn lại) - mỗi sheet là "
@@ -298,6 +301,17 @@ class TongHopCapXangTab(QWidget):
         self.lbl_total = QLabel("")
         self.lbl_total.setStyleSheet("font-weight: 700; font-size: 12pt; color: #2659c4;")
         outer.addWidget(self.lbl_total)
+
+        # Lý do + cách sửa của dòng KHÔNG khớp đang chọn - hiện cố định dưới
+        # bảng (tooltip chỉ hiện khi rê chuột, dễ bỏ qua).
+        self.lbl_orphan = QLabel("")
+        self.lbl_orphan.setWordWrap(True)
+        self.lbl_orphan.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.lbl_orphan.setStyleSheet(
+            "background: #fff1dc; border: 1px solid #f0c48a; border-radius: 4px; padding: 6px; color: #5a3b00;"
+        )
+        self.lbl_orphan.hide()
+        outer.addWidget(self.lbl_orphan)
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -514,9 +528,9 @@ class TongHopCapXangTab(QWidget):
         ]
         item = QTreeWidgetItem(values)
         item.setData(0, Qt.ItemDataRole.UserRole, r["id"])
-        reason = self._orphan_reasons.get(r["id"])
-        if reason:
-            tip = f"Phiếu KHÔNG khớp phân công hiện tại: {reason}."
+        diag = self._orphan_reasons.get(r["id"])
+        if diag:
+            tip = f"KHÔNG KHỚP PHÂN CÔNG: {diag['problem']}.\nCách sửa: {diag['fix']}"
             for col in range(len(values)):
                 item.setBackground(col, _MAU_MO_COI)
                 item.setToolTip(col, tip)
@@ -595,7 +609,17 @@ class TongHopCapXangTab(QWidget):
         return item.data(0, Qt.ItemDataRole.UserRole)
 
     def _on_selection_changed(self):
-        self.btn_delete_selected.setEnabled(self._selected_record_id() is not None)
+        record_id = self._selected_record_id()
+        self.btn_delete_selected.setEnabled(record_id is not None)
+        diag = self._orphan_reasons.get(record_id) if record_id is not None else None
+        if diag:
+            self.lbl_orphan.setText(
+                f"<b>Dòng đang chọn KHÔNG khớp phân công</b> — {diag['problem']}.<br>"
+                f"<b>Cách sửa:</b> {diag['fix']} (double-click vào ô cần sửa ngay trên bảng.)"
+            )
+            self.lbl_orphan.show()
+        else:
+            self.lbl_orphan.hide()
 
     def _on_context_menu(self, pos):
         item = self.tree.itemAt(pos)
@@ -702,15 +726,17 @@ class TongHopCapXangTab(QWidget):
         report.add_sheet(
             "Chi tiet phieu",
             ["Giáo viên", "Khóa học", "Lớp", "Biển số", "Ngày cấp", "Số phiếu/Quyển", "Mặt hàng",
-             "Số lượng (lít)", "Số phiếu", "Phân loại sổ", "Ghi chú", "Khớp phân công"],
+             "Số lượng (lít)", "Số phiếu", "Phân loại sổ", "Ghi chú",
+             "Khớp phân công", "Không khớp - lý do", "Cách sửa"],
             [
                 [
                     r.get("giao_vien", ""), r.get("ma_khoa", ""), r.get("lop", ""), r.get("xe", ""),
                     _ngay(r), r.get("so_phieu", ""), r.get("mat_hang", ""), r.get("so_luong") or 0,
                     r.get("so_phieu_count") or 1, r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
-                    "Không - " + self._orphan_reasons[r["id"]] if self._orphan_reasons.get(r["id"]) else "Có",
+                    "Không" if diag else "Có", diag["problem"] if diag else "", diag["fix"] if diag else "",
                 ]
                 for r in records
+                for diag in (self._orphan_reasons.get(r["id"]),)
             ],
         )
 

@@ -49,35 +49,131 @@ class CapXangModel:
         """Chỉ mục để kiểm tra 1 phiếu cấp xăng có khớp phân công hiện tại
         không (xem orphan_reason) - khớp theo đúng bộ 3 (giáo viên, mã khóa,
         xe) như tab CẤP XĂNG gộp phiếu vào từng dòng khóa/xe."""
-        self._course_codes_set = set()
+        self._courses_by_code = {}
+        self._courses_by_lop = {}
         self._teacher_norms = {attach_files.normalize_name(n) for n in self.all_teacher_names}
         self._assignment_keys = set()
         for c in self.courses:
             ma_khoa = c.get("ma_khoa", "")
-            self._course_codes_set.add(ma_khoa)
+            self._courses_by_code[ma_khoa] = c
+            self._courses_by_lop.setdefault(c.get("lop", ""), []).append(c)
             for g in c.get("groups", []):
                 name_norm = attach_files.normalize_name(g.get("giao_vien", ""))
                 self._teacher_norms.add(name_norm)
                 self._assignment_keys.add((name_norm, ma_khoa, g.get("xe", "")))
 
+    @staticmethod
+    def _assignments_text(course, limit=6):
+        pairs = []
+        for g in course.get("groups", []):
+            p = f"{g.get('giao_vien', '')} - {g.get('xe', '')}"
+            if p not in pairs:
+                pairs.append(p)
+        text = "; ".join(pairs[:limit])
+        return text + (f"; ... ({len(pairs)} cặp)" if len(pairs) > limit else "")
+
+    def _suggest_teachers(self, name):
+        """Tên giáo viên trong danh sách gần giống `name` (trùng tên gọi -
+        từ cuối, hoặc chứa nhau sau khi chuẩn hóa) - để gợi ý sửa."""
+        norm = attach_files.normalize_name(name)
+        given = norm.split()[-1] if norm.split() else ""
+        out = []
+        for t in self.all_teachers():
+            t_norm = attach_files.normalize_name(t)
+            if not t_norm:
+                continue
+            if (given and t_norm.split()[-1] == given) or norm in t_norm or t_norm in norm:
+                out.append(t)
+        return out[:5]
+
     def orphan_reason(self, record):
         """None nếu phiếu khớp đúng 1 phân công (giáo viên + khóa + xe) đang
-        có trong docs/cap_xang_data.json; ngược lại trả về lý do ngắn gọn vì
-        sao KHÔNG khớp ("phiếu mồ côi" - thường là phiếu cũ nhập từ Excel của
-        khóa đã kết thúc/xe đã đổi, hoặc gõ nhầm mã khóa/tên). Phiếu mồ côi
-        vẫn tính vào tổng, nhưng KHÔNG hiện ở lưới "Chi tiết" tab CẤP XĂNG
-        (lưới đó dựng theo phân công) và không cộng vào "Đã cấp" của khóa
-        nào ở tab ĐỊNH MỨC XĂNG."""
-        name_norm = attach_files.normalize_name(record.get("giao_vien", ""))
+        có trong docs/cap_xang_data.json; ngược lại trả về dict {"field": ô
+        bị sai ("giao_vien"/"ma_khoa"/"xe"), "problem": sai cái gì, "fix":
+        cách sửa cụ thể (gợi ý giá trị đúng nếu suy ra được)} - để người dùng
+        nhìn là biết sửa ô nào, không phải tự dò.
+
+        Phiếu "mồ côi" thường là phiếu cũ nhập từ Excel (ô Khóa học trống,
+        chỉ có mã lớp) của khóa đã kết thúc không còn trong dữ liệu phân công
+        -> không sửa được và cũng không cần sửa; hoặc gõ nhầm tên/mã/xe ->
+        sửa theo gợi ý. Phiếu mồ côi vẫn tính vào tổng, nhưng KHÔNG hiện ở
+        lưới "Chi tiết" tab CẤP XĂNG (lưới đó dựng theo phân công) và không
+        trừ vào "Còn lại" của khóa nào ở tab ĐỊNH MỨC XĂNG."""
+        giao_vien = record.get("giao_vien", "")
+        name_norm = attach_files.normalize_name(giao_vien)
         ma_khoa = record.get("ma_khoa", "")
+        lop = record.get("lop", "")
         xe = record.get("xe", "")
         if (name_norm, ma_khoa, xe) in self._assignment_keys:
             return None
+
         if name_norm not in self._teacher_norms:
-            return "tên giáo viên không có trong danh sách giáo viên"
-        if ma_khoa not in self._course_codes_set:
-            return "mã khóa không có trong danh sách khóa"
-        return "khóa có nhưng không phân công xe này cho giáo viên này"
+            goi_y = self._suggest_teachers(giao_vien)
+            fix = "Sửa ô Giáo viên thành đúng tên trong danh sách giáo viên"
+            fix += f" - gần giống: {', '.join(goi_y)}." if goi_y else " (không tìm thấy tên nào gần giống)."
+            return {
+                "field": "giao_vien",
+                "problem": f"Tên giáo viên '{giao_vien}' không có trong danh sách giáo viên",
+                "fix": fix,
+            }
+
+        if ma_khoa not in self._courses_by_code:
+            problem = (
+                f"Ô Khóa học trống (phiếu nhập từ Excel cũ, chỉ có mã lớp '{lop}')"
+                if not ma_khoa else f"Mã khóa '{ma_khoa}' không có trong danh sách khóa"
+            )
+            cung_lop = self._courses_by_lop.get(lop, []) if lop else []
+            if cung_lop:
+                ds = "; ".join(
+                    f"{c['ma_khoa']} (phân công: {self._assignments_text(c)})" for c in cung_lop
+                )
+                fix = (
+                    f"Nếu đúng là khóa có lớp '{lop}' thì gõ mã khóa vào ô Khóa học: {ds}. "
+                    "Giáo viên/Biển số trên phiếu cũng phải đúng như phân công đó."
+                )
+            else:
+                fix = (
+                    f"Lớp '{lop}' không còn trong dữ liệu phân công (khóa đã kết thúc trước khi "
+                    "dùng app) - KHÔNG cần sửa, để nguyên: phiếu vẫn tính vào tổng/báo cáo. "
+                    "Chỉ xóa nếu chắc chắn là phiếu nhập nhầm."
+                )
+            return {"field": "ma_khoa", "problem": problem, "fix": fix}
+
+        course = self._courses_by_code[ma_khoa]
+        gv_cua_xe = sorted({g.get("giao_vien", "") for g in course.get("groups", []) if g.get("xe", "") == xe})
+        xe_cua_gv = sorted({
+            g.get("xe", "") for g in course.get("groups", [])
+            if attach_files.normalize_name(g.get("giao_vien", "")) == name_norm
+        })
+        if gv_cua_xe:
+            return {
+                "field": "giao_vien",
+                "problem": f"Khóa {ma_khoa}: xe {xe} được phân công cho {', '.join(gv_cua_xe)}, không phải '{giao_vien}'",
+                "fix": (
+                    f"Nếu đúng là xe {xe} thì sửa ô Giáo viên thành '{gv_cua_xe[0]}'; nếu đúng là "
+                    f"'{giao_vien}' thì sửa ô Biển số thành xe được phân công cho người này"
+                    + (f": {', '.join(xe_cua_gv)}." if xe_cua_gv else " (người này không có trong khóa này).")
+                ),
+            }
+        if xe_cua_gv:
+            return {
+                "field": "xe",
+                "problem": f"Khóa {ma_khoa}: '{giao_vien}' được phân công xe {', '.join(xe_cua_gv)}, không phải {xe}",
+                "fix": f"Sửa ô Biển số thành {xe_cua_gv[0] if len(xe_cua_gv) == 1 else 'một trong: ' + ', '.join(xe_cua_gv)}.",
+            }
+        return {
+            "field": "ma_khoa",
+            "problem": f"Khóa {ma_khoa} không phân công cả '{giao_vien}' lẫn xe {xe}",
+            "fix": (
+                f"Khóa này phân công: {self._assignments_text(course)}. Kiểm tra lại cả 3 ô "
+                "Khóa học / Giáo viên / Biển số - có thể gõ nhầm mã khóa."
+            ),
+        }
+
+    @staticmethod
+    def orphan_text(diag):
+        """Gộp problem + fix thành 1 đoạn đọc được (tooltip/ô Excel)."""
+        return f"{diag['problem']}. Cách sửa: {diag['fix']}" if diag else ""
 
     def status_of(self, course):
         today = datetime.now()
