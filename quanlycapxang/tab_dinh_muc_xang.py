@@ -254,7 +254,10 @@ class DinhMucXangTab(QWidget):
             summary = f"Giáo viên '{name}', khóa {status_text}: {len(rows)} khóa"
 
         vuot = [r for r in rows if is_vuot(r)]
-        self._update_vuot_banner(vuot)
+        # dedup riêng cho banner - 1 xe dùng chung nhiều ca sẽ có nhiều dòng
+        # vuot cùng số liệu (xem fuel_rows_for_teacher), liệt kê thẳng sẽ
+        # trùng cùng 1 xe 2 lần.
+        self._update_vuot_banner(self.model.dedup_by_khoa_xe(vuot))
         if self.chk_vuot.isChecked():
             rows = vuot
             summary += f" - đang chỉ hiện {len(rows)} khóa vượt định mức"
@@ -266,7 +269,8 @@ class DinhMucXangTab(QWidget):
             return
         tong_vuot = sum(-r["con_lai"] for r in vuot)
         ds = ", ".join(
-            f"{r['giao_vien']} - {r['ma_khoa']} ({r['xe']}): vượt {_fmt_so(-r['con_lai'])} lít"
+            f"{', '.join(dict.fromkeys(c['giao_vien'] for c in r['contribs']))} - "
+            f"{r['ma_khoa']} ({r['xe']}): vượt {_fmt_so(-r['con_lai'])} lít"
             for r in vuot
         )
         self.lbl_vuot.setText(
@@ -310,15 +314,19 @@ class DinhMucXangTab(QWidget):
             self.table.selectRow(0)
         self._on_row_selected()
 
-        tong_cong = sum(r["tong"] for r in rows if r["tong"] is not None)
-        tong_da_cap = sum(r["da_cap"] for r in rows)
-        tong_con_lai = sum(r["con_lai"] for r in rows if r["con_lai"] is not None)
+        # dedup trước khi cộng - 1 xe dùng chung nhiều ca sẽ có nhiều dòng
+        # cùng tong/da_cap/con_lai (xem fuel_rows_for_teacher), cộng thẳng
+        # theo dòng sẽ cộng trùng chiếc xe đó.
+        unique_rows = self.model.dedup_by_khoa_xe(rows)
+        tong_cong = sum(r["tong"] for r in unique_rows if r["tong"] is not None)
+        tong_da_cap = sum(r["da_cap"] for r in unique_rows)
+        tong_con_lai = sum(r["con_lai"] for r in unique_rows if r["con_lai"] is not None)
         self.lbl_total.setText(
-            f"Tổng cộng: {_fmt_so(tong_cong)} lít xăng ({len(rows)} khóa) - "
+            f"Tổng cộng: {_fmt_so(tong_cong)} lít xăng ({len(unique_rows)} khóa/xe, {len(rows)} dòng) - "
             f"đã cấp {_fmt_so(tong_da_cap)} lít - còn lại {_fmt_so(tong_con_lai)} lít"
         )
 
-        thieu = [r for r in rows if r["dinh_muc"] is None]
+        thieu = [r for r in unique_rows if r["tong"] is None]
         if thieu:
             ds = ", ".join(f"{r['xe']} ({r['ma_khoa']})" for r in thieu)
             self.lbl_missing.setText(
@@ -339,17 +347,36 @@ class DinhMucXangTab(QWidget):
             self.tbl_chi_tiet.setRowCount(0)
             return
 
-        if r["dinh_muc"] is None:
+        contribs = r.get("contribs") or [{
+            "giao_vien": r["giao_vien"], "ca": r.get("ca", ""),
+            "so_hoc_vien": r["so_hoc_vien"], "dinh_muc": r["dinh_muc"], "matched_by": r["matched_by"],
+        }]
+
+        if r["tong"] is None:
+            thieu_ai = ", ".join(c["giao_vien"] or "?" for c in contribs if c["dinh_muc"] is None)
             can_cu = (
-                f"Chưa tra được định mức cho xe {r['xe']} (chưa có trong file định mức nhiên liệu) "
-                "- không tính được tổng định mức để so sánh."
+                f"Chưa tra được định mức cho: <b>{thieu_ai}</b> (xe {r['xe']}, chưa có trong file định "
+                "mức nhiên liệu) - không tính được tổng định mức để so sánh."
+            )
+        elif len(contribs) == 1:
+            c = contribs[0]
+            theo = "xe này + đúng giáo viên này" if c["matched_by"] == "xe+gv" else "chỉ riêng xe này (chưa có định mức ghi riêng cho giáo viên này)"
+            can_cu = (
+                f"Định mức <b>{_fmt_so(c['dinh_muc'])} lít/học viên</b> (tra theo {theo} trong file định mức) "
+                f"× <b>{c['so_hoc_vien']} học viên</b> tính xăng (không tính học viên \"Bảo lưu\") "
+                f"= tổng định mức <b>{_fmt_so(r['tong'])} lít</b> cho khóa {r['ma_khoa']} - xe {r['xe']}."
             )
         else:
-            theo = "xe này + đúng giáo viên này" if r["matched_by"] == "xe+gv" else "chỉ riêng xe này (chưa có định mức ghi riêng cho giáo viên này)"
+            dong = "".join(
+                f"<li>{c['giao_vien']} ({c['ca'] or '?'}): {_fmt_so(c['dinh_muc'])} lít/HV × "
+                f"{c['so_hoc_vien']} HV = {_fmt_so(c['dinh_muc'] * c['so_hoc_vien'])} lít</li>"
+                for c in contribs
+            )
             can_cu = (
-                f"Định mức <b>{_fmt_so(r['dinh_muc'])} lít/học viên</b> (tra theo {theo} trong file định mức) "
-                f"× <b>{r['so_hoc_vien']} học viên</b> tính xăng (không tính học viên \"Bảo lưu\") "
-                f"= tổng định mức <b>{_fmt_so(r['tong'])} lít</b> cho khóa {r['ma_khoa']} - xe {r['xe']}."
+                f"Xe {r['xe']} của khóa {r['ma_khoa']} dùng chung bởi <b>{len(contribs)} ca</b> "
+                f"(đã cấp tính chung cho cả xe nên định mức cũng phải cộng dồn đủ các ca, không chỉ "
+                f"tính riêng ca đang chọn):<ul>{dong}</ul>Cộng lại = tổng định mức "
+                f"<b>{_fmt_so(r['tong'])} lít</b>."
             )
         can_cu += (
             f"<br>Đã cấp thực tế = cộng TẤT CẢ phiếu cấp xăng khớp đúng mã khóa <b>{r['ma_khoa']}</b> + "

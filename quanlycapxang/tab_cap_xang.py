@@ -52,6 +52,7 @@ from PySide6.QtWidgets import (
 
 import attach_files
 import cap_xang_store
+from cap_xang_model import format_allowance_tooltip
 from excel_export import GHI_CHU_TO_DO, ReportWorkbook
 from style import icon as _icon
 
@@ -252,10 +253,7 @@ def _con_lai_item(allowance):
     else:
         con_lai = allowance["con_lai"]
         item = QTableWidgetItem(_fmt_so(con_lai))
-        item.setToolTip(
-            f"Định mức {_fmt_so(allowance['dinh_muc'])} lít/HV x {allowance['so_hv']} HV = "
-            f"{_fmt_so(allowance['tong'])} lít; đã cấp {_fmt_so(allowance['da_cap'])} lít."
-        )
+        item.setToolTip(format_allowance_tooltip(allowance))
         if con_lai < 0:
             item.setForeground(_MAU_CHU_VUOT)
         elif allowance["tong"] > 0 and con_lai < 0.1 * allowance["tong"]:

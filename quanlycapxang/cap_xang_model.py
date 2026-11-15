@@ -22,6 +22,37 @@ def _parse_date(text):
     return None
 
 
+def _fmt_g(value):
+    return f"{value:g}" if value is not None else "—"
+
+
+def format_allowance_tooltip(info):
+    """Giải thích ngắn (1 dòng) cách tính "Tổng định mức" của 1 (mã khóa, xe)
+    - xem CapXangModel._allowance_breakdown - dùng cho tooltip cột "Còn lại"
+    ở tab CẤP XĂNG. Bản giải thích đầy đủ hơn (HTML, nhiều dòng) để hiện
+    trong tab ĐỊNH MỨC XĂNG tự dựng riêng ở tab_dinh_muc_xang.py vì cần định
+    dạng rich text + câu dẫn khác."""
+    contribs = info["contribs"]
+    if info["tong"] is None:
+        thieu = ", ".join(c["giao_vien"] or "?" for c in contribs if c["dinh_muc"] is None)
+        return f"Chưa tra được định mức cho: {thieu} - chưa tính được tổng định mức của xe này."
+    if len(contribs) == 1:
+        c = contribs[0]
+        return (
+            f"Định mức {_fmt_g(c['dinh_muc'])} lít/HV x {c['so_hoc_vien']} HV = {_fmt_g(info['tong'])} lít; "
+            f"đã cấp {_fmt_g(info['da_cap'])} lít."
+        )
+    chi_tiet = "; ".join(
+        f"{c['giao_vien']} ({c['ca'] or '?'}): {_fmt_g(c['dinh_muc'])} lít/HV x {c['so_hoc_vien']} HV = "
+        f"{_fmt_g(c['dinh_muc'] * c['so_hoc_vien'])} lít"
+        for c in contribs
+    )
+    return (
+        f"Xe này dùng chung {len(contribs)} ca - {chi_tiet}. Cộng lại = tổng định mức "
+        f"{_fmt_g(info['tong'])} lít; đã cấp {_fmt_g(info['da_cap'])} lít."
+    )
+
+
 class CapXangModel:
     def __init__(self, json_path):
         self.json_path = Path(json_path)
@@ -106,9 +137,12 @@ class CapXangModel:
             if (r.get("ma_khoa", ""), r.get("xe", "")) not in known_pairs
         )
 
-        all_khoa_rows = self.fuel_rows_for_teacher(None, statuses=None)
+        # dedup_by_khoa_xe TRƯỚC khi đếm/cộng - 1 xe dùng chung nhiều ca sẽ có
+        # nhiều dòng cùng tong/da_cap/con_lai (xem fuel_rows_for_teacher), đếm
+        # thẳng theo dòng sẽ đếm/cộng trùng chiếc xe đó.
+        all_khoa_rows = self.dedup_by_khoa_xe(self.fuel_rows_for_teacher(None, statuses=None))
         vuot_rows = [r for r in all_khoa_rows if r["con_lai"] is not None and r["con_lai"] < 0]
-        thieu_rows = [r for r in all_khoa_rows if r["dinh_muc"] is None]
+        thieu_rows = [r for r in all_khoa_rows if r["tong"] is None]
 
         return {
             "so_phieu_tong": len(all_records),
@@ -306,35 +340,74 @@ class CapXangModel:
             totals[key] = totals.get(key, 0.0) + (r.get("so_luong") or 0)
         return totals
 
+    def _allowance_breakdown(self, statuses=None):
+        """Lõi tính "Tổng định mức"/"Còn lại" theo TỪNG (mã khóa, xe), tính 1
+        LẦN cho MỌI giáo viên - dùng chung cho cả fuel_rows_for_teacher (tab
+        ĐỊNH MỨC XĂNG) và allowances_for_teacher (tab CẤP XĂNG), để 2 tab
+        luôn khớp nhau và không tính 2 cách khác nhau.
+
+        1 xe có thể được NHIỀU ca/giáo viên dùng chung trong CÙNG 1 khóa (vd
+        ca 1 thầy A, ca 2 thầy B) - "Đã cấp" luôn tính theo CẢ XE (không
+        phân biệt ca, xem _da_cap_by_khoa_xe), nên "Tổng định mức" của xe đó
+        cũng phải CỘNG DỒN định mức từng ca lại (mỗi ca tính theo định mức
+        riêng của giáo viên ca đó x số học viên ca đó) rồi mới so với "Đã
+        cấp" - nếu chỉ tính theo 1 ca rồi so với "Đã cấp" của cả xe sẽ báo
+        "vượt định mức" SAI (đã từng bị vậy - xem lịch sử sửa).
+
+        -> dict (ma_khoa, xe) -> {"contribs": [{"giao_vien","ca","so_hoc_vien",
+        "dinh_muc","matched_by"}, ...] (1 phần tử/ca dùng xe đó), "so_hoc_vien":
+        tổng mọi ca, "tong": tổng định mức CỘNG DỒN (None nếu THIẾU định mức
+        của bất kỳ ca nào dùng chung xe đó - không tính được tổng đầy đủ thì
+        thà báo "chưa tính được" còn hơn báo 1 số thiếu gây hiểu lầm), "da_cap",
+        "con_lai", "ma_khoa"/"lop"/"xe"/"tu_ngay"/"den_ngay" (của khóa)}."""
+        da_cap_map = self._da_cap_by_khoa_xe()
+        result = {}
+        for c in self.courses:
+            if statuses is not None and self.status_of(c) not in statuses:
+                continue
+            by_xe = {}
+            for g in c.get("groups", []):
+                xe = g.get("xe", "")
+                giao_vien = g.get("giao_vien", "")
+                dinh_muc, matched_by = self.lookup_dinh_muc(xe, giao_vien)
+                by_xe.setdefault(xe, []).append({
+                    "giao_vien": giao_vien, "ca": g.get("ca", ""),
+                    "so_hoc_vien": g.get("so_hoc_vien", 0),
+                    "dinh_muc": dinh_muc, "matched_by": matched_by,
+                })
+            for xe, contribs in by_xe.items():
+                tong = (
+                    None if any(x["dinh_muc"] is None for x in contribs)
+                    else sum(x["dinh_muc"] * x["so_hoc_vien"] for x in contribs)
+                )
+                da_cap = da_cap_map.get((c["ma_khoa"], xe), 0.0)
+                result[(c["ma_khoa"], xe)] = {
+                    "ma_khoa": c["ma_khoa"], "lop": c.get("lop", ""), "xe": xe,
+                    "tu_ngay": c.get("tu_ngay", ""), "den_ngay": c.get("den_ngay", ""),
+                    "contribs": contribs,
+                    "so_hoc_vien": sum(x["so_hoc_vien"] for x in contribs),
+                    "tong": tong, "da_cap": da_cap,
+                    "con_lai": tong - da_cap if tong is not None else None,
+                }
+        return result
+
     def allowances_for_teacher(self, name):
         """Định mức/đã cấp/còn lại cho TỪNG khóa+xe giáo viên `name` từng được
         phân công (mọi trạng thái - đúng các dòng tab CẤP XĂNG liệt kê) ->
-        dict (ma_khoa, xe) -> {"dinh_muc", "so_hv", "tong", "da_cap",
-        "con_lai"}. Nhiều "ca" cùng khóa+xe thì cộng dồn số học viên (phiếu
-        cấp xăng không phân biệt ca). Không có định mức cho xe -> tong/con_lai
-        None (vẫn có da_cap). Dùng để hiện cột "Còn lại" + cảnh báo vượt định
-        mức NGAY LÚC NHẬP ở tab CẤP XĂNG - thay vì phải sang tab ĐỊNH MỨC
-        XĂNG mới biết (lúc đó đã cấp xong rồi)."""
+        dict (ma_khoa, xe) -> xem _allowance_breakdown (đã CỘNG DỒN định mức
+        mọi ca dùng chung xe đó, không chỉ riêng giáo viên `name`). Dùng để
+        hiện cột "Còn lại" + cảnh báo vượt định mức NGAY LÚC NHẬP ở tab CẤP
+        XĂNG - thay vì phải sang tab ĐỊNH MỨC XĂNG mới biết (lúc đó đã cấp
+        xong rồi)."""
         name_norm = attach_files.normalize_name(name)
-        da_cap_map = self._da_cap_by_khoa_xe()
+        breakdown = self._allowance_breakdown(statuses=None)
         result = {}
         for c in self.courses:
             for g in c.get("groups", []):
                 if attach_files.normalize_name(g.get("giao_vien", "")) != name_norm:
                     continue
                 key = (c["ma_khoa"], g.get("xe", ""))
-                info = result.get(key)
-                if info is None:
-                    dinh_muc, _ = self.lookup_dinh_muc(g.get("xe", ""), name)
-                    info = result[key] = {
-                        "dinh_muc": dinh_muc, "so_hv": 0, "tong": None,
-                        "da_cap": da_cap_map.get(key, 0.0), "con_lai": None,
-                    }
-                info["so_hv"] += g.get("so_hoc_vien", 0)
-        for info in result.values():
-            if info["dinh_muc"] is not None:
-                info["tong"] = info["dinh_muc"] * info["so_hv"]
-                info["con_lai"] = info["tong"] - info["da_cap"]
+                result.setdefault(key, breakdown[key])
         return result
 
     def phieu_for_khoa_xe(self, ma_khoa, xe):
@@ -354,14 +427,17 @@ class CapXangModel:
         """Trả về list các khóa của giáo viên `name` - hoặc TẤT CẢ giáo viên
         nếu `name` rỗng/None - có trạng thái nằm trong `statuses` (mặc định
         chỉ khóa ĐANG DẠY; None = mọi trạng thái, để quyết toán cả khóa đã
-        kết thúc) - kèm định mức xăng/học viên của xe, số học viên tính xăng
-        (đã lọc sẵn "Bảo lưu" từ docs/cap_xang_data.json), tổng số lít xăng
-        của khóa đó (None nếu không tra được định mức cho xe), số lít ĐÃ CẤP
-        thực tế (xem tab CẤP XĂNG) và CÒN LẠI = tổng định mức - đã cấp (None
-        nếu chưa có định mức để so sánh) - đúng cột "CÒN LẠI" trước đây phải
-        tự tính tay trên Excel."""
+        kết thúc) - mỗi dòng là 1 (khóa, ca) - "dinh_muc"/"so_hoc_vien" là
+        của RIÊNG ca đó (để hiện đúng ai dạy bao nhiêu học viên), còn
+        "tong"/"da_cap"/"con_lai" là CHUNG CHO CẢ XE (xem _allowance_breakdown
+        - cộng dồn định mức mọi ca dùng chung xe đó) nên 2 dòng cùng khóa+xe
+        (khác ca/giáo viên) sẽ hiện CÙNG 1 giá trị tong/da_cap/con_lai - đây
+        KHÔNG phải trùng lặp, mà vì 2 ca đó dùng chung 1 "ví" định mức của
+        xe. Muốn đếm/cộng theo SỐ XE (không đếm trùng) thì lọc qua
+        dedup_by_khoa_xe() trước. "contribs" = chi tiết từng ca đóng góp vào
+        tong, dùng để giải thích cho người dùng (xem format_allowance_tooltip)."""
         name_norm = attach_files.normalize_name(name) if name else None
-        da_cap_map = self._da_cap_by_khoa_xe()
+        breakdown = self._allowance_breakdown(statuses)
         rows = []
         for c in self.courses:
             if statuses is not None and self.status_of(c) not in statuses:
@@ -370,24 +446,38 @@ class CapXangModel:
                 giao_vien = g.get("giao_vien", "")
                 if name_norm is not None and attach_files.normalize_name(giao_vien) != name_norm:
                     continue
-                so_hv = g.get("so_hoc_vien", 0)
-                dinh_muc, matched_by = self.lookup_dinh_muc(g.get("xe", ""), giao_vien)
-                tong = dinh_muc * so_hv if dinh_muc is not None else None
-                da_cap = da_cap_map.get((c["ma_khoa"], g.get("xe", "")), 0.0)
-                con_lai = tong - da_cap if tong is not None else None
+                xe = g.get("xe", "")
+                info = breakdown[(c["ma_khoa"], xe)]
+                dinh_muc, matched_by = self.lookup_dinh_muc(xe, giao_vien)
                 rows.append({
                     "giao_vien": giao_vien,
                     "ma_khoa": c["ma_khoa"],
                     "lop": c.get("lop", ""),
-                    "xe": g.get("xe", ""),
+                    "xe": xe,
                     "ca": g.get("ca", ""),
-                    "so_hoc_vien": so_hv,
+                    "so_hoc_vien": g.get("so_hoc_vien", 0),
                     "dinh_muc": dinh_muc,
                     "matched_by": matched_by,
-                    "tong": tong,
-                    "da_cap": da_cap,
-                    "con_lai": con_lai,
+                    "tong": info["tong"],
+                    "da_cap": info["da_cap"],
+                    "con_lai": info["con_lai"],
+                    "contribs": info["contribs"],
                     "tu_ngay": c.get("tu_ngay", ""),
                     "den_ngay": c.get("den_ngay", ""),
                 })
         return rows
+
+    @staticmethod
+    def dedup_by_khoa_xe(rows):
+        """Loại dòng trùng (mã khóa, xe) trong kết quả fuel_rows_for_teacher -
+        1 xe dùng chung nhiều ca sẽ có nhiều dòng CÙNG tong/da_cap/con_lai
+        (xem fuel_rows_for_teacher) - phải lọc qua đây trước khi ĐẾM số
+        khóa/xe hay CỘNG tổng, nếu không sẽ đếm/cộng trùng chiếc xe đó."""
+        seen, out = set(), []
+        for r in rows:
+            key = (r["ma_khoa"], r["xe"])
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(r)
+        return out
