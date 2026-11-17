@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-17T09:06:51",
+  "generated_at": "2026-11-17T14:11:52",
   "teachers": {
     "48002001": {
       "ten": "Nguyễn Anh Dương",
@@ -3352,7 +3352,7 @@
           "giay_to_xe_link": "https://csdlgtvt.danang.gov.vn/p#/p/gp/4ed66dc5-5d99-4c40-911e-f4e0dedb9e8d"
         }
       ],
-      "ho_so_file": null,
+      "ho_so_file": "files/ho_so_gv/48002060.pdf",
       "anh_file": "files/anh_gv/48002060.jpg"
     },
     "48002061": {
