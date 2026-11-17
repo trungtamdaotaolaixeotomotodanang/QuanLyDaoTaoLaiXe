@@ -105,7 +105,7 @@ def _find_course_sheet(wb):
     return None, None, None
 
 
-def _parse_groups(ws, lop="", ket_qua_thi=None):
+def _parse_groups(ws, ket_qua_thi=None):
     """Đọc bảng học viên bắt đầu từ dòng có 'Stt' tới hết sheet.
     Trả về list groups: [{giao_vien, xe, ca, sdt, cell_ref, hoc_vien: [...]}].
 
@@ -114,10 +114,13 @@ def _parse_groups(ws, lop="", ket_qua_thi=None):
     publish_data.run_pipeline).
 
     ket_qua_thi (tùy chọn): dict đối chiếu kết quả thi tốt nghiệp - xem
-    load_ket_qua_thi(). Nếu có, mỗi học viên được tra theo (tên, ngày sinh,
-    lớp); khớp được thì coi là đã ĐẠT (file nguồn chỉ liệt kê học viên đạt)
-    và lấy luôn ngày tốt nghiệp, không khớp thì để trống (chưa có kết quả,
-    KHÔNG phải trượt)."""
+    load_ket_qua_thi(). Mỗi học viên được tra theo (tên, ngày sinh) - CỐ Ý
+    không kèm mã khóa/lớp: học viên bảo lưu thi lại ở 1 khóa KHÁC thì "biên
+    chế xe" của khóa CŨ (nơi họ đang đứng tên bảo lưu) vẫn phải cập nhật
+    được kết quả, dù khóa thi đạt không phải khóa cũ này (trước đây còn kèm
+    lớp vào khóa tra nên bị bỏ sót đúng trường hợp này). Khớp được thì coi
+    là đã ĐẠT (file nguồn chỉ liệt kê học viên đạt) và lấy luôn ngày tốt
+    nghiệp, không khớp thì để trống (chưa có kết quả, KHÔNG phải trượt)."""
     ket_qua_thi = ket_qua_thi or {}
     groups = []
     current_group = None
@@ -172,7 +175,7 @@ def _parse_groups(ws, lop="", ket_qua_thi=None):
                 groups.append(current_group)
 
             if current_group is not None:
-                key = (attach_files.normalize_name(ho_ten), ngay_sinh, lop)
+                key = (attach_files.normalize_name(ho_ten), ngay_sinh)
                 ngay_tot_nghiep = ket_qua_thi.get(key, "")
                 current_group["hoc_vien"].append(
                     {
@@ -270,7 +273,7 @@ def load_course_from_file(path, ket_qua_thi=None):
     else:
         ma_khoa, lop = title, ""
 
-    groups = _parse_groups(ws, lop, ket_qua_thi)
+    groups = _parse_groups(ws, ket_qua_thi)
     so_hoc_vien = sum(len(g["hoc_vien"]) for g in groups)
     tu_ngay, den_ngay, ngay_ly_do, ngay_vi_tri = _find_period(wb, ma_khoa)
 
@@ -297,7 +300,9 @@ def load_ket_qua_thi(path, sheet_name="TỔNGHỢP"):
     """Đọc file "SỐ LƯỢNG THI ĐẠT TỐT NGHIỆP ...xlsx/.xls" (sheet tổng hợp -
     MỖI DÒNG LÀ 1 HỌC VIÊN ĐÃ ĐẠT, có cột Họ tên/Ngày sinh/Khóa/Ngày TN) để
     đối chiếu kết quả thi cho học viên bên 'BIÊN CHẾ XE KHÓA ...'. Trả về
-    dict (tên đã chuẩn hoá, ngày sinh, lớp) -> ngày tốt nghiệp. Không có
+    dict (tên đã chuẩn hoá, ngày sinh) -> ngày tốt nghiệp - CỐ Ý không kèm
+    mã khóa/lớp vào khóa tra (xem _parse_groups) để học viên bảo lưu thi
+    đạt ở khóa KHÁC vẫn cập nhật được vào biên chế xe của khóa cũ. Không có
     trong dict này nghĩa là CHƯA CÓ kết quả (chưa thi/chưa đạt), không suy
     ra là trượt."""
     wb = _load_workbook(path)
@@ -311,8 +316,7 @@ def load_ket_qua_thi(path, sheet_name="TỔNGHỢP"):
         ngay_tn = clean_text(row[7].value)
         if not ho_ten or not khoa:
             continue
-        lop = khoa.split(",")[0].strip()
-        key = (attach_files.normalize_name(ho_ten), ngay_sinh, lop)
+        key = (attach_files.normalize_name(ho_ten), ngay_sinh)
         result[key] = ngay_tn
     return result
 
