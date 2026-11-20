@@ -725,6 +725,12 @@ def run_pipeline(sources=None):
                     })
                     continue
 
+            # Ghi lại tên ĐẦY ĐỦ (DSGV) ngay vào data.json - không chỉ dùng
+            # tạm lúc chạy app, để máy khác mở data.json này (vd release gửi
+            # khách) vẫn hiện đúng tên dù máy đó KHÔNG đọc được dsgv_file
+            # (đường dẫn tuyệt đối riêng của máy build, xem data_sources.json).
+            g["giao_vien"] = dsgv[ma_gv]["ten"]
+
             hoc_vien = g.get("hoc_vien", [])
             xe = g.get("xe", "")
             if dsxtl_plates and xe and attach_files.normalize_plate(xe) not in dsxtl_plates:
@@ -795,6 +801,14 @@ def run_pipeline(sources=None):
                     "giay_to_xe_link": giay_to_xe_link,
                 }
             )
+
+    # Ghi lại data.json với tên giáo viên đã thay bằng tên DSGV (xem "Ghi lại
+    # tên ĐẦY ĐỦ..." phía trên) - data["courses"] vẫn là bản tên thô lúc nãy,
+    # model.courses mới là bản đã thay.
+    data["courses"] = model.courses
+    data_json_path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     DOCS_DIR.mkdir(exist_ok=True)
     QR_DIR.mkdir(exist_ok=True)
