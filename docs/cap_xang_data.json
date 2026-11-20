@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-18T08:08:29",
+  "generated_at": "2026-11-20T11:11:29",
   "teachers": [
     "Bùi Kiến Quốc",
     "Bùi Ngọc Triều",
@@ -991,6 +991,68 @@
           "xe": "43B03765",
           "ca": "Ca 2",
           "so_hoc_vien": 6
+        }
+      ]
+    },
+    {
+      "ma_khoa": "48002K262052",
+      "lop": "C1K0926",
+      "tu_ngay": "",
+      "den_ngay": "",
+      "groups": [
+        {
+          "giao_vien": "Lê Bá Kiệt",
+          "xe": "43C15844",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Giao Thanh Tùng",
+          "xe": "43C15844",
+          "ca": "Ca 2",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Nguyễn Văn Cường",
+          "xe": "43B25295",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Võ Thành Trung",
+          "xe": "43B25295",
+          "ca": "Ca 2",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Phạm Tấn Thịnh",
+          "xe": "43C15886",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Nguyễn Việt Lâm",
+          "xe": "43C15886",
+          "ca": "Ca 2",
+          "so_hoc_vien": 3
+        },
+        {
+          "giao_vien": "Lê Ngọc Hòa",
+          "xe": "43C16558",
+          "ca": "",
+          "so_hoc_vien": 8
+        },
+        {
+          "giao_vien": "Hồ Duy Dũng",
+          "xe": "43C16443",
+          "ca": "Ca 1",
+          "so_hoc_vien": 7
+        },
+        {
+          "giao_vien": "Hoàng Minh Đức",
+          "xe": "43C16443",
+          "ca": "Ca 2",
+          "so_hoc_vien": 3
         }
       ]
     },
