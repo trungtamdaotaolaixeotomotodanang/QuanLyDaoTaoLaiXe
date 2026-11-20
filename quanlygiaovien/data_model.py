@@ -63,11 +63,17 @@ class DataModel:
     def _resolve_teacher_names(self, dsgv):
         """Thay tên giáo viên trong từng khóa (có thể viết tắt trong Excel)
         bằng tên đầy đủ khớp bên DSGV - khớp hệt trước, không được thì thử
-        khớp tên viết tắt (vd "Tr. N. Đ. Phương" -> "Trần Ngô Đông Phương").
-        Không khớp được (mơ hồ hoặc không tìm thấy) thì giữ nguyên tên gốc."""
+        khớp tên viết tắt (vd "Tr. N. Đ. Phương" -> "Trần Ngô Đông Phương"),
+        rồi tới override đã xử lý tay (xem publish_data.set_ten_gv_override) -
+        CÙNG LOGIC với publish_data.run_pipeline() để app (tab TRA CỨU/PHÂN
+        XE...) và dữ liệu đăng lên web luôn khớp nhau. Không khớp được (mơ hồ
+        hoặc không tìm thấy) thì giữ nguyên tên gốc."""
+        import publish_data  # import trễ - publish_data cũng import DataModel
+
         name_to_magv = {
             attach_files.normalize_name(rec["ten"]): magv for magv, rec in dsgv.items()
         }
+        ten_gv_overrides = publish_data.load_ten_gv_overrides()
         for c in self.courses:
             for g in c.get("groups", []):
                 name = g.get("giao_vien")
@@ -78,6 +84,10 @@ class DataModel:
                     candidates = attach_files.find_teacher_candidates(name, dsgv)
                     if len(candidates) == 1:
                         ma_gv = candidates[0][0]
+                if not ma_gv:
+                    override = ten_gv_overrides.get(name)
+                    if override and override != "ignore" and override in dsgv:
+                        ma_gv = override
                 if ma_gv:
                     g["giao_vien"] = dsgv[ma_gv]["ten"]
 
@@ -96,10 +106,14 @@ class DataModel:
         return None
 
     def all_teachers(self):
-        """Danh sách tên giáo viên duy nhất, đã sắp xếp - gồm toàn bộ giáo
-        viên bên DSGV (nếu có), gộp thêm tên trong các khóa (phòng khi chưa
-        khớp được với DSGV)."""
-        names = set(self.dsgv_names)
+        """Danh sách tên giáo viên duy nhất, đã sắp xếp - dùng ĐÚNG tên bên
+        DSGV (nếu có cấu hình file DSGV) để combobox chọn giáo viên không
+        bao giờ hiện tên viết tắt/ghi sai từ Excel (_resolve_teacher_names đã
+        map các khóa về đúng tên DSGV). Chưa cấu hình DSGV thì mới tạm dùng
+        tên trong các khóa (Excel)."""
+        if self.dsgv_names:
+            return sorted(self.dsgv_names, key=attach_files.given_name_sort_key)
+        names = set()
         for c in self.courses:
             for g in c.get("groups", []):
                 if g.get("giao_vien"):
