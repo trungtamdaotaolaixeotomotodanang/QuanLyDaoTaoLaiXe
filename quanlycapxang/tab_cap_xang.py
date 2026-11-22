@@ -427,11 +427,15 @@ class CapXangTab(QWidget):
         self._last_teacher_text = self.cbo_teacher.currentText().strip()
         self._resolve_and_reload_detail()
 
-    def _settle_selectors_once(self, source):
-        """1 vòng cập nhật: lọc theo CẢ 3 ô đang có giá trị, rồi với mỗi ô
-        CÒN LẠI (khác `source`) đang BỎ TRỐNG - nạp lại danh sách từ kết quả
-        lọc đó; chỉ có đúng 1 lựa chọn thì TỰ CHỌN LUÔN. Trả về True nếu có
-        ô nào vừa được tự chọn (cần gọi lại để lọc hẹp thêm ô còn lại)."""
+    def _snapshot_matches(self):
+        """Đọc giá trị hiện tại của cả 3 ô + lọc `_all_assignments` theo đó -
+        tách riêng để `_settle_selectors_once` gọi lại NGAY SAU mỗi lần 1 ô
+        vừa được tự chọn, không dùng giá trị CŨ (từ trước khi ô đó có giá
+        trị) để lọc ô tiếp theo - quan trọng từ khi Giáo viên/Khóa học LUÔN
+        tự chọn sẵn phần tử đầu (không còn mục để trống): nếu không lọc lại
+        ngay, 2 ô có thể tự chọn 2 giá trị KHÔNG khớp nhau (vd giáo viên đầu
+        tiên trong danh sách + khóa đầu tiên trong danh sách nhưng là khóa
+        của giáo viên khác)."""
         gv = self.cbo_teacher.currentText().strip() or None
         khoa_ma = self.cbo_khoa.currentData()
         xe = self.cbo_xe.currentText().strip() or None
@@ -445,12 +449,23 @@ class CapXangTab(QWidget):
             and (not khoa_ma or a["ma_khoa"] == khoa_ma)
             and (not xe_norm or attach_files.normalize_plate(a["xe"]) == xe_norm)
         ]
+        return matches, gv, khoa_ma, xe
+
+    def _settle_selectors_once(self, source):
+        """1 vòng cập nhật: với mỗi ô CÒN LẠI (khác `source`) - lọc theo giá
+        trị các ô khác đang có, nạp lại danh sách từ kết quả đó; Giáo viên/
+        Khóa học LUÔN tự chọn phần tử đầu (không còn mục để trống), Biển số
+        xe chỉ tự chọn khi còn đúng 1 lựa chọn. Trả về True nếu có ô nào vừa
+        được tự chọn (cần gọi lại để lọc hẹp thêm ô còn lại)."""
+        matches, gv, khoa_ma, xe = self._snapshot_matches()
 
         changed = False
         if source != "giao_vien" and not gv and self._repopulate_teacher_combo(matches):
             changed = True
+            matches, gv, khoa_ma, xe = self._snapshot_matches()
         if source != "khoa" and not khoa_ma and self._repopulate_khoa_combo(matches):
             changed = True
+            matches, gv, khoa_ma, xe = self._snapshot_matches()
         if source != "xe" and not xe and self._repopulate_xe_combo(matches, gv_khoa_set=bool(gv and khoa_ma)):
             changed = True
         return changed
@@ -468,22 +483,24 @@ class CapXangTab(QWidget):
         combo.blockSignals(False)
 
     def _repopulate_teacher_combo(self, matches):
-        """Nạp lại danh sách giáo viên từ `matches` - TỰ CHỌN LUÔN nếu chỉ
-        còn đúng 1 giáo viên khớp. Trả về True nếu vừa tự chọn."""
+        """Nạp lại danh sách giáo viên từ `matches` - KHÔNG còn mục để trống,
+        LUÔN TỰ CHỌN phần tử ĐẦU TIÊN (khác Biển số xe - vẫn cần "chưa chọn
+        gì" làm trạng thái hợp lệ vì có thể cấp cho xe khác không chính
+        thức). Trả về True nếu còn giáo viên để chọn (vừa tự chọn 1 trong
+        số đó)."""
         names = sorted({a["giao_vien"] for a in matches if a["giao_vien"]}, key=attach_files.given_name_sort_key)
         self.cbo_teacher.blockSignals(True)
         self.cbo_teacher.clear()
-        self.cbo_teacher.addItem("")
         self.cbo_teacher.addItems(names)
-        tu_chon = len(names) == 1
-        self.cbo_teacher.setCurrentIndex(1 if tu_chon else 0)
+        self.cbo_teacher.setCurrentIndex(0 if names else -1)
         self._set_completer(self.cbo_teacher, names)
         self.cbo_teacher.blockSignals(False)
-        return tu_chon
+        return bool(names)
 
     def _repopulate_khoa_combo(self, matches):
-        """Nạp lại danh sách khóa từ `matches` - TỰ CHỌN LUÔN nếu chỉ còn
-        đúng 1 khóa khớp. Trả về True nếu vừa tự chọn."""
+        """Nạp lại danh sách khóa từ `matches` - KHÔNG còn mục để trống, LUÔN
+        TỰ CHỌN khóa ĐẦU TIÊN (giống Giáo viên). Trả về True nếu còn khóa để
+        chọn (vừa tự chọn 1 trong số đó)."""
         by_khoa = {}
         for a in matches:
             by_khoa.setdefault(a["ma_khoa"], a)
@@ -491,7 +508,6 @@ class CapXangTab(QWidget):
 
         self.cbo_khoa.blockSignals(True)
         self.cbo_khoa.clear()
-        self.cbo_khoa.addItem("", None)
         labels = []
         for a in items:
             label = f"{a['ma_khoa']} ({a['lop']})"
@@ -504,11 +520,10 @@ class CapXangTab(QWidget):
             labels.append(label)
             if da_ket_thuc:
                 self.cbo_khoa.setItemData(self.cbo_khoa.count() - 1, _MAU_KHOA_HET_HAN, Qt.ForegroundRole)
-        tu_chon = len(items) == 1
-        self.cbo_khoa.setCurrentIndex(1 if tu_chon else 0)
+        self.cbo_khoa.setCurrentIndex(0 if items else -1)
         self._set_completer(self.cbo_khoa, labels)
         self.cbo_khoa.blockSignals(False)
-        return tu_chon
+        return bool(items)
 
     def _on_khoa_editing_finished(self):
         """Khóa học đọc giá trị qua currentData() (mã khóa thật), không qua
