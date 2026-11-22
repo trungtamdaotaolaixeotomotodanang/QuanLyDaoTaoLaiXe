@@ -270,7 +270,7 @@ class CapXangTab(QWidget):
         return combo
 
     def _build_selector_box(self):
-        box = QGroupBox("Chọn giáo viên / khóa học / biển số xe")
+        box = QGroupBox("Chọn giáo viên / khóa học")
         row = QHBoxLayout(box)
 
         row.addWidget(QLabel("Giáo viên:"))
@@ -290,12 +290,10 @@ class CapXangTab(QWidget):
         self.cbo_khoa.lineEdit().editingFinished.connect(self._on_khoa_editing_finished)
         row.addWidget(self.cbo_khoa, 1)
 
-        row.addWidget(QLabel("Biển số xe:"))
-        self.cbo_xe = self._make_searchable_combo()
-        self.cbo_xe.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
-        self.cbo_xe.activated.connect(lambda _i: self._on_selector_changed("xe"))
-        self.cbo_xe.lineEdit().editingFinished.connect(lambda: self._on_selector_changed("xe"))
-        row.addWidget(self.cbo_xe, 1)
+        # Biển số xe ĐẶT Ở Ô "Cấp xăng" (_build_entry_box), ngay cạnh Ngày
+        # cấp - vẫn là `self.cbo_xe`, chỉ đổi VỊ TRÍ hiển thị, không đổi gì
+        # về logic 3 ô liên kết (_settle_selectors_once vẫn đọc/ghi đúng
+        # combobox này như trước).
 
         return box
 
@@ -339,6 +337,15 @@ class CapXangTab(QWidget):
         self.date_edit.setDate(QDate.currentDate())
         row1.addWidget(self.date_edit)
         row1.addSpacing(16)
+
+        row1.addWidget(QLabel("Biển số xe:"))
+        self.cbo_xe = self._make_searchable_combo()
+        self.cbo_xe.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
+        self.cbo_xe.activated.connect(lambda _i: self._on_selector_changed("xe"))
+        self.cbo_xe.lineEdit().editingFinished.connect(lambda: self._on_selector_changed("xe"))
+        row1.addWidget(self.cbo_xe, 1)
+        row1.addSpacing(16)
+
         row1.addWidget(QLabel("Số lượng:"))
         self.txt_so_luong = QLineEdit()
         self.txt_so_luong.setValidator(QRegularExpressionValidator(_SO_LUONG_KY_TU_RE))
