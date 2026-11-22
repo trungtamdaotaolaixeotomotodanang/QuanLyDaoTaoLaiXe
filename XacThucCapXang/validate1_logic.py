@@ -38,7 +38,7 @@ def _norm_header(h):
     return re.sub(r"\s+", " ", (h or "")).strip().lower()
 
 
-def _find_first(headers, indices, keywords):
+def find_first(headers, indices, keywords):
     for i in indices:
         low = _norm_header(headers[i])
         if any(kw in low for kw in keywords):
@@ -54,11 +54,11 @@ def detect_columns(headers):
     sheet không có cột nào ghi vậy) - theo đúng cấu trúc sổ Petrolimex gốc."""
     all_idx = range(len(headers))
     result = {
-        "giao_vien": _find_first(headers, all_idx, TEACHER_KEYWORDS),
-        "khoa": _find_first(headers, all_idx, KHOA_KEYWORDS),
-        "so_phieu": _find_first(headers, all_idx, SO_PHIEU_KEYWORDS),
-        "bien_so": _find_first(headers, all_idx, PLATE_KEYWORDS),
-        "ngay": _find_first(headers, all_idx, NGAY_KEYWORDS),
+        "giao_vien": find_first(headers, all_idx, TEACHER_KEYWORDS),
+        "khoa": find_first(headers, all_idx, KHOA_KEYWORDS),
+        "so_phieu": find_first(headers, all_idx, SO_PHIEU_KEYWORDS),
+        "bien_so": find_first(headers, all_idx, PLATE_KEYWORDS),
+        "ngay": find_first(headers, all_idx, NGAY_KEYWORDS),
     }
     if all(v is not None for v in result.values()):
         return result
@@ -83,7 +83,7 @@ def _parse_course_date(text):
     return None
 
 
-def _parse_cell_date(value):
+def parse_cell_date(value):
     """value có thể là datetime (Excel tự định dạng ngày) hoặc chuỗi gõ tay
     dd/m/yyyy - khoan xét lỗi định dạng ở đây (đã có excel_validate.
     basic_issues lo phần đó), chỉ cần lấy ra ngày để so khoảng với khóa."""
@@ -92,7 +92,7 @@ def _parse_cell_date(value):
     return _parse_course_date(str(value)) if value not in (None, "") else None
 
 
-def _course_for_khoa_value(model, khoa_value):
+def course_for_khoa_value(model, khoa_value):
     """value trong cột "Khóa" của sổ gốc có thể là mã lớp (thường gặp, vd
     "BK0626") hoặc mã khóa đầy đủ (vd "48002K262013") - thử cả 2 cách tra,
     ưu tiên mã khóa đầy đủ trước vì nó xác định đúng 1 khóa duy nhất. -> list
@@ -157,7 +157,7 @@ def validate_rows(headers, rows, row_numbers, model, columns):
                     "fix": "Nhập mã lớp/mã khóa cho dòng này.",
                 })
             else:
-                khoa_courses = _course_for_khoa_value(model, khoa)
+                khoa_courses = course_for_khoa_value(model, khoa)
                 if not khoa_courses:
                     issues.append({
                         "row": rn, "column": headers[khoa_col], "severity": "loi",
@@ -239,7 +239,7 @@ def validate_rows(headers, rows, row_numbers, model, columns):
         # nào. Chỉ CẢNH BÁO (không phải lỗi) - ngày cấp lố vài hôm trước/sau
         # ngày khai/bế giảng vẫn có thể hợp lệ trong thực tế.
         if ngay_col is not None and ngay_raw not in (None, "") and len(khoa_courses) == 1:
-            cell_date = _parse_cell_date(ngay_raw)
+            cell_date = parse_cell_date(ngay_raw)
             tu_ngay = _parse_course_date(khoa_courses[0].get("tu_ngay", ""))
             den_ngay = _parse_course_date(khoa_courses[0].get("den_ngay", ""))
             if cell_date and tu_ngay and den_ngay and not (tu_ngay <= cell_date <= den_ngay):

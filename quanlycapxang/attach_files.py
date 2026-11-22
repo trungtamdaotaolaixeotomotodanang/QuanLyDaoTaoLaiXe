@@ -1,9 +1,7 @@
-"""Vài hàm chuẩn hoá chuỗi dùng chung (biển số/tên) - bản RÚT GỌN, chỉ giữ
-đúng phần tab CẤP XĂNG/ĐỊNH MỨC XĂNG/TỔNG HỢP CẤP XĂNG cần. Khác với
-quanlygiaovien/attach_files.py (bản gốc còn có phần ghép tên viết tắt với
-DSGV, tìm file PDF/Word theo tên...) - app này không đọc DSGV/Excel nguồn
-nữa (tên giáo viên lấy thẳng từ docs/cap_xang_data.json, đã được
-quanlygiaovien chuẩn hoá/khớp DSGV sẵn), nên không cần phần đó."""
+"""Vài hàm chuẩn hoá chuỗi dùng chung (biển số/tên) - bản RÚT GỌN của
+quanlygiaovien/attach_files.py, chỉ giữ đúng phần tab CẤP XĂNG/ĐỊNH MỨC
+XĂNG/TỔNG HỢP CẤP XĂNG cần (không có phần tìm file PDF/Word theo tên - app
+này không đọc Excel nguồn, tên giáo viên lấy thẳng từ docs/cap_xang_data.json)."""
 import re
 import unicodedata
 

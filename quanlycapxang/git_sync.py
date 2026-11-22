@@ -34,6 +34,25 @@ class _TimedOutResult:
         self.stderr = stderr
 
 
+_FRIENDLY_PATTERNS = (
+    (("could not resolve host", "unable to access", "could not connect", "network is unreachable"),
+     "Không kết nối được tới GitHub - kiểm tra lại mạng."),
+    (("permission denied", "authentication failed", "could not read username", "could not read password"),
+     "GitHub từ chối đăng nhập - có thể cần đăng nhập lại Git trên máy này."),
+    (("timed out", "timeout"), "Kết nối tới GitHub quá chậm hoặc bị treo."),
+)
+
+
+def _friendly_message(action, stderr):
+    """Câu dễ hiểu cho người dùng không rành kỹ thuật, kèm thông tin kỹ
+    thuật gốc (để báo lại cho người hỗ trợ nếu cần) - xem _FRIENDLY_PATTERNS."""
+    low = (stderr or "").lower()
+    for keywords, friendly in _FRIENDLY_PATTERNS:
+        if any(k in low for k in keywords):
+            return f"{friendly}\n\nChi tiết kỹ thuật ('git {action}'):\n{stderr}"
+    return f"Lỗi khi 'git {action}':\n{stderr}"
+
+
 def _run(args):
     try:
         return subprocess.run(
@@ -53,13 +72,25 @@ def _run(args):
         )
 
 
+def has_unpushed_changes():
+    """True nếu phiếu/định mức (FILES_TO_PUSH) đang có thay đổi CHƯA đẩy lên
+    GitHub (chưa bấm "⬆ Đẩy phiếu/định mức lên") - dùng nhắc người dùng ở
+    main.py, tránh quên bấm nút rồi tưởng máy khác đã thấy dữ liệu mới. Chỉ
+    đọc trạng thái cục bộ (không fetch mạng) nên gọi thường xuyên vẫn nhẹ."""
+    existing = [f for f in FILES_TO_PUSH if (REPO_ROOT / f).exists()]
+    if not existing:
+        return False
+    status = _run(["status", "--porcelain", *existing])
+    return bool(status.stdout.strip())
+
+
 def sync_from_remote():
     """Kéo về + rebase commit cục bộ (nếu có, bình thường không có vì app
     này không tự tạo commit) lên trên bản mới nhất trên GitHub. Trả về
     (ok, message)."""
     fetch = _run(["fetch", "origin"])
     if fetch.returncode != 0:
-        return False, f"Lỗi khi 'git fetch':\n{fetch.stderr}"
+        return False, _friendly_message("fetch", fetch.stderr)
 
     branch = _run(["rev-parse", "--abbrev-ref", "HEAD"]).stdout.strip()
     rebase = _run(["rebase", "--autostash", f"origin/{branch}"])
@@ -75,6 +106,7 @@ def sync_from_remote():
 FILES_TO_PUSH = [
     "shared_data/phieu_cap_xang.json",
     "shared_data/dinh_muc_xang.json",
+    "shared_data/dinh_muc_override.json",
 ]
 
 
@@ -87,7 +119,7 @@ def push_shared_data(commit_message):
 
     add = _run(["add", "-A", "--", *existing])
     if add.returncode != 0:
-        return False, f"Lỗi khi 'git add':\n{add.stderr}"
+        return False, _friendly_message("add", add.stderr)
 
     status = _run(["status", "--porcelain", *existing])
     if not status.stdout.strip():
@@ -95,7 +127,7 @@ def push_shared_data(commit_message):
 
     commit = _run(["commit", "-m", commit_message])
     if commit.returncode != 0:
-        return False, f"Lỗi khi 'git commit':\n{commit.stderr}"
+        return False, _friendly_message("commit", commit.stderr)
 
     # Kéo về + gộp trước khi đẩy lên, để tránh bị từ chối (non-fast-forward)
     # nếu máy khác vừa đẩy phiếu trước đó.

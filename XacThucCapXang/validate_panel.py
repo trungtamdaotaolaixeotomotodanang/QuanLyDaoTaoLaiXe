@@ -12,6 +12,8 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import (
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QGroupBox,
     QHBoxLayout,
@@ -24,6 +26,7 @@ from PySide6.QtWidgets import (
     QStyle,
     QTableWidget,
     QTableWidgetItem,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
@@ -163,6 +166,12 @@ class ValidateSheetPanel(QWidget):
         self.btn_validate = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogApplyButton), "Xác thực")
         self.btn_validate.clicked.connect(self._on_validate)
         action_row.addWidget(self.btn_validate)
+        self.btn_info = QPushButton(
+            _icon(self, QStyle.StandardPixmap.SP_MessageBoxInformation), "Xác thực như thế nào?"
+        )
+        self.btn_info.setToolTip("Xem giải thích chi tiết cách app đối chiếu dữ liệu cho sheet đang mở.")
+        self.btn_info.clicked.connect(self._on_show_info)
+        action_row.addWidget(self.btn_info)
         self.btn_export = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogSaveButton), "Xuất dữ liệu + báo cáo lỗi...")
         self.btn_export.setEnabled(False)
         self.btn_export.clicked.connect(self._on_export)
@@ -359,6 +368,80 @@ class ValidateSheetPanel(QWidget):
             guess_idx = guesses.get(key)
             combo.setCurrentIndex((guess_idx + 1) if guess_idx is not None else 0)
             combo.blockSignals(False)
+
+    # ---------------- thông tin cách xác thực ----------------
+    def _on_show_info(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Xác thực như thế nào?")
+        dialog.resize(640, 560)
+        layout = QVBoxLayout(dialog)
+        browser = QTextBrowser()
+        browser.setHtml(self._build_info_html())
+        layout.addWidget(browser)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        buttons.accepted.connect(dialog.accept)
+        layout.addWidget(buttons)
+        dialog.exec()
+
+    def _build_info_html(self):
+        """Giải thích CHUNG cách đối chiếu (áp dụng mọi sheet) + phần RIÊNG
+        cho sheet đang mở (tên cột thực tế đang dùng cho từng phần đối chiếu
+        - mỗi sheet đặt tên cột khác nhau nên app tự dò khác nhau, xem
+        validate1_logic.detect_columns)."""
+        sheet = self.cbo_sheet.currentText() or "(chưa chọn sheet)"
+        file_name = Path(self.cbo_file.currentData()).name if self.cbo_file.currentData() else "(chưa chọn file)"
+
+        def _mapped_header(key):
+            combo = self._map_combos[key]
+            text = combo.currentText()
+            return text if text and text != _NO_MAPPING else None
+
+        rows_html = []
+        for key, mo_ta in (
+            ("giao_vien", "Giáo viên quản lý"),
+            ("khoa", "Khóa/lớp"),
+            ("bien_so", "Biển số (BSX)"),
+            ("so_phieu", "Số phiếu"),
+            ("ngay", "Ngày cấp"),
+        ):
+            header = _mapped_header(key)
+            cot_text = f"cột <b>&quot;{header}&quot;</b>" if header else "<i>-- không dùng --</i>"
+            rows_html.append(f"<li>{mo_ta}: {cot_text}</li>")
+
+        return f"""
+        <h3>Đối chiếu với dữ liệu khóa/giáo viên/xe (docs/cap_xang_data.json)</h3>
+        <ul>
+          <li><b>Giáo viên quản lý</b>: phải có trong danh sách giáo viên hiện tại -
+              không có thì báo <b>lỗi</b>, kèm gợi ý tên gần giống nhất.</li>
+          <li><b>Khóa/lớp</b>: phải khớp mã khóa (vd "48002K262013") hoặc mã lớp
+              (vd "BK0626") đang có - không khớp cái nào thì báo <b>lỗi</b>.</li>
+          <li><b>Bộ 3 Giáo viên + Khóa + Biển số</b>: dù từng cột riêng lẻ hợp lệ,
+              vẫn phải khớp ĐÚNG 1 phân công đang có (giáo viên đó thật sự dạy xe
+              đó trong khóa đó) - khác đi thì báo <b>lỗi</b>, kèm gợi ý giáo viên/
+              xe đúng theo phân công của khóa.</li>
+          <li><b>Số phiếu</b>: nên chỉ gồm số (có thể nhiều số cách nhau dấu phẩy,
+              vd "12,13,14") - có ký tự lạ (vd ký hiệu quyển "1/Q9") thì chỉ
+              <b>cảnh báo</b>, vì không chắc là sai (1 số sổ dùng ký hiệu này).</li>
+          <li><b>Ngày cấp</b>: nếu đã xác định đúng 1 khóa, ngày phải nằm trong
+              khoảng từ ngày - đến ngày của khóa đó - ngoài khoảng chỉ <b>cảnh
+              báo</b>, vì ngày cấp lố vài hôm trước/sau ngày khai/bế giảng vẫn có
+              thể hợp lệ trong thực tế.</li>
+        </ul>
+        <p><i>Lỗi</i> = gần như chắc chắn sai, cần sửa. <i>Cảnh báo</i> = nên xem
+        lại nhưng có thể vẫn đúng.</p>
+
+        <h3>Mỗi sheet dò cột khác nhau</h3>
+        <p>Các sheet không đặt tên cột giống nhau (vd sheet PETROLIMEX ghi
+        "GV Quản lý* (Tự nhập)", sheet NLDACAP ghi "GV quản lý* (Tự nhập)" nhưng
+        "Khoá học"/"Số Phiếu /Quyển" lại KHÔNG ghi "Tự nhập") - nên app tự dò cột
+        nào đóng vai trò gì theo từ khóa trong tiêu đề mỗi khi đổi file/sheet.
+        Dò sai thì sửa lại ở khung "Các cột gõ tay cần đối chiếu" phía trên bảng.</p>
+
+        <h3>Đang áp dụng cho: {file_name} — sheet "{sheet}"</h3>
+        <ul>
+        {''.join(rows_html)}
+        </ul>
+        """
 
     # ---------------- xác thực ----------------
     def _current_mapping(self):

@@ -16,6 +16,7 @@ của app quản lý lái xe - là input RIÊNG, chỉ phục vụ việc tính 
 giữ import Excel trực tiếp ở đây (không có trong docs/cap_xang_data.json)."""
 import json
 import re
+from datetime import datetime
 
 import openpyxl
 
@@ -97,11 +98,30 @@ def build_lookup(rows):
     return by_plate, by_plate_teacher
 
 
+_MAX_HISTORY = 20
+
+
 def load_and_cache(path):
     """Đọc file định mức, lưu cache cục bộ (dinh_muc_xang.json) để nạp lại
-    nhanh ở lần mở app sau, không cần chọn lại file. Trả về dict đã lưu."""
+    nhanh ở lần mở app sau, không cần chọn lại file. Bản ĐANG DÙNG trước đó
+    (nếu có) được đẩy vào "history" trước khi ghi đè - để còn xem lại được
+    định mức cũ qua history_entries(), vì chọn file mới sẽ GHI ĐÈ hoàn toàn,
+    không tự giữ lại số liệu cũ. Trả về dict đã lưu."""
     rows = parse_dinh_muc_file(path)
-    data = {"source_file": str(path), "rows": rows}
+    old = load_cache()
+    history = old.get("history", [])
+    if old.get("rows"):
+        history = (history + [{
+            "applied_at": old.get("applied_at", ""),
+            "source_file": old.get("source_file", ""),
+            "rows": old["rows"],
+        }])[-_MAX_HISTORY:]
+    data = {
+        "source_file": str(path),
+        "rows": rows,
+        "applied_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
+        "history": history,
+    }
     SHARED_DATA_DIR.mkdir(exist_ok=True)
     CACHE_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     return data
@@ -109,5 +129,19 @@ def load_and_cache(path):
 
 def load_cache():
     if not CACHE_FILE.exists():
-        return {"source_file": "", "rows": []}
-    return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        return {"source_file": "", "rows": [], "applied_at": "", "history": []}
+    data = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+    data.setdefault("applied_at", "")
+    data.setdefault("history", [])
+    return data
+
+
+def history_entries():
+    """Các lần đã từng áp dụng file định mức, MỚI NHẤT TRƯỚC (bản đang dùng
+    hiện tại + các bản cũ đã bị ghi đè) - dùng cho nút "Lịch sử định mức..."
+    ở tab ĐỊNH MỨC XĂNG, chỉ để XEM LẠI, không áp dụng lại được."""
+    data = load_cache()
+    if not data.get("rows"):
+        return []
+    current = {"applied_at": data.get("applied_at", ""), "source_file": data.get("source_file", ""), "rows": data["rows"]}
+    return [current, *reversed(data.get("history", []))]

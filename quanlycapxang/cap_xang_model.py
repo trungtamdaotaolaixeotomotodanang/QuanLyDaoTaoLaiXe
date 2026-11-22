@@ -1,14 +1,16 @@
 """Đọc docs/cap_xang_data.json (xuất bởi quanlygiaovien/publish_data.py,
 đồng bộ qua git - KHÔNG đọc Excel/XML trực tiếp nữa, xem dữ liệu.md ở
 quanlygiaovien/) + dinh_muc_xang.json (cache định mức nhiên liệu, xem
-fuel_norm.py) - cung cấp các hàm tra cứu cho 3 tab CẤP XĂNG/ĐỊNH MỨC XĂNG/
-TỔNG HỢP CẤP XĂNG."""
+fuel_norm.py) + dinh_muc_override.json (định mức SỬA TAY theo từng khóa/xe,
+xem dinh_muc_override_store.py) - cung cấp các hàm tra cứu cho 3 tab CẤP
+XĂNG/ĐỊNH MỨC XĂNG/TỔNG HỢP CẤP XĂNG."""
 import json
 from datetime import datetime
 from pathlib import Path
 
 import attach_files
 import cap_xang_store
+import dinh_muc_override_store
 import fuel_norm
 
 
@@ -26,6 +28,15 @@ def _fmt_g(value):
     return f"{value:g}" if value is not None else "—"
 
 
+def contrib_sub_tong(c):
+    """Lít của riêng 1 ca/giáo viên đóng góp vào tổng định mức xe đó - dùng
+    số đã SỬA TAY (override) nếu có, không thì tính dinh_muc x so_hoc_vien
+    (None nếu chưa tra được định mức VÀ cũng chưa sửa tay)."""
+    if c.get("override"):
+        return c["override"]["tong_lit"]
+    return c["dinh_muc"] * c["so_hoc_vien"] if c["dinh_muc"] is not None else None
+
+
 def format_allowance_tooltip(info):
     """Giải thích ngắn (1 dòng) cách tính "Tổng định mức" của 1 (mã khóa, xe)
     - xem CapXangModel._allowance_breakdown - dùng cho tooltip cột "Còn lại"
@@ -34,17 +45,26 @@ def format_allowance_tooltip(info):
     dạng rich text + câu dẫn khác."""
     contribs = info["contribs"]
     if info["tong"] is None:
-        thieu = ", ".join(c["giao_vien"] or "?" for c in contribs if c["dinh_muc"] is None)
+        thieu = ", ".join(c["giao_vien"] or "?" for c in contribs if contrib_sub_tong(c) is None)
         return f"Chưa tra được định mức cho: {thieu} - chưa tính được tổng định mức của xe này."
     if len(contribs) == 1:
         c = contribs[0]
+        if c.get("override"):
+            ov = c["override"]
+            ghi_chu = f" - lý do: {ov['ghi_chu']}" if ov.get("ghi_chu") else ""
+            return (
+                f"Định mức đã SỬA TAY = {_fmt_g(ov['tong_lit'])} lít{ghi_chu} - sửa lúc "
+                f"{ov['updated_at']}; đã cấp {_fmt_g(info['da_cap'])} lít."
+            )
         return (
             f"Định mức {_fmt_g(c['dinh_muc'])} lít/HV x {c['so_hoc_vien']} HV = {_fmt_g(info['tong'])} lít; "
             f"đã cấp {_fmt_g(info['da_cap'])} lít."
         )
     chi_tiet = "; ".join(
-        f"{c['giao_vien']} ({c['ca'] or '?'}): {_fmt_g(c['dinh_muc'])} lít/HV x {c['so_hoc_vien']} HV = "
-        f"{_fmt_g(c['dinh_muc'] * c['so_hoc_vien'])} lít"
+        (f"{c['giao_vien']} ({c['ca'] or '?'}): {_fmt_g(c['override']['tong_lit'])} lít (đã sửa tay)"
+         if c.get("override") else
+         f"{c['giao_vien']} ({c['ca'] or '?'}): {_fmt_g(c['dinh_muc'])} lít/HV x {c['so_hoc_vien']} HV = "
+         f"{_fmt_g(contrib_sub_tong(c))} lít")
         for c in contribs
     )
     return (
@@ -294,6 +314,23 @@ class CapXangModel:
     def course_codes(self):
         return sorted({c["ma_khoa"] for c in self.courses})
 
+    def all_assignments(self):
+        """Mọi bộ (giáo_viên, khóa, xe) đang có - KHÔNG lọc theo giáo viên
+        (khác courses_of_teacher() bắt buộc có tên) - dùng cho 3 combobox
+        liên kết Giáo viên/Khóa học/Biển số ở tab CẤP XĂNG (chọn 1 trong 3 ->
+        lọc 2 cái còn lại)."""
+        rows = []
+        for c in self.courses:
+            status = self.status_of(c)
+            for g in c.get("groups", []):
+                rows.append({
+                    "giao_vien": g.get("giao_vien", ""), "ma_khoa": c["ma_khoa"],
+                    "lop": c.get("lop", ""), "xe": g.get("xe", ""),
+                    "tu_ngay": c.get("tu_ngay", ""), "den_ngay": c.get("den_ngay", ""),
+                    "status": status,
+                })
+        return rows
+
     def courses_of_teacher(self, name):
         """Tất cả khóa (group) giáo viên `name` từng được phân công dạy - MỌI
         trạng thái (đang/đã/chưa đào tạo) - dùng cho tab CẤP XĂNG để chọn
@@ -355,11 +392,16 @@ class CapXangModel:
         "vượt định mức" SAI (đã từng bị vậy - xem lịch sử sửa).
 
         -> dict (ma_khoa, xe) -> {"contribs": [{"giao_vien","ca","so_hoc_vien",
-        "dinh_muc","matched_by"}, ...] (1 phần tử/ca dùng xe đó), "so_hoc_vien":
-        tổng mọi ca, "tong": tổng định mức CỘNG DỒN (None nếu THIẾU định mức
-        của bất kỳ ca nào dùng chung xe đó - không tính được tổng đầy đủ thì
-        thà báo "chưa tính được" còn hơn báo 1 số thiếu gây hiểu lầm), "da_cap",
-        "con_lai", "ma_khoa"/"lop"/"xe"/"tu_ngay"/"den_ngay" (của khóa)}."""
+        "dinh_muc","matched_by","override"}, ...] (1 phần tử/ca dùng xe đó -
+        "override" là định mức SỬA TAY riêng của ca/giáo viên đó, None nếu
+        chưa sửa), "so_hoc_vien": tổng mọi ca, "tong": tổng định mức CỘNG DỒN
+        phần của TỪNG ca (ưu tiên override của ca đó nếu có, không thì dinh_muc
+        x so_hoc_vien - xem contrib_sub_tong) - None nếu THIẾU định mức VÀ
+        cũng chưa sửa tay cho bất kỳ ca nào dùng chung xe đó - không tính
+        được tổng đầy đủ thì thà báo "chưa tính được" còn hơn báo 1 số thiếu
+        gây hiểu lầm), "tong_goc" (tổng gốc HOÀN TOÀN theo Excel, không tính
+        override - để tab hiện "(gốc: X lít)"), "da_cap", "con_lai",
+        "ma_khoa"/"lop"/"xe"/"tu_ngay"/"den_ngay" (của khóa)}."""
         da_cap_map = self._da_cap_by_khoa_xe()
         result = {}
         for c in self.courses:
@@ -374,22 +416,56 @@ class CapXangModel:
                     "giao_vien": giao_vien, "ca": g.get("ca", ""),
                     "so_hoc_vien": g.get("so_hoc_vien", 0),
                     "dinh_muc": dinh_muc, "matched_by": matched_by,
+                    # Định mức SỬA TAY riêng của (khóa, xe, giáo viên) này
+                    # (nếu có) - xem dinh_muc_override_store.py. Có GIÁO VIÊN
+                    # trong key vì 1 xe có thể dùng chung nhiều giáo viên/ca
+                    # trong cùng khóa, mỗi người sửa riêng phần của mình.
+                    "override": dinh_muc_override_store.get_override(c["ma_khoa"], xe, giao_vien),
                 })
             for xe, contribs in by_xe.items():
-                tong = (
+                tong_goc = (
                     None if any(x["dinh_muc"] is None for x in contribs)
                     else sum(x["dinh_muc"] * x["so_hoc_vien"] for x in contribs)
                 )
+                sub_tongs = [contrib_sub_tong(x) for x in contribs]
+                tong = None if any(s is None for s in sub_tongs) else sum(sub_tongs)
                 da_cap = da_cap_map.get((c["ma_khoa"], xe), 0.0)
                 result[(c["ma_khoa"], xe)] = {
                     "ma_khoa": c["ma_khoa"], "lop": c.get("lop", ""), "xe": xe,
                     "tu_ngay": c.get("tu_ngay", ""), "den_ngay": c.get("den_ngay", ""),
                     "contribs": contribs,
                     "so_hoc_vien": sum(x["so_hoc_vien"] for x in contribs),
-                    "tong": tong, "da_cap": da_cap,
+                    "tong": tong, "tong_goc": tong_goc,
+                    "da_cap": da_cap,
                     "con_lai": tong - da_cap if tong is not None else None,
                 }
         return result
+
+    @staticmethod
+    def contrib_for(allowance, giao_vien):
+        """Tìm đúng phần (contrib) của riêng `giao_vien` trong 1 dòng
+        allowances_for_teacher/_allowance_breakdown - dùng để biết/sửa định
+        mức riêng của giáo viên đó khi xe dùng chung nhiều người (xem
+        tab_cap_xang.py _on_sua_dinh_muc). None nếu không có."""
+        name_norm = attach_files.normalize_name(giao_vien)
+        for c in (allowance or {}).get("contribs", []):
+            if attach_files.normalize_name(c["giao_vien"]) == name_norm:
+                return c
+        return None
+
+    def set_dinh_muc_override(self, ma_khoa, xe, giao_vien, tong_lit, ghi_chu=""):
+        """Sửa tay "Tổng định mức" (lít) của riêng phần (khóa, xe, giáo viên)
+        này - ghi đè số tính từ file Excel định mức (chỉ mang tính tham
+        khảo), KHÔNG ảnh hưởng tới phần của giáo viên khác nếu xe dùng chung
+        nhiều người - xem dinh_muc_override_store.py. Đọc tươi mới mỗi lần
+        _allowance_breakdown() chạy nên không cần reload() lại model sau khi
+        gọi."""
+        dinh_muc_override_store.set_override(ma_khoa, xe, giao_vien, tong_lit, ghi_chu)
+
+    def clear_dinh_muc_override(self, ma_khoa, xe, giao_vien):
+        """Bỏ định mức đã sửa tay của riêng phần (khóa, xe, giáo viên) này,
+        quay lại dùng số tính từ file Excel định mức."""
+        dinh_muc_override_store.clear_override(ma_khoa, xe, giao_vien)
 
     def allowances_for_teacher(self, name):
         """Định mức/đã cấp/còn lại cho TỪNG khóa+xe giáo viên `name` từng được
@@ -459,6 +535,10 @@ class CapXangModel:
                     "dinh_muc": dinh_muc,
                     "matched_by": matched_by,
                     "tong": info["tong"],
+                    "tong_goc": info["tong_goc"],
+                    # Override riêng của CHÍNH giáo viên này (không phải của
+                    # cả xe - xem CapXangModel.contrib_for/_allowance_breakdown).
+                    "override": (self.contrib_for(info, giao_vien) or {}).get("override"),
                     "da_cap": info["da_cap"],
                     "con_lai": info["con_lai"],
                     "contribs": info["contribs"],

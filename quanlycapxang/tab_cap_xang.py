@@ -1,37 +1,32 @@
-"""Tab CẤP XĂNG: chọn 1 giáo viên -> bảng bên dưới tự liệt kê sẵn mọi khóa
-học/biển số xe giáo viên đó từng được phân công, kèm các phiếu cấp xăng đã
-có (sửa trực tiếp trên bảng được) và LUÔN có sẵn 1 dòng trống cuối mỗi nhóm
-khóa/xe để cấp tiếp - người dùng chỉ cần gõ SỐ LƯỢNG (các ô khóa học/biển số
-đã có sẵn, ngày cấp mặc định hôm nay) là lưu ngay, khỏi phải chọn/gõ lại từ
-đầu như làm trên Excel trước đây.
+"""Tab CẤP XĂNG: chọn ĐÚNG 1 bộ (giáo viên, khóa học, biển số xe) qua 3
+combobox LIÊN KẾT nhau - chọn 1 cái thì 2 cái còn lại (nếu đang để trống) tự
+lọc theo lựa chọn đó (xem _on_selector_changed) - rồi nhập số lít cấp. 1 ngày
+có thể cấp nhiều lần: bấm "Cấp xăng" nhiều lần trong ngày, hoặc gõ cú pháp
+gộp "SỐ PHIẾUxSỐ LÍT, ..." trong 1 lần (xem parse_so_luong/_GHI_CHU_SO_LUONG
+- cú pháp này còn dùng lại ở tab TỔNG HỢP CẤP XĂNG, không được đổi chữ ký).
 
-Cùng 1 giáo viên/xe/ngày có thể cấp NHIỀU phiếu cùng lúc (vd đổ nhiều lần
-trong ngày) - ô "Số lượng" cho gõ theo kiểu "SỐ PHIẾUxSỐ LÍT", nhiều phiếu
-cách nhau bằng dấu phẩy, chỉ chứa số/x/dấu cách/dấu phẩy (xem parse_so_luong).
-Vd: "2x30, 4x20, 20, 50" = 2 phiếu 30 lít + 4 phiếu 20 lít + 1 phiếu 20 lít +
-1 phiếu 50 lít (8 phiếu, tổng 210 lít) - hiện lại đúng y chuỗi đã gõ, không
-quy về 1 số duy nhất, để không mất thông tin từng phiếu.
+Hiện "Định mức / Đã cấp / Còn lại" của đúng khóa+xe đang chọn, cho SỬA TAY
+"Tổng định mức" nếu số tính từ file Excel định mức không đúng thực tế (xem
+CapXangModel.set_dinh_muc_override/clear_dinh_muc_override) - định mức Excel
+chỉ mang tính tham khảo.
 
-Chỉ cho "Ngày cấp" nằm trong đúng khoảng thời gian đang học (tu_ngay ->
-den_ngay) của khóa đó - sai sẽ báo/không cho gõ.
+"Lịch sử các lần cấp trước" chỉ hiện đúng phiếu của bộ (giáo viên, khóa, xe)
+đang chọn (không phải mọi khóa/xe của giáo viên đó) - bấm 1 dòng để nạp lại
+vào khối nhập phía trên mà sửa/xóa.
 
-3 chế độ "Tổng theo khóa học/tuần/tháng" là MA TRẬN ngày có thể nhập liệu
-luôn (không chỉ xem) - mỗi hàng là 1 khóa/xe, mỗi cột là 1 ngày trong khóa/
-tuần/tháng đang chọn - dùng khi người dùng chỉ nhập dồn vào cuối tuần/tháng/
-khóa thay vì nhập hằng ngày. Cột Khóa học/Lớp/Biển số cố định bên trái (không
-trôi khi kéo thanh cuộn ngang qua các cột ngày) - xem _render_matrix."""
-import calendar
+Thay thế bản cũ (4 chế độ xem: Chi tiết + Tổng theo khóa/tuần/tháng dạng ma
+trận ngày) - gộp lại còn đúng 1 luồng nhập duy nhất cho đơn giản."""
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 from PySide6.QtCore import QDate, QRegularExpression, Qt, QTimer
 from PySide6.QtGui import QColor, QRegularExpressionValidator
 from PySide6.QtWidgets import (
-    QApplication,
     QComboBox,
     QCompleter,
     QDateEdit,
     QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QGroupBox,
     QHBoxLayout,
@@ -40,42 +35,25 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
-    QSplitter,
     QStackedWidget,
     QStyle,
     QTableWidget,
     QTableWidgetItem,
-    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
 
 import attach_files
 import cap_xang_store
-from cap_xang_model import format_allowance_tooltip
+from cap_xang_model import contrib_sub_tong, format_allowance_tooltip
 from excel_export import GHI_CHU_TO_DO, ReportWorkbook
 from style import icon as _icon
 
-VIEW_MODES = ["Chi tiết (nhập liệu)", "Tổng theo khóa học", "Tổng theo tuần", "Tổng theo tháng"]
-
-GRID_COLUMNS = [
-    "Khóa học", "Lớp", "Biển số", "Thời gian học", "Còn lại (lít)",
-    "Ngày cấp", "Số phiếu/Quyển", "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú", "",
-]
-# Chỉ số cột lưới Chi tiết - dùng tên thay số rải rác để thêm/bớt cột không sót
-_COL_CON_LAI, _COL_NGAY, _COL_SO_PHIEU, _COL_MAT_HANG = 4, 5, 6, 7
-_COL_SO_LUONG, _COL_PHAN_LOAI, _COL_GHI_CHU, _COL_XOA = 8, 9, 10, 11
-MATRIX_FROZEN_COLUMNS = ["Khóa học", "Lớp", "Biển số", "Còn lại (lít)"]
-_WEEKDAY_VN = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
-
-_MAU_DONG_TRONG = QColor("#eaf3ff")  # dòng trống cuối mỗi khóa/xe - chỗ gõ số cấp tiếp theo
-_MAU_CHU_VUOT = QColor("#b3261e")  # "Còn lại" âm - đã cấp vượt định mức
-_MAU_CHU_SAP_HET = QColor("#b26a00")  # "Còn lại" còn dưới 10% định mức
-_MAU_NGOAI_PHAM_VI = QColor("#e4e4e4")  # ô ngày ngoài thời gian học của khóa - không cho gõ
-_MAU_CUOI_TUAN = QColor("#fff6e0")  # tô nhạt cột Thứ 7/CN cho dễ nhìn
+HISTORY_COLUMNS = ["Ngày cấp", "Biển số", "Số phiếu/Quyển", "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú"]
 
 _SO_LUONG_KY_TU_RE = QRegularExpression(r"^[0-9xX, ]*$")
 _SO_LUONG_PHAN_RE = re.compile(r"^(\d+)(?:\s*[xX]\s*(\d+))?$")
+_SO_LUONG_MOI_RE = QRegularExpression(r"^\d*[.,]?\d*$")
 
 _GHI_CHU_SO_LUONG = (
     "Nhập 1 số (vd 50) hoặc SỐ PHIẾUxSỐ LÍT (vd 2x30 = 2 phiếu, mỗi phiếu 30 "
@@ -84,143 +62,9 @@ _GHI_CHU_SO_LUONG = (
     "lít + 1 phiếu 50 lít (8 phiếu, tổng 210 lít)."
 )
 
-_GUIDE_CSS = """
-<style>
-  p { margin: 4px 0 10px 0; }
-  b { color: #2b6cb0; }
-  code { background: #eef2f7; padding: 1px 4px; border-radius: 3px; }
-  ul { margin: 2px 0 10px 18px; padding: 0; }
-  li { margin: 4px 0; }
-</style>
-"""
-
-_HUONG_DAN_SO_LUONG_HTML = """
-<p><b>Cách gõ ô "Số lượng"</b> (dùng chung cho mọi chế độ xem):</p>
-<ul>
-<li>Gõ 1 số, vd <code>50</code> = 1 phiếu 50 lít.</li>
-<li>Gõ kiểu <code>SỐ PHIẾUxSỐ LÍT</code>, vd <code>2x30</code> = 2 phiếu, mỗi phiếu 30 lít.</li>
-<li>Nhiều phiếu cùng ngày cách nhau bằng dấu phẩy, vd
-<code>2x30, 4x20, 20, 50</code> = 2 phiếu 30L + 4 phiếu 20L + 1 phiếu 20L + 1 phiếu
-50L (tổng 8 phiếu, 210 lít).</li>
-<li>Ô này chỉ gõ được số, chữ <code>x</code>, dấu cách và dấu phẩy - gõ ký tự khác
-sẽ không ăn.</li>
-<li>Khi hiện lại trên bảng, ô vẫn hiện đúng y chuỗi đã gõ (không rút gọn về 1
-số), để không mất thông tin từng phiếu riêng lẻ.</li>
-</ul>
-"""
-
-_HUONG_DAN_CHI_TIET_HTML = _GUIDE_CSS + f"""
-<p><b>Chế độ "Chi tiết (nhập liệu)"</b> - nhập/sửa từng phiếu cấp xăng, dùng khi
-cấp xăng xong là ghi ngay trong ngày.</p>
-<ul>
-<li>Chọn 1 giáo viên ở trên - bảng tự liệt kê <b>mọi khóa học/biển số xe</b>
-giáo viên đó từng được phân công, không cần chọn/gõ lại.</li>
-<li>Mỗi khóa/xe luôn có sẵn <b>1 dòng nền xanh nhạt</b> ở cuối - đó là chỗ để
-cấp phiếu mới: khóa học/lớp/biển số đã điền sẵn, ngày cấp mặc định là hôm nay
-(sửa được bằng lịch).</li>
-<li>Chỉ cần gõ <b>Số lượng</b> rồi bấm Tab/Enter ra khỏi ô là lưu ngay - không
-cần điền các ô khác nếu không cần. Lưu xong, 1 dòng trống mới tự xuất hiện để
-cấp tiếp.</li>
-<li>Các phiếu đã lưu hiện thành dòng riêng (không tô màu) - sửa bất kỳ ô nào
-(ngày, số lượng, mặt hàng, ghi chú...) rồi rời khỏi ô là lưu lại ngay, không
-cần nút "Lưu" riêng.</li>
-<li>Nút <b>"Xóa"</b> ở cuối mỗi dòng đã lưu để xóa hẳn phiếu đó (có hỏi xác
-nhận trước).</li>
-<li><b>Ngày cấp bắt buộc nằm trong khoảng thời gian học của khóa đó</b> (từ
-ngày khai giảng đến ngày kết thúc) - gõ ngày ngoài khoảng này sẽ bị báo lỗi và
-không lưu.</li>
-<li>Cột <b>"Còn lại (lít)"</b> = tổng định mức của khóa/xe (định mức/học viên x
-số học viên) trừ số đã cấp - cập nhật ngay sau mỗi phiếu; <span style="color:#b26a00">
-màu cam</span> khi còn dưới 10%, <span style="color:#b3261e">màu đỏ</span> khi đã
-vượt. Rê chuột vào ô để xem cách tính. Gõ phiếu làm <b>vượt định mức</b> thì app
-hỏi lại trước khi lưu - chọn "No" sẽ không lưu.</li>
-</ul>
-{_HUONG_DAN_SO_LUONG_HTML}
-"""
-
-_HUONG_DAN_KHOA_HTML = _GUIDE_CSS + f"""
-<p><b>Chế độ "Tổng theo khóa học"</b> - bảng kiểu lịch, nhập dồn số liệu cho
-<b>1 khóa học cụ thể</b> từ đầu tới cuối khóa trong 1 lần, dùng khi chỉ ghi sổ
-lúc khóa học xong (hoặc gần xong).</p>
-<ul>
-<li>Chọn khóa học cần nhập ở ô <b>"Khóa học:"</b> phía trên bảng (chỉ liệt kê
-khóa của giáo viên đang chọn).</li>
-<li>Bảng hiện ra: mỗi <b>hàng</b> là 1 xe của khóa đó, mỗi <b>cột</b> là 1
-<b>ngày</b> - chạy từ ngày khai giảng đến ngày kết thúc khóa.</li>
-<li>Gõ số lượng thẳng vào ô ngày tương ứng - không cần chọn lại khóa/xe/ngày,
-chỉ cần gõ số.</li>
-<li>Cột <b>Khóa học / Lớp / Biển số</b> cố định ở khung bên trái, không trôi
-khi kéo thanh cuộn ngang ở khung bên phải để xem các ngày khác (kéo thanh chia
-đôi ở giữa 2 khung để chỉnh độ rộng khung trái nếu muốn).</li>
-<li>Khóa <b>chưa có ngày khai giảng/kết thúc</b> sẽ không xem được kiểu lịch
-này (báo rõ khi chọn) - dùng chế độ "Chi tiết (nhập liệu)" để nhập khóa đó.</li>
-<li>Mặt hàng/Phân loại sổ/Ghi chú/Số phiếu-Quyển của phiếu tạo từ ô ngày sẽ
-dùng giá trị gần nhất đã nhập (hoặc để trống) - muốn sửa chi tiết các trường
-này thì quay lại chế độ "Chi tiết (nhập liệu)".</li>
-</ul>
-{_HUONG_DAN_SO_LUONG_HTML}
-"""
-
-_HUONG_DAN_TUAN_HTML = _GUIDE_CSS + f"""
-<p><b>Chế độ "Tổng theo tuần"</b> - bảng kiểu lịch theo TUẦN, dùng khi chỉ ghi
-sổ vào cuối tuần cho tất cả các khóa giáo viên đang dạy.</p>
-<ul>
-<li>Thanh điều hướng phía trên: <b>"◀ Tuần trước"</b> / <b>"Tuần sau ▶"</b> để
-lùi/tới từng tuần, nút <b>"Tuần này"</b> để quay về tuần hiện tại. Mở tab mặc
-định hiện tuần hiện tại.</li>
-<li>Mỗi <b>hàng</b> là 1 khóa/xe của giáo viên đang chọn (chỉ hiện khóa còn
-đang học trong tuần đó, hoặc khóa chưa rõ ngày), mỗi <b>cột</b> là 1 ngày
-trong tuần (Thứ 2 → Chủ nhật).</li>
-<li>Gõ số lượng thẳng vào ô ngày tương ứng cho từng khóa.</li>
-<li>Ô <b>xám</b> = ngày đó ngoài thời gian học của khóa (chưa khai giảng/đã kết
-thúc) - không gõ được. Cột <b>Thứ 7/Chủ nhật</b> tô vàng nhạt cho dễ nhìn.</li>
-<li>Cột Khóa học/Lớp/Biển số cố định bên trái, giống chế độ "Tổng theo khóa
-học".</li>
-<li>Mặt hàng/Phân loại sổ/Ghi chú/Số phiếu-Quyển dùng giá trị gần nhất - sửa
-chi tiết thì quay lại chế độ "Chi tiết (nhập liệu)".</li>
-</ul>
-{_HUONG_DAN_SO_LUONG_HTML}
-"""
-
-_HUONG_DAN_THANG_HTML = _GUIDE_CSS + f"""
-<p><b>Chế độ "Tổng theo tháng"</b> - giống hệt "Tổng theo tuần" nhưng mỗi cột
-là 1 ngày trong CẢ THÁNG (28-31 cột) thay vì chỉ 1 tuần - dùng khi chỉ ghi sổ
-vào cuối tháng.</p>
-<ul>
-<li>Thanh điều hướng: <b>"◀ Tháng trước"</b> / <b>"Tháng sau ▶"</b> để lùi/tới
-từng tháng, nút <b>"Tháng này"</b> để quay về tháng hiện tại.</li>
-<li>Mỗi hàng là 1 khóa/xe còn liên quan tới tháng đó; ô xám = ngoài thời gian
-học của khóa; cột cuối tuần tô vàng nhạt; cột Khóa học/Lớp/Biển số cố định bên
-trái - y hệt chế độ "Tổng theo tuần".</li>
-<li>Vì có nhiều cột hơn (cả tháng), kéo thanh cuộn ngang ở khung bên phải để
-xem hết các ngày trong tháng.</li>
-</ul>
-{_HUONG_DAN_SO_LUONG_HTML}
-"""
-
-
-class _HuongDanDialog(QDialog):
-    """Hộp thoại hướng dẫn sử dụng 1 chế độ xem - nội dung HTML cuộn được,
-    dùng chung cho cả 4 chế độ (xem _HUONG_DAN_*_HTML)."""
-
-    def __init__(self, title, html, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle(title)
-        self.resize(640, 520)
-        layout = QVBoxLayout(self)
-
-        browser = QTextBrowser()
-        browser.setOpenExternalLinks(False)
-        browser.setHtml(html)
-        layout.addWidget(browser, 1)
-
-        btn_row = QHBoxLayout()
-        btn_row.addStretch(1)
-        btn_close = QPushButton("Đóng")
-        btn_close.setObjectName("primary")
-        btn_close.clicked.connect(self.accept)
-        btn_row.addWidget(btn_close)
-        layout.addLayout(btn_row)
+_MAU_CHU_VUOT = "#b3261e"  # "Còn lại" âm - đã cấp vượt định mức
+_MAU_CHU_SAP_HET = "#b26a00"  # "Còn lại" còn dưới 10% định mức
+_MAU_KHOA_HET_HAN = QColor("#b3261e")  # chữ đỏ: khóa "Đã đào tạo" (combobox Khóa học) / xe không chính thức phân công (combobox Biển số xe)
 
 
 def _fmt_so(value):
@@ -241,35 +85,11 @@ def _vuot(allowance):
     return bool(allowance) and allowance["con_lai"] is not None and allowance["con_lai"] < 0
 
 
-def _con_lai_item(allowance):
-    """Ô "Còn lại (lít)" cho 1 khóa/xe (xem CapXangModel.allowances_for_teacher)
-    - đỏ nếu đã vượt, cam nếu còn dưới 10% định mức, tooltip ghi cách tính."""
-    if not allowance or allowance["tong"] is None:
-        item = QTableWidgetItem("—")
-        item.setToolTip(
-            "Chưa có định mức cho xe này trong file định mức nhiên liệu "
-            "(tab ĐỊNH MỨC XĂNG -> \"Chọn file định mức...\")."
-        )
-    else:
-        con_lai = allowance["con_lai"]
-        item = QTableWidgetItem(_fmt_so(con_lai))
-        item.setToolTip(format_allowance_tooltip(allowance))
-        if con_lai < 0:
-            item.setForeground(_MAU_CHU_VUOT)
-        elif allowance["tong"] > 0 and con_lai < 0.1 * allowance["tong"]:
-            item.setForeground(_MAU_CHU_SAP_HET)
-        font = item.font()
-        font.setBold(True)
-        item.setFont(font)
-    item.setTextAlignment(Qt.AlignCenter)
-    item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-    return item
-
-
 def parse_so_luong(text):
     """Phân tích chuỗi số lượng kiểu "2x30, 4x20, 20, 50" (xem _GHI_CHU_SO_LUONG
     cho cú pháp) -> trả về (tổng_số_lít, tổng_số_phiếu). Chuỗi rỗng -> (0, 0).
-    Có phần sai định dạng -> (None, None)."""
+    Có phần sai định dạng -> (None, None). ĐƯỢC tab_tong_hop_cap_xang.py
+    import lại - giữ nguyên chữ ký nếu sửa gì ở đây."""
     text = (text or "").strip()
     if not text:
         return 0.0, 0
@@ -291,21 +111,6 @@ def parse_so_luong(text):
     return tong_lit, tong_phieu
 
 
-def _overlaps_period(assignment, start, end):
-    """True nếu khóa/xe `assignment` còn "liên quan" tới khoảng [start, end]
-    (tuần/tháng đang xem) - khóa chưa có ngày bắt đầu/kết thúc thì luôn coi
-    là liên quan (không đủ thông tin để loại)."""
-    tu = _parse_ngay(assignment.get("tu_ngay", ""))
-    den = _parse_ngay(assignment.get("den_ngay", ""))
-    if not tu and not den:
-        return True
-    if tu and tu > end:
-        return False
-    if den and den < start:
-        return False
-    return True
-
-
 class _EditableCombo(QComboBox):
     """Combobox gõ tự do + gợi ý từ các giá trị đã nhập trước đó (vd "Mặt
     hàng", "Phân loại sổ") - không ép phải chọn trong danh sách."""
@@ -314,452 +119,630 @@ class _EditableCombo(QComboBox):
         super().__init__(parent)
         self.setEditable(True)
         self.setInsertPolicy(QComboBox.NoInsert)
-        self.addItems(suggestions)
+        self.set_suggestions(suggestions)
         self.setCurrentText(text)
+
+    def set_suggestions(self, suggestions):
+        current = self.currentText()
+        self.blockSignals(True)
+        self.clear()
+        self.addItems(suggestions)
+        self.setCurrentText(current)
         completer = QCompleter(suggestions, self)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         completer.setFilterMode(Qt.MatchContains)
         self.setCompleter(completer)
+        self.blockSignals(False)
+
+
+class _StatChip(QWidget):
+    """1 ô nhỏ nổi bật 1 số liệu (vd "426 lít" + nhãn "Tổng định mức") - dùng
+    cho khối Định mức thay vì 1 khối chữ dài, để liếc qua là thấy ngay 3 số
+    quan trọng (Tổng/Đã cấp/Còn lại) mà không cần đọc câu chữ."""
+
+    def __init__(self, caption, parent=None):
+        super().__init__(parent)
+        self.setObjectName("statChip")
+        v = QVBoxLayout(self)
+        v.setContentsMargins(12, 8, 12, 8)
+        v.setSpacing(2)
+        self.lbl_value = QLabel("—")
+        self.lbl_caption = QLabel(caption)
+        self.lbl_caption.setStyleSheet("color: #6c757d; font-weight: 600; font-size: 9pt; background: transparent;")
+        v.addWidget(self.lbl_value)
+        v.addWidget(self.lbl_caption)
+        self.setStyleSheet("#statChip { background: #f7f8fa; border: 1px solid #e1e4ea; border-radius: 8px; }")
+        self.set_value("—")
+
+    def set_value(self, text, color="#1f2328"):
+        self.lbl_value.setText(text)
+        self.lbl_value.setStyleSheet(
+            f"font-size: 15pt; font-weight: 700; color: {color}; background: transparent;"
+        )
 
 
 class CapXangTab(QWidget):
     def __init__(self, model, parent=None):
         super().__init__(parent)
         self.model = model
-        today = datetime.now().date()
-        self._week_start = today - timedelta(days=today.weekday())
-        self._month = (today.year, today.month)
-        self._export_state = None  # dữ liệu của bảng đang hiện, để "Xuất Excel" (xem _on_export)
+        self._all_assignments = []
+        self._current_assignment = None  # dict giao_vien/ma_khoa/lop/xe/tu_ngay/den_ngay/status
+        self._xe_override = False  # True nếu xe đang chọn KHÁC xe chính thức phân công (xem _resolve_and_reload_detail)
+        self._current_allowance = None
+        self._history_records = []
+        self._editing_record_id = None
+        self._updating_selectors = False
+        self._last_teacher_text = ""
         self._build_ui()
-        self._load_teachers()
-        self._reload()
+        self._load_all_assignments()
+        self._on_selector_changed()
+
+    def refresh(self):
+        """Nạp lại danh sách khóa/giáo viên/xe sau khi tab CẬP NHẬT DỮ LIỆU xử
+        lý xong dữ liệu mới - xem main.py."""
+        self._load_all_assignments()
+        self._on_selector_changed()
+
+    def _load_all_assignments(self):
+        self._all_assignments = self.model.all_assignments()
 
     # ---------------- UI ----------------
     def _build_ui(self):
         outer = QVBoxLayout(self)
+        outer.addWidget(self._build_selector_box())
 
-        box = QGroupBox("Cấp xăng theo giáo viên")
-        form_layout = QHBoxLayout(box)
-        form_layout.addWidget(QLabel("Giáo viên:"))
-        self.cbo_teacher = QComboBox()
-        self.cbo_teacher.setEditable(True)
-        self.cbo_teacher.setInsertPolicy(QComboBox.NoInsert)
-        self.cbo_teacher.lineEdit().setPlaceholderText("Nhập hoặc chọn tên giáo viên...")
-        # Chỉ nạp lại bảng khi đã chọn xong tên (Enter/rời ô/chọn từ danh sách)
-        # - không nạp lại theo từng ký tự gõ (currentTextChanged), vì bảng có
-        # thể khá lớn, gõ theo từng ký tự sẽ giật/chậm.
-        self.cbo_teacher.activated.connect(lambda _idx: self._reload())
-        self.cbo_teacher.lineEdit().editingFinished.connect(self._reload)
-        form_layout.addWidget(self.cbo_teacher, 1)
-
-        form_layout.addSpacing(20)
-        form_layout.addWidget(QLabel("Xem theo:"))
-        self.cbo_view_mode = QComboBox()
-        self.cbo_view_mode.addItems(VIEW_MODES)
-        self.cbo_view_mode.currentIndexChanged.connect(lambda _: self._reload())
-        form_layout.addWidget(self.cbo_view_mode)
-        form_layout.addSpacing(12)
-        self.btn_export = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogSaveButton), "Xuất Excel...")
-        self.btn_export.setToolTip(
-            "Xuất đúng bảng đang hiện của giáo viên này ra Excel (chế độ Chi tiết: từng phiếu + "
-            "tổng theo khóa/xe; chế độ ma trận: bảng ngày như đang thấy + chi tiết phiếu trong kỳ)."
-        )
-        self.btn_export.clicked.connect(self._on_export)
-        form_layout.addWidget(self.btn_export)
-        outer.addWidget(box)
-
-        self.nav_stack = QStackedWidget()
-        self.nav_stack.addWidget(self._build_nav_chi_tiet())
-        self.nav_stack.addWidget(self._build_nav_khoa())
-        self.nav_stack.addWidget(self._build_nav_tuan())
-        self.nav_stack.addWidget(self._build_nav_thang())
-        outer.addWidget(self.nav_stack)
-
-        self.lbl_summary = QLabel("")
-        self.lbl_summary.setWordWrap(True)
-        outer.addWidget(self.lbl_summary)
-
+        # QStackedWidget thay vì ẩn/hiện từng widget riêng lẻ (box_dinh_muc/
+        # box_entry/tbl_history/lbl_history_total) - cách cũ để lại 1 mình
+        # selector box với layout Preferred-size, không có gì nhận stretch,
+        # nên Qt rải khoảng trống thừa vào CHÍNH selector box (và cả vài
+        # khoảng trống rải rác khác) làm màn hình rỗng trông vỡ layout. Dồn
+        # 2 trạng thái (chưa chọn đủ / đã chọn đủ) vào 2 "trang" của 1
+        # QStackedWidget nhận stretch=1 thì trang nào đang hiện cũng tự
+        # chiếm đúng phần không gian còn lại, không bị lệch.
         self.stack = QStackedWidget()
-
-        self.table = QTableWidget()
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table.setAlternatingRowColors(True)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.table.setSortingEnabled(False)
-        self.stack.addWidget(self.table)
-
-        self.stack.addWidget(self._build_matrix_widget())
-
+        self.stack.addWidget(self._build_placeholder_page())
+        self.stack.addWidget(self._build_detail_page())
         outer.addWidget(self.stack, 1)
 
-        self.lbl_total = QLabel("")
-        self.lbl_total.setStyleSheet("font-weight: 700; font-size: 12pt; color: #2659c4;")
-        outer.addWidget(self.lbl_total)
+    def _build_placeholder_page(self):
+        page = QWidget()
+        v = QVBoxLayout(page)
+        v.addStretch(1)
+        icon_lbl = QLabel("⛽")
+        icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon_lbl.setStyleSheet("font-size: 42pt; background: transparent;")
+        v.addWidget(icon_lbl)
+        self.lbl_placeholder = QLabel("")
+        self.lbl_placeholder.setWordWrap(True)
+        self.lbl_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_placeholder.setStyleSheet("font-size: 12pt; color: #5b6372; font-weight: 600; background: transparent;")
+        v.addWidget(self.lbl_placeholder)
+        v.addStretch(1)
+        return page
 
-    def _make_help_button(self, title, html):
-        btn = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogHelpButton), "Hướng dẫn")
-        btn.setToolTip(f"Xem hướng dẫn sử dụng chế độ \"{title}\"")
-        btn.clicked.connect(lambda: _HuongDanDialog(f"Hướng dẫn - {title}", html, self).exec())
-        return btn
+    def _build_detail_page(self):
+        page = QWidget()
+        v = QVBoxLayout(page)
+        v.setContentsMargins(0, 0, 0, 0)
 
-    def _build_nav_chi_tiet(self):
-        w = QWidget()
-        layout = QHBoxLayout(w)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(QLabel("Nhập/sửa từng phiếu cấp xăng trực tiếp trên bảng bên dưới."))
-        layout.addStretch(1)
-        layout.addWidget(self._make_help_button(VIEW_MODES[0], _HUONG_DAN_CHI_TIET_HTML))
-        return w
-
-    def _build_nav_khoa(self):
-        w = QWidget()
-        layout = QHBoxLayout(w)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(QLabel("Khóa học:"))
-        self.cbo_khoa_matrix = QComboBox()
-        self.cbo_khoa_matrix.currentIndexChanged.connect(lambda _: self._reload())
-        layout.addWidget(self.cbo_khoa_matrix, 1)
-        layout.addWidget(self._make_help_button(VIEW_MODES[1], _HUONG_DAN_KHOA_HTML))
-        return w
-
-    def _build_nav_tuan(self):
-        w = QWidget()
-        layout = QHBoxLayout(w)
-        layout.setContentsMargins(0, 0, 0, 0)
-        btn_prev = QPushButton("◀ Tuần trước")
-        btn_prev.clicked.connect(self._on_week_prev)
-        layout.addWidget(btn_prev)
-        self.lbl_tuan = QLabel("")
-        self.lbl_tuan.setStyleSheet("font-weight: 600;")
-        self.lbl_tuan.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.lbl_tuan, 1)
-        btn_next = QPushButton("Tuần sau ▶")
-        btn_next.clicked.connect(self._on_week_next)
-        layout.addWidget(btn_next)
-        btn_today = QPushButton("Tuần này")
-        btn_today.clicked.connect(self._on_week_today)
-        layout.addWidget(btn_today)
-        layout.addWidget(self._make_help_button(VIEW_MODES[2], _HUONG_DAN_TUAN_HTML))
-        return w
-
-    def _build_nav_thang(self):
-        w = QWidget()
-        layout = QHBoxLayout(w)
-        layout.setContentsMargins(0, 0, 0, 0)
-        btn_prev = QPushButton("◀ Tháng trước")
-        btn_prev.clicked.connect(self._on_month_prev)
-        layout.addWidget(btn_prev)
-        self.lbl_thang = QLabel("")
-        self.lbl_thang.setStyleSheet("font-weight: 600;")
-        self.lbl_thang.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.lbl_thang, 1)
-        btn_next = QPushButton("Tháng sau ▶")
-        btn_next.clicked.connect(self._on_month_next)
-        layout.addWidget(btn_next)
-        btn_today = QPushButton("Tháng này")
-        btn_today.clicked.connect(self._on_month_today)
-        layout.addWidget(btn_today)
-        layout.addWidget(self._make_help_button(VIEW_MODES[3], _HUONG_DAN_THANG_HTML))
-        return w
-
-    def _build_matrix_widget(self):
-        self.frozen_table = QTableWidget()
-        self.frozen_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.frozen_table.verticalHeader().setVisible(False)
-        self.frozen_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.frozen_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.frozen_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.frozen_table.setSelectionMode(QTableWidget.NoSelection)
-        self.frozen_table.setSortingEnabled(False)
-
-        self.date_table = QTableWidget()
-        self.date_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.date_table.verticalHeader().setVisible(False)
-        self.date_table.setSelectionMode(QTableWidget.NoSelection)
-        self.date_table.setSortingEnabled(False)
-
-        self.frozen_table.verticalScrollBar().valueChanged.connect(
-            self.date_table.verticalScrollBar().setValue
+        self.lbl_xe_canh_bao = QLabel("")
+        self.lbl_xe_canh_bao.setWordWrap(True)
+        self.lbl_xe_canh_bao.setStyleSheet(
+            "background: #fff1dc; border: 1px solid #f0c48a; border-radius: 4px; "
+            "padding: 6px; color: #5a3b00; font-weight: 600;"
         )
-        self.date_table.verticalScrollBar().valueChanged.connect(
-            self.frozen_table.verticalScrollBar().setValue
-        )
+        self.lbl_xe_canh_bao.hide()
+        v.addWidget(self.lbl_xe_canh_bao)
 
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(self.frozen_table)
-        splitter.addWidget(self.date_table)
-        splitter.setStretchFactor(0, 0)
-        splitter.setStretchFactor(1, 1)
-        return splitter
+        self.box_dinh_muc = self._build_dinh_muc_box()
+        v.addWidget(self.box_dinh_muc)
 
-    def _load_teachers(self):
-        teachers = self.model.all_teachers()
+        self.box_entry = self._build_entry_box()
+        v.addWidget(self.box_entry)
+
+        history_header = QHBoxLayout()
+        history_header.addWidget(QLabel("Lịch sử các lần cấp trước:"))
+        history_header.addStretch(1)
+        self.btn_export = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogSaveButton), "Xuất Excel...")
+        self.btn_export.clicked.connect(self._on_export)
+        history_header.addWidget(self.btn_export)
+        v.addLayout(history_header)
+
+        self.tbl_history = QTableWidget()
+        self.tbl_history.setColumnCount(len(HISTORY_COLUMNS))
+        self.tbl_history.setHorizontalHeaderLabels(HISTORY_COLUMNS)
+        self.tbl_history.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tbl_history.setAlternatingRowColors(True)
+        self.tbl_history.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tbl_history.cellClicked.connect(self._on_history_row_clicked)
+        v.addWidget(self.tbl_history, 1)
+
+        self.lbl_history_total = QLabel("")
+        self.lbl_history_total.setStyleSheet("font-weight: 700;")
+        v.addWidget(self.lbl_history_total)
+        return page
+
+    @staticmethod
+    def _make_searchable_combo():
+        combo = QComboBox()
+        combo.setEditable(True)
+        combo.setInsertPolicy(QComboBox.NoInsert)
+        return combo
+
+    def _build_selector_box(self):
+        box = QGroupBox("Chọn giáo viên / khóa học / biển số xe")
+        row = QHBoxLayout(box)
+
+        row.addWidget(QLabel("Giáo viên:"))
+        self.cbo_teacher = self._make_searchable_combo()
+        self.cbo_teacher.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
+        self.cbo_teacher.activated.connect(lambda _i: self._on_selector_changed("giao_vien"))
+        self.cbo_teacher.lineEdit().editingFinished.connect(lambda: self._on_selector_changed("giao_vien"))
+        row.addWidget(self.cbo_teacher, 1)
+
+        row.addWidget(QLabel("Khóa học:"))
+        # editable để gõ tìm (giống Giáo viên/Biển số xe) - khác 2 ô kia ở
+        # chỗ giá trị thật đọc qua currentData() (mã khóa), không phải chữ
+        # hiển thị - xem _on_khoa_editing_finished (chặn gõ sai lệch dữ liệu).
+        self.cbo_khoa = self._make_searchable_combo()
+        self.cbo_khoa.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
+        self.cbo_khoa.currentIndexChanged.connect(lambda _i: self._on_selector_changed("khoa"))
+        self.cbo_khoa.lineEdit().editingFinished.connect(self._on_khoa_editing_finished)
+        row.addWidget(self.cbo_khoa, 1)
+
+        row.addWidget(QLabel("Biển số xe:"))
+        self.cbo_xe = self._make_searchable_combo()
+        self.cbo_xe.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
+        self.cbo_xe.activated.connect(lambda _i: self._on_selector_changed("xe"))
+        self.cbo_xe.lineEdit().editingFinished.connect(lambda: self._on_selector_changed("xe"))
+        row.addWidget(self.cbo_xe, 1)
+
+        return box
+
+    def _build_dinh_muc_box(self):
+        box = QGroupBox("Định mức")
+        v = QVBoxLayout(box)
+
+        chips = QHBoxLayout()
+        self.chip_tong = _StatChip("Tổng định mức")
+        self.chip_da_cap = _StatChip("Đã cấp")
+        self.chip_con_lai = _StatChip("Còn lại")
+        chips.addWidget(self.chip_tong, 1)
+        chips.addWidget(self.chip_da_cap, 1)
+        chips.addWidget(self.chip_con_lai, 1)
+        v.addLayout(chips)
+
+        self.lbl_dinh_muc_note = QLabel("")
+        self.lbl_dinh_muc_note.setWordWrap(True)
+        v.addWidget(self.lbl_dinh_muc_note)
+
+        row = QHBoxLayout()
+        self.btn_sua_dinh_muc = QPushButton("Sửa định mức...")
+        self.btn_sua_dinh_muc.clicked.connect(self._on_sua_dinh_muc)
+        row.addWidget(self.btn_sua_dinh_muc)
+        self.btn_dinh_muc_goc = QPushButton("Dùng định mức gốc")
+        self.btn_dinh_muc_goc.clicked.connect(self._on_dung_dinh_muc_goc)
+        row.addWidget(self.btn_dinh_muc_goc)
+        row.addStretch(1)
+        v.addLayout(row)
+        return box
+
+    def _build_entry_box(self):
+        box = QGroupBox("Cấp xăng")
+        v = QVBoxLayout(box)
+
+        row1 = QHBoxLayout()
+        row1.addWidget(QLabel("Ngày cấp:"))
+        self.date_edit = QDateEdit()
+        self.date_edit.setCalendarPopup(True)
+        self.date_edit.setDisplayFormat("dd/MM/yyyy")
+        self.date_edit.setDate(QDate.currentDate())
+        row1.addWidget(self.date_edit)
+        row1.addSpacing(16)
+        row1.addWidget(QLabel("Số lượng:"))
+        self.txt_so_luong = QLineEdit()
+        self.txt_so_luong.setValidator(QRegularExpressionValidator(_SO_LUONG_KY_TU_RE))
+        self.txt_so_luong.setPlaceholderText("vd: 2x30, 4x20, 20, 50")
+        self.txt_so_luong.setToolTip(_GHI_CHU_SO_LUONG)
+        self.txt_so_luong.returnPressed.connect(self._on_submit)
+        row1.addWidget(self.txt_so_luong, 1)
+        v.addLayout(row1)
+
+        row2 = QHBoxLayout()
+        row2.addWidget(QLabel("Mặt hàng:"))
+        self.cbo_mat_hang = _EditableCombo([], "")
+        row2.addWidget(self.cbo_mat_hang, 1)
+        row2.addWidget(QLabel("Phân loại sổ:"))
+        self.cbo_phan_loai = _EditableCombo([], "")
+        row2.addWidget(self.cbo_phan_loai, 1)
+        row2.addWidget(QLabel("Số phiếu/Quyển:"))
+        self.txt_so_phieu = QLineEdit()
+        row2.addWidget(self.txt_so_phieu, 1)
+        row2.addWidget(QLabel("Ghi chú:"))
+        self.txt_ghi_chu = QLineEdit()
+        row2.addWidget(self.txt_ghi_chu, 1)
+        v.addLayout(row2)
+
+        row3 = QHBoxLayout()
+        self.btn_submit = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogApplyButton), "Cấp xăng")
+        self.btn_submit.setObjectName("primary")
+        self.btn_submit.clicked.connect(self._on_submit)
+        row3.addWidget(self.btn_submit)
+        self.btn_cancel_edit = QPushButton("Hủy sửa")
+        self.btn_cancel_edit.clicked.connect(self._cancel_edit)
+        self.btn_cancel_edit.setVisible(False)
+        row3.addWidget(self.btn_cancel_edit)
+        self.btn_delete_record = QPushButton("Xóa phiếu")
+        self.btn_delete_record.clicked.connect(self._on_delete_current)
+        self.btn_delete_record.setVisible(False)
+        row3.addWidget(self.btn_delete_record)
+        self.lbl_submit_status = QLabel("")
+        self.lbl_submit_status.setStyleSheet("color: #1a7f37; font-weight: 600;")
+        row3.addWidget(self.lbl_submit_status)
+        row3.addStretch(1)
+        v.addLayout(row3)
+        return box
+
+    # ---------------- 3 combobox liên kết ----------------
+    def _on_selector_changed(self, source=None):
+        if self._updating_selectors:
+            return
+        self._updating_selectors = True
+        try:
+            if source == "giao_vien":
+                # Chọn giáo viên MỚI -> RESET Khóa + Xe (khác 2 ô kia, vốn chỉ
+                # cập nhật 2 cái còn lại khi đang bỏ trống) - giáo viên là lựa
+                # chọn gốc, đổi giáo viên thì lựa chọn khóa/xe cũ (của giáo
+                # viên khác) không còn ý nghĩa gì nữa.
+                #
+                # CHỈ reset khi tên THỰC SỰ đổi (so với _last_teacher_text) -
+                # editingFinished phát ra MỖI LẦN ô này mất focus, kể cả khi
+                # chữ không đổi (vd tab/click sang ô Số lượng sau khi đã chọn
+                # xong cả 3 ô) - nếu cứ reset vô điều kiện thì chỉ cần rời
+                # khỏi ô Giáo viên là khóa/xe đã chọn bị xóa sạch, kể cả lúc
+                # app tự đưa focus sang ô Số lượng sau khi vừa chọn xong (xem
+                # _cancel_edit).
+                gv_text = self.cbo_teacher.currentText().strip()
+                if gv_text != self._last_teacher_text:
+                    self._set_combo_blank(self.cbo_khoa)
+                    self._set_combo_blank(self.cbo_xe)
+
+            # Lặp tối đa vài vòng: mỗi vòng có thể tự chọn luôn 1 combobox
+            # (xem _repopulate_*_combo - chỉ có đúng 1 lựa chọn thì tự chọn),
+            # việc đó lại làm hẹp thêm lựa chọn của combobox còn lại - lặp
+            # tới khi không còn gì đổi thêm (3 trường nên tối đa 3 vòng).
+            for _ in range(3):
+                if not self._settle_selectors_once(source):
+                    break
+        finally:
+            self._updating_selectors = False
+
+        self._last_teacher_text = self.cbo_teacher.currentText().strip()
+        self._resolve_and_reload_detail()
+
+    def _settle_selectors_once(self, source):
+        """1 vòng cập nhật: lọc theo CẢ 3 ô đang có giá trị, rồi với mỗi ô
+        CÒN LẠI (khác `source`) đang BỎ TRỐNG - nạp lại danh sách từ kết quả
+        lọc đó; chỉ có đúng 1 lựa chọn thì TỰ CHỌN LUÔN. Trả về True nếu có
+        ô nào vừa được tự chọn (cần gọi lại để lọc hẹp thêm ô còn lại)."""
+        gv = self.cbo_teacher.currentText().strip() or None
+        khoa_ma = self.cbo_khoa.currentData()
+        xe = self.cbo_xe.currentText().strip() or None
+
+        gv_norm = attach_files.normalize_name(gv) if gv else None
+        xe_norm = attach_files.normalize_plate(xe) if xe else None
+
+        matches = [
+            a for a in self._all_assignments
+            if (not gv_norm or attach_files.normalize_name(a["giao_vien"]) == gv_norm)
+            and (not khoa_ma or a["ma_khoa"] == khoa_ma)
+            and (not xe_norm or attach_files.normalize_plate(a["xe"]) == xe_norm)
+        ]
+
+        changed = False
+        if source != "giao_vien" and not gv and self._repopulate_teacher_combo(matches):
+            changed = True
+        if source != "khoa" and not khoa_ma and self._repopulate_khoa_combo(matches):
+            changed = True
+        if source != "xe" and not xe and self._repopulate_xe_combo(matches, gv_khoa_set=bool(gv and khoa_ma)):
+            changed = True
+        return changed
+
+    @staticmethod
+    def _set_combo_blank(combo):
+        """Bỏ chọn hẳn (currentText() rỗng) - dùng -1, KHÔNG dùng 0: ô Biển
+        số xe lúc đã tự chọn sẵn 1 xe (_repopulate_xe_combo, gv_khoa_set)
+        không hề thêm mục rỗng ở đầu danh sách (tu_chon=True), nên mục 0 lúc
+        đó là 1 biển số THẬT - setCurrentIndex(0) tưởng là "bỏ trống" nhưng
+        lại giữ nguyên biển số xe của lượt chọn giáo viên TRƯỚC ĐÓ, khiến
+        giáo viên mới chọn bị lọc nhầm theo xe cũ (tưởng không có khóa nào)."""
+        combo.blockSignals(True)
+        combo.setCurrentIndex(-1)
+        combo.blockSignals(False)
+
+    def _repopulate_teacher_combo(self, matches):
+        """Nạp lại danh sách giáo viên từ `matches` - TỰ CHỌN LUÔN nếu chỉ
+        còn đúng 1 giáo viên khớp. Trả về True nếu vừa tự chọn."""
+        names = sorted({a["giao_vien"] for a in matches if a["giao_vien"]}, key=attach_files.given_name_sort_key)
         self.cbo_teacher.blockSignals(True)
         self.cbo_teacher.clear()
         self.cbo_teacher.addItem("")
-        self.cbo_teacher.addItems(teachers)
-        self.cbo_teacher.setCurrentIndex(0)
+        self.cbo_teacher.addItems(names)
+        tu_chon = len(names) == 1
+        self.cbo_teacher.setCurrentIndex(1 if tu_chon else 0)
+        self._set_completer(self.cbo_teacher, names)
         self.cbo_teacher.blockSignals(False)
+        return tu_chon
 
-        completer = QCompleter(teachers, self)
+    def _repopulate_khoa_combo(self, matches):
+        """Nạp lại danh sách khóa từ `matches` - TỰ CHỌN LUÔN nếu chỉ còn
+        đúng 1 khóa khớp. Trả về True nếu vừa tự chọn."""
+        by_khoa = {}
+        for a in matches:
+            by_khoa.setdefault(a["ma_khoa"], a)
+        items = sorted(by_khoa.values(), key=lambda a: (a["status"] == "Đã đào tạo", a["ma_khoa"]))
+
+        self.cbo_khoa.blockSignals(True)
+        self.cbo_khoa.clear()
+        self.cbo_khoa.addItem("", None)
+        labels = []
+        for a in items:
+            label = f"{a['ma_khoa']} ({a['lop']})"
+            if a.get("tu_ngay") and a.get("den_ngay"):
+                label += f" [{a['tu_ngay']} → {a['den_ngay']}]"
+            da_ket_thuc = a["status"] == "Đã đào tạo"
+            if da_ket_thuc:
+                label += " - ĐÃ KẾT THÚC"
+            self.cbo_khoa.addItem(label, a["ma_khoa"])
+            labels.append(label)
+            if da_ket_thuc:
+                self.cbo_khoa.setItemData(self.cbo_khoa.count() - 1, _MAU_KHOA_HET_HAN, Qt.ForegroundRole)
+        tu_chon = len(items) == 1
+        self.cbo_khoa.setCurrentIndex(1 if tu_chon else 0)
+        self._set_completer(self.cbo_khoa, labels)
+        self.cbo_khoa.blockSignals(False)
+        return tu_chon
+
+    def _on_khoa_editing_finished(self):
+        """Khóa học đọc giá trị qua currentData() (mã khóa thật), không qua
+        currentText() (chỉ là nhãn hiển thị) - khác Giáo viên/Biển số xe. Cho
+        gõ để tìm (completer) nhưng gõ xong mà KHÔNG khớp đúng mục nào đang
+        chọn thì phải trả chữ hiển thị về đúng mục đang chọn (currentIndex
+        không đổi) - nếu không, chữ hiển thị sẽ lệch khỏi mã khóa thật đang
+        dùng (currentData), gây nhầm lẫn/chọn sai khóa."""
+        idx = self.cbo_khoa.currentIndex()
+        dung_text = self.cbo_khoa.itemText(idx) if idx >= 0 else ""
+        if self.cbo_khoa.lineEdit().text() != dung_text:
+            self.cbo_khoa.lineEdit().setText(dung_text)
+
+    def _repopulate_xe_combo(self, matches, gv_khoa_set):
+        """Nạp lại danh sách biển số - LUÔN hiện TẤT CẢ biển số đang có trong
+        dữ liệu (không chỉ xe của giáo viên/khóa đang chọn - `matches`) để
+        giáo viên có thể CẤP CHO XE KHÁC khóa này không chính thức phân công
+        (vd xe quen hỏng, mượn tạm xe khác) - xe KHỚP (`matches`, xe chính
+        thức của giáo viên/khóa đang chọn) xếp LÊN ĐẦU danh sách, các xe còn
+        lại tô đỏ xếp sau để phân biệt, nhưng vẫn chọn được (xem _resolve_
+        and_reload_detail - cho phép "override" xe).
+
+        `gv_khoa_set`: đã chọn xong CẢ giáo viên lẫn khóa (nên `matches` phản
+        ánh đúng xe chính thức của riêng cặp đó) - chỉ khi đó mới MẶC ĐỊNH
+        chọn sẵn xe đúng đầu tiên (không để trống) - còn khi giáo viên/khóa
+        chưa chọn xong (matches chưa có nghĩa thật) thì vẫn để trống chờ
+        chọn, không tự ý chọn đại 1 xe. Trả về True nếu vừa tự chọn."""
+        plates_dung = sorted({a["xe"] for a in matches if a["xe"]})
+        plates_dung_set = set(plates_dung)
+        plates_khac = sorted({a["xe"] for a in self._all_assignments if a["xe"]} - plates_dung_set)
+
+        self.cbo_xe.blockSignals(True)
+        self.cbo_xe.clear()
+        tu_chon = gv_khoa_set and bool(plates_dung)
+        if not tu_chon:
+            self.cbo_xe.addItem("")
+        for p in plates_dung:
+            self.cbo_xe.addItem(p)
+        for p in plates_khac:
+            self.cbo_xe.addItem(p)
+            self.cbo_xe.setItemData(self.cbo_xe.count() - 1, _MAU_KHOA_HET_HAN, Qt.ForegroundRole)
+        self.cbo_xe.setCurrentIndex(0)
+        self._set_completer(self.cbo_xe, [*plates_dung, *plates_khac])
+        self.cbo_xe.blockSignals(False)
+        return tu_chon
+
+    @staticmethod
+    def _set_completer(combo, items):
+        completer = QCompleter(items, combo)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         completer.setFilterMode(Qt.MatchContains)
-        self.cbo_teacher.setCompleter(completer)
+        combo.setCompleter(completer)
 
-    def refresh(self):
-        """Nạp lại danh sách giáo viên sau khi tab CẬP NHẬT DỮ LIỆU xử lý
-        xong dữ liệu mới - giữ nguyên giáo viên đang chọn nếu còn hợp lệ."""
-        teacher_text = self.cbo_teacher.currentText().strip()
-        self._load_teachers()
-        if teacher_text:
-            idx = self.cbo_teacher.findText(teacher_text)
-            if idx >= 0:
-                self.cbo_teacher.blockSignals(True)
-                self.cbo_teacher.setCurrentIndex(idx)
-                self.cbo_teacher.blockSignals(False)
-        self._reload()
+    # ---------------- xác định bộ 3 đang chọn + nạp chi tiết ----------------
+    def _resolve_and_reload_detail(self):
+        gv = self.cbo_teacher.currentText().strip()
+        khoa_ma = self.cbo_khoa.currentData()
+        xe = self.cbo_xe.currentText().strip()
 
-    # ---------------- điều hướng kỳ (tuần/tháng) ----------------
-    def _on_week_prev(self):
-        self._week_start -= timedelta(days=7)
-        self._reload()
-
-    def _on_week_next(self):
-        self._week_start += timedelta(days=7)
-        self._reload()
-
-    def _on_week_today(self):
-        today = datetime.now().date()
-        self._week_start = today - timedelta(days=today.weekday())
-        self._reload()
-
-    def _on_month_prev(self):
-        y, m = self._month
-        self._month = (y - 1, 12) if m == 1 else (y, m - 1)
-        self._reload()
-
-    def _on_month_next(self):
-        y, m = self._month
-        self._month = (y + 1, 1) if m == 12 else (y, m + 1)
-        self._reload()
-
-    def _on_month_today(self):
-        today = datetime.now().date()
-        self._month = (today.year, today.month)
-        self._reload()
-
-    # ---------------- dựng giao diện theo chế độ ----------------
-    def _unique_assignments(self, name):
-        """Mỗi khóa/xe giáo viên `name` từng được phân công -> 1 dòng (gộp
-        các "ca" trùng khóa/xe lại làm 1, vì phiếu cấp xăng không phân biệt ca)."""
-        assignments = {}
-        for g in self.model.courses_of_teacher(name):
-            key = (g["ma_khoa"], g["xe"])
-            assignments.setdefault(key, g)
-        return sorted(assignments.values(), key=lambda g: g["ma_khoa"])
-
-    def _find_cell_of_widget(self, table, widget):
-        """Tìm (hàng, cột) chứa `widget` (hoặc widget cha của nó, vd ô
-        QComboBox chứa QLineEdit bên trong) trong `table` - dùng để nhớ ô
-        đang gõ trước khi dựng lại bảng, rồi focus lại đúng ô đó sau khi dựng
-        xong (xem _reload) - tránh mất vị trí đang nhập mỗi lần lưu."""
-        if widget is None:
-            return None
-        for r in range(table.rowCount()):
-            for c in range(table.columnCount()):
-                w = table.cellWidget(r, c)
-                if w is not None and (w is widget or w.isAncestorOf(widget)):
-                    return r, c
-        return None
-
-    def _restore_cell_focus(self, table, pos):
-        if not pos:
-            return
-        r, c = pos
-        if r >= table.rowCount() or c >= table.columnCount():
-            return
-        w = table.cellWidget(r, c)
-        if w is None:
-            return
-        target = w.lineEdit() if hasattr(w, "lineEdit") and w.lineEdit() else w
-        target.setFocus()
-
-    def _reload(self, *_args):
-        name = self.cbo_teacher.currentText().strip()
-        mode = self.cbo_view_mode.currentIndex()
-        self._export_state = None
-
-        # Bảng bị dựng lại từ đầu mỗi lần nạp lại (sau khi lưu 1 ô, đổi
-        # tuần/tháng...) - tự nhớ lại vị trí cuộn + ô đang gõ trước khi dựng,
-        # rồi phục hồi lại sau, để người dùng không bị "nhảy" về đầu bảng sau
-        # mỗi lần lưu một ô.
-        active_table = self.table if mode == 0 else self.date_table
-        focus_pos = self._find_cell_of_widget(active_table, QApplication.focusWidget())
-        v_scroll = active_table.verticalScrollBar().value()
-        h_scroll = active_table.horizontalScrollBar().value()
-
-        self.nav_stack.setCurrentIndex(mode)
-        self.stack.setCurrentIndex(0 if mode == 0 else 1)
-
-        if not name:
-            self.table.setRowCount(0)
-            self.table.setColumnCount(0)
-            self._clear_matrix()
-            self.lbl_total.setText("")
-            self.lbl_summary.setText("Chọn hoặc nhập tên giáo viên để cấp xăng.")
+        if not gv or not khoa_ma or not xe:
+            self._current_assignment = None
+            self._show_placeholder("Chọn đủ Giáo viên / Khóa học / Biển số xe để cấp xăng.")
             return
 
-        name_norm = attach_files.normalize_name(name)
-        all_records = cap_xang_store.load()["records"]
-        records = [r for r in all_records if attach_files.normalize_name(r.get("giao_vien", "")) == name_norm]
+        gv_norm = attach_files.normalize_name(gv)
+        xe_norm = attach_files.normalize_plate(xe)
+        exact = next(
+            (a for a in self._all_assignments
+             if attach_files.normalize_name(a["giao_vien"]) == gv_norm
+             and a["ma_khoa"] == khoa_ma
+             and attach_files.normalize_plate(a["xe"]) == xe_norm),
+            None,
+        )
+        if exact is not None:
+            self._current_assignment = exact
+            self._xe_override = False
+            self._show_detail_content()
+            self._reload_allowance_and_history()
+            return
 
-        if mode == 0:
-            self._render_grid(name, records)
-        elif mode == 1:
-            self._render_matrix_khoa(name, records)
-        elif mode == 2:
-            self._render_matrix_tuan(name, records)
-        else:
-            self._render_matrix_thang(name, records)
-
-        active_table = self.table if mode == 0 else self.date_table
-        # Dựng lại cột/hàng còn vài việc Qt tự xếp lại kích thước ở vòng lặp
-        # sự kiện kế tiếp (vd setDefaultSectionSize) có thể đè lại vị trí
-        # cuộn vừa set - nên set ngay 1 lần rồi set lại lần 2 sau khi các việc
-        # đó đã xử lý xong mới thật sự giữ đúng vị trí.
-        active_table.verticalScrollBar().setValue(v_scroll)
-        active_table.horizontalScrollBar().setValue(h_scroll)
-        self._restore_cell_focus(active_table, focus_pos)
-        QTimer.singleShot(0, lambda: self._restore_table_state(active_table, v_scroll, h_scroll, focus_pos))
-
-    def _restore_table_state(self, table, v_scroll, h_scroll, focus_pos):
-        table.verticalScrollBar().setValue(v_scroll)
-        table.horizontalScrollBar().setValue(h_scroll)
-        if QApplication.focusWidget() is None:
-            self._restore_cell_focus(table, focus_pos)
-
-    def _render_grid(self, name, records):
-        groups = self._unique_assignments(name)
-
-        records_by_key = {}
-        for r in records:
-            key = (r.get("ma_khoa", ""), r.get("xe", ""))
-            records_by_key.setdefault(key, []).append(r)
-        for lst in records_by_key.values():
-            lst.sort(key=lambda r: (_parse_ngay(r.get("ngay_cap", "")) or datetime.min.date()))
-
-        mat_hang_goi_y = cap_xang_store.distinct_values("mat_hang")
-        phan_loai_goi_y = cap_xang_store.distinct_values("phan_loai_so")
-        mat_hang_mac_dinh = mat_hang_goi_y[0] if mat_hang_goi_y else ""
-        phan_loai_mac_dinh = phan_loai_goi_y[0] if phan_loai_goi_y else ""
-
-        self.table.setRowCount(0)
-        self.table.setColumnCount(len(GRID_COLUMNS))
-        self.table.setHorizontalHeaderLabels(GRID_COLUMNS)
-
-        if not groups:
-            self.table.setRowCount(0)
-            self.lbl_total.setText("")
-            self.lbl_summary.setText(
-                f"Giáo viên '{name}' chưa được phân công khóa học/xe nào trong dữ liệu."
+        # Không khớp đúng xe nào trong phân công (giáo viên, khóa) này - vẫn
+        # CHO PHÉP cấp cho XE KHÁC nếu giáo viên có dạy khóa đó (chỉ khác xe -
+        # xem _repopulate_xe_combo, combobox Biển số xe hiện TẤT CẢ xe, tô đỏ
+        # xe không chính thức) - vd xe quen hỏng, mượn tạm xe khác. Phiếu cấp
+        # theo xe "lạ" này sẽ hiện "mồ côi" (không khớp phân công) ở tab TỔNG
+        # HỢP CẤP XĂNG - đúng ý, để biết mà rà soát sau, không mất phiếu.
+        base = next(
+            (a for a in self._all_assignments
+             if attach_files.normalize_name(a["giao_vien"]) == gv_norm and a["ma_khoa"] == khoa_ma),
+            None,
+        )
+        if base is None:
+            self._current_assignment = None
+            self._xe_override = False
+            self._show_placeholder(
+                f"'{gv}' không được phân công dạy khóa '{khoa_ma}' - kiểm tra lại lựa chọn."
             )
             return
-        self.lbl_summary.setText(
-            "Gõ số lượng vào dòng trống (nền xanh nhạt) cuối mỗi khóa/xe để cấp xăng - "
-            "khóa học/biển số/ngày cấp đã có sẵn, không cần chọn lại. " + _GHI_CHU_SO_LUONG
+
+        self._current_assignment = {**base, "xe": xe}
+        self._xe_override = True
+        self._show_detail_content()
+        self._reload_allowance_and_history()
+
+    def _show_placeholder(self, text):
+        self.lbl_placeholder.setText(text)
+        self.stack.setCurrentIndex(0)
+        self.btn_export.setEnabled(False)
+
+    def _show_detail_content(self):
+        self.stack.setCurrentIndex(1)
+
+    def _reload_allowance_and_history(self):
+        a = self._current_assignment
+        if self._xe_override:
+            self.lbl_xe_canh_bao.setText(
+                f"⚠ Đang cấp cho xe '{a['xe']}' - KHÁC xe chính thức phân công cho "
+                f"'{a['giao_vien']}' trong khóa {a['ma_khoa']} ({a['lop']}). Vẫn cho phép "
+                "cấp, nhưng KHÔNG tính được định mức/còn lại cho xe này, và phiếu sẽ hiện "
+                "ở mục \"không khớp phân công\" trong tab TỔNG HỢP CẤP XĂNG để rà soát sau."
+            )
+            self.lbl_xe_canh_bao.show()
+        else:
+            self.lbl_xe_canh_bao.hide()
+        allowances = self.model.allowances_for_teacher(a["giao_vien"])
+        self._current_allowance = allowances.get((a["ma_khoa"], a["xe"]))
+        self._render_dinh_muc_box()
+        self._cancel_edit()
+        self._render_history()
+
+    # ---------------- khối định mức ----------------
+    def _render_dinh_muc_box(self):
+        allowance = self._current_allowance
+        if not allowance:
+            self.chip_tong.set_value("—")
+            self.chip_da_cap.set_value("—")
+            self.chip_con_lai.set_value("—")
+            self.lbl_dinh_muc_note.setText(
+                "Chưa có định mức nào ghi nhận cho khóa/xe này - bấm \"Sửa định mức...\" để nhập tay."
+            )
+            self.box_dinh_muc.setToolTip("")
+            self.btn_sua_dinh_muc.setEnabled(True)
+            self.btn_dinh_muc_goc.setEnabled(False)
+            return
+
+        a = self._current_assignment
+        contrib = self.model.contrib_for(allowance, a["giao_vien"]) or {}
+        override = contrib.get("override")
+
+        tong, da_cap, con_lai = allowance["tong"], allowance["da_cap"], allowance["con_lai"]
+
+        color = ""
+        if con_lai is not None and con_lai < 0:
+            color = _MAU_CHU_VUOT
+        elif tong and con_lai is not None and con_lai < 0.1 * tong:
+            color = _MAU_CHU_SAP_HET
+
+        self.chip_tong.set_value(f"{_fmt_so(tong)} lít" if tong is not None else "Chưa rõ")
+        self.chip_da_cap.set_value(f"{_fmt_so(da_cap)} lít")
+        self.chip_con_lai.set_value(
+            f"{_fmt_so(con_lai)} lít" if con_lai is not None else "—", color or "#1f2328"
         )
 
-        row_specs = []  # list[(assignment, record_or_None)]
-        for g in groups:
-            key = (g["ma_khoa"], g["xe"])
-            for r in records_by_key.get(key, []):
-                row_specs.append((g, r))
-            row_specs.append((g, None))
-
-        self.table.setRowCount(len(row_specs))
-        self.table.horizontalHeaderItem(_COL_SO_LUONG).setToolTip(_GHI_CHU_SO_LUONG)
-        allowances = self.model.allowances_for_teacher(name)
-        tong_so_luong = 0.0
-        for row_idx, (g, r) in enumerate(row_specs):
-            thoi_gian = f"{g.get('tu_ngay') or '?'} → {g.get('den_ngay') or '?'}"
-            allowance = allowances.get((g["ma_khoa"], g["xe"]))
-            for col, text in enumerate([g["ma_khoa"], g["lop"], g["xe"], thoi_gian]):
-                item = QTableWidgetItem(text)
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-                if r is None:
-                    item.setBackground(_MAU_DONG_TRONG)
-                self.table.setItem(row_idx, col, item)
-            con_lai_item = _con_lai_item(allowance)
-            if r is None:
-                con_lai_item.setBackground(_MAU_DONG_TRONG)
-            self.table.setItem(row_idx, _COL_CON_LAI, con_lai_item)
-
-            date_edit = QDateEdit()
-            date_edit.setCalendarPopup(True)
-            date_edit.setDisplayFormat("dd/MM/yyyy")
-            ngay = _parse_ngay(r["ngay_cap"]) if r else None
-            date_edit.setDate(QDate(ngay.year, ngay.month, ngay.day) if ngay else QDate.currentDate())
-            self.table.setCellWidget(row_idx, _COL_NGAY, date_edit)
-
-            txt_so_phieu = QLineEdit(r.get("so_phieu", "") if r else "")
-            self.table.setCellWidget(row_idx, _COL_SO_PHIEU, txt_so_phieu)
-
-            cbo_mat_hang = _EditableCombo(
-                mat_hang_goi_y, r.get("mat_hang", "") if r else mat_hang_mac_dinh
+        notes = []
+        if override:
+            goc_text = (
+                f"{_fmt_so(contrib['dinh_muc'] * contrib['so_hoc_vien'])} lít"
+                if contrib.get("dinh_muc") is not None else "chưa tính được"
             )
-            self.table.setCellWidget(row_idx, _COL_MAT_HANG, cbo_mat_hang)
+            note = f"Định mức phần của '{a['giao_vien']}' ĐÃ SỬA TAY (gốc theo Excel: {goc_text})"
+            if override.get("ghi_chu"):
+                note += f" - lý do: {override['ghi_chu']}"
+            notes.append(note)
+        elif tong is None:
+            notes.append("Chưa tra được định mức (lít/học viên) từ file Excel.")
+        if con_lai is not None and con_lai < 0:
+            notes.append(f"⚠ ĐÃ CẤP VƯỢT ĐỊNH MỨC {_fmt_so(-con_lai)} lít.")
+        self.lbl_dinh_muc_note.setText(" ".join(notes))
+        self.lbl_dinh_muc_note.setStyleSheet(
+            f"color: {_MAU_CHU_VUOT}; font-weight: 600;" if con_lai is not None and con_lai < 0
+            else "color: #6c757d;"
+        )
+        self.box_dinh_muc.setToolTip(format_allowance_tooltip(allowance))
+        self.btn_sua_dinh_muc.setEnabled(True)
+        self.btn_dinh_muc_goc.setEnabled(bool(override))
 
-            txt_so_luong = QLineEdit()
-            txt_so_luong.setValidator(QRegularExpressionValidator(_SO_LUONG_KY_TU_RE))
-            txt_so_luong.setPlaceholderText("vd: 2x30, 4x20, 20, 50")
-            txt_so_luong.setToolTip(_GHI_CHU_SO_LUONG)
-            if r:
-                txt_so_luong.setText(r.get("so_luong_text") or _fmt_so(r.get("so_luong")))
-                tong_so_luong += r.get("so_luong") or 0
-            self.table.setCellWidget(row_idx, _COL_SO_LUONG, txt_so_luong)
+    def _on_sua_dinh_muc(self):
+        a = self._current_assignment
+        if not a:
+            return
+        allowance = self._current_allowance or {}
+        contrib = self.model.contrib_for(allowance, a["giao_vien"]) or {}
+        override = contrib.get("override") or {}
+        current_tong = contrib_sub_tong(contrib) if contrib else None
 
-            cbo_phan_loai = _EditableCombo(
-                phan_loai_goi_y, r.get("phan_loai_so", "") if r else phan_loai_mac_dinh
-            )
-            self.table.setCellWidget(row_idx, _COL_PHAN_LOAI, cbo_phan_loai)
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Sửa định mức")
+        layout = QVBoxLayout(dialog)
+        label_khoa = f"Khóa {a['ma_khoa']} ({a['lop']}) - xe {a['xe']}"
+        if len(allowance.get("contribs") or []) > 1:
+            label_khoa += f" - chỉ sửa phần của '{a['giao_vien']}' (xe này dùng chung nhiều giáo viên/ca)"
+        layout.addWidget(QLabel(label_khoa))
 
-            txt_ghi_chu = QLineEdit(r.get("ghi_chu", "") if r else "")
-            self.table.setCellWidget(row_idx, _COL_GHI_CHU, txt_ghi_chu)
+        row1 = QHBoxLayout()
+        row1.addWidget(QLabel("Tổng định mức mới (lít):"))
+        edit_tong = QLineEdit(_fmt_so(current_tong) if current_tong is not None else "")
+        edit_tong.setValidator(QRegularExpressionValidator(_SO_LUONG_MOI_RE))
+        row1.addWidget(edit_tong)
+        layout.addLayout(row1)
 
-            widgets = {
-                "date": date_edit,
-                "so_phieu": txt_so_phieu,
-                "mat_hang": cbo_mat_hang,
-                "so_luong": txt_so_luong,
-                "phan_loai_so": cbo_phan_loai,
-                "ghi_chu": txt_ghi_chu,
-            }
-            commit = self._make_commit_handler(name, g, r, widgets, allowance)
-            date_edit.editingFinished.connect(commit)
-            txt_so_phieu.editingFinished.connect(commit)
-            cbo_mat_hang.lineEdit().editingFinished.connect(commit)
-            txt_so_luong.editingFinished.connect(commit)
-            cbo_phan_loai.lineEdit().editingFinished.connect(commit)
-            txt_ghi_chu.editingFinished.connect(commit)
+        row2 = QHBoxLayout()
+        row2.addWidget(QLabel("Lý do (tùy chọn):"))
+        edit_ghi_chu = QLineEdit(override.get("ghi_chu", ""))
+        row2.addWidget(edit_ghi_chu)
+        layout.addLayout(row2)
 
-            if r is not None:
-                btn_xoa = QPushButton("Xóa")
-                btn_xoa.clicked.connect(lambda _checked=False, rid=r["id"]: self._on_delete(rid))
-                self.table.setCellWidget(row_idx, _COL_XOA, btn_xoa)
-            else:
-                placeholder = QTableWidgetItem("")
-                placeholder.setFlags(placeholder.flags() & ~Qt.ItemIsEditable)
-                placeholder.setBackground(_MAU_DONG_TRONG)
-                self.table.setItem(row_idx, _COL_XOA, placeholder)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
 
-        self.lbl_total.setText(f"Tổng cộng đã cấp: {_fmt_so(tong_so_luong)} lít")
-        self._export_state = ("grid", name, row_specs, allowances)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        text = edit_tong.text().strip().replace(",", ".")
+        try:
+            tong_lit = float(text)
+        except ValueError:
+            QMessageBox.warning(self, "Số không hợp lệ", "Nhập 1 số lít hợp lệ.")
+            return
+        self.model.set_dinh_muc_override(a["ma_khoa"], a["xe"], a["giao_vien"], tong_lit, edit_ghi_chu.text())
+        self._reload_allowance_and_history()
 
+    def _on_dung_dinh_muc_goc(self):
+        a = self._current_assignment
+        if not a:
+            return
+        self.model.clear_dinh_muc_override(a["ma_khoa"], a["xe"], a["giao_vien"])
+        self._reload_allowance_and_history()
+
+    # ---------------- nhập/sửa phiếu ----------------
     def _confirm_vuot_dinh_muc(self, assignment, allowance, new_lit, old_lit):
-        """Hỏi lại nếu phiếu sắp lưu làm khóa/xe này VƯỢT định mức (đã cấp -
-        số cũ của chính phiếu/ô đang sửa + số mới > tổng định mức). Trả về
-        True nếu được phép lưu (không vượt, chưa có định mức để so, hoặc
-        người dùng vẫn đồng ý cấp)."""
         if not allowance or allowance["tong"] is None:
             return True
         sau_khi_cap = allowance["da_cap"] - old_lit + new_lit
@@ -779,401 +762,218 @@ class CapXangTab(QWidget):
         )
         return answer == QMessageBox.StandardButton.Yes
 
-    def _make_commit_handler(self, name, assignment, record, widgets, allowance=None):
-        def commit():
-            so_luong_text = widgets["so_luong"].text().strip()
-            if record is None and not so_luong_text:
-                return  # dòng trống chưa gõ gì - bỏ qua, không tạo phiếu rỗng
+    def _on_submit(self):
+        a = self._current_assignment
+        if not a:
+            return
+        so_luong_text = self.txt_so_luong.text().strip()
+        if not so_luong_text:
+            QMessageBox.information(self, "Thiếu số lượng", "Nhập số lít cần cấp.")
+            return
+        tong_lit, tong_phieu = parse_so_luong(so_luong_text)
+        if tong_lit is None:
+            QMessageBox.warning(self, "Số lượng không đúng định dạng", _GHI_CHU_SO_LUONG)
+            return
+        if tong_lit <= 0:
+            QMessageBox.information(self, "Số lượng không hợp lệ", "Số lượng phải lớn hơn 0.")
+            return
 
-            tong_lit, tong_phieu = parse_so_luong(so_luong_text)
-            if tong_lit is None:
-                QMessageBox.warning(self, "Số lượng không đúng định dạng", _GHI_CHU_SO_LUONG)
-                return
-            if record is None and tong_lit <= 0:
-                return  # gõ toàn dấu phẩy/khoảng trắng - chưa có số thật, bỏ qua
+        ngay_cap = self.date_edit.date().toPython()
+        tu = _parse_ngay(a.get("tu_ngay", ""))
+        den = _parse_ngay(a.get("den_ngay", ""))
+        if tu and ngay_cap < tu:
+            QMessageBox.warning(
+                self, "Ngày cấp không hợp lệ",
+                f"Ngày cấp ({ngay_cap.strftime('%d/%m/%Y')}) trước ngày khóa "
+                f"'{a['ma_khoa']}' bắt đầu học ({a['tu_ngay']}).",
+            )
+            return
+        if den and ngay_cap > den:
+            QMessageBox.warning(
+                self, "Ngày cấp không hợp lệ",
+                f"Ngày cấp ({ngay_cap.strftime('%d/%m/%Y')}) sau ngày khóa "
+                f"'{a['ma_khoa']}' kết thúc học ({a['den_ngay']}).",
+            )
+            return
 
-            ngay_cap = widgets["date"].date().toPython()
-            tu = _parse_ngay(assignment.get("tu_ngay", ""))
-            den = _parse_ngay(assignment.get("den_ngay", ""))
-            if tu and ngay_cap < tu:
-                QMessageBox.warning(
-                    self, "Ngày cấp không hợp lệ",
-                    f"Ngày cấp ({ngay_cap.strftime('%d/%m/%Y')}) trước ngày khóa "
-                    f"'{assignment['ma_khoa']}' bắt đầu học ({assignment['tu_ngay']}).",
-                )
-                return
-            if den and ngay_cap > den:
-                QMessageBox.warning(
-                    self, "Ngày cấp không hợp lệ",
-                    f"Ngày cấp ({ngay_cap.strftime('%d/%m/%Y')}) sau ngày khóa "
-                    f"'{assignment['ma_khoa']}' kết thúc học ({assignment['den_ngay']}).",
-                )
-                return
+        old_lit = 0
+        if self._editing_record_id:
+            old_record = next((r for r in self._history_records if r["id"] == self._editing_record_id), None)
+            old_lit = (old_record.get("so_luong") or 0) if old_record else 0
 
-            old_lit = (record.get("so_luong") or 0) if record else 0
-            if not self._confirm_vuot_dinh_muc(assignment, allowance, tong_lit, old_lit):
-                QTimer.singleShot(0, self._reload)  # trả ô về giá trị đã lưu
-                return
+        if not self._confirm_vuot_dinh_muc(a, self._current_allowance, tong_lit, old_lit):
+            return
 
-            fields = {
-                "giao_vien": name,
-                "ma_khoa": assignment["ma_khoa"],
-                "lop": assignment["lop"],
-                "xe": assignment["xe"],
-                "ngay_cap": ngay_cap.strftime("%d/%m/%Y"),
-                "so_phieu": widgets["so_phieu"].text().strip(),
-                "mat_hang": widgets["mat_hang"].currentText().strip(),
-                "so_luong": tong_lit,
-                "so_luong_text": so_luong_text,
-                "so_phieu_count": tong_phieu,
-                "ghi_chu": widgets["ghi_chu"].text().strip(),
-                "phan_loai_so": widgets["phan_loai_so"].currentText().strip(),
-            }
-            if record is None:
-                cap_xang_store.add_record(fields)
-            else:
-                cap_xang_store.update_record(record["id"], fields)
-            # Dựng lại bảng ngay sau khi tín hiệu hiện tại xử lý xong - tránh
-            # xóa widget đang phát tín hiệu ngay trong lúc nó chưa chạy xong.
-            QTimer.singleShot(0, self._reload)
+        fields = {
+            "giao_vien": a["giao_vien"], "ma_khoa": a["ma_khoa"], "lop": a["lop"], "xe": a["xe"],
+            "ngay_cap": ngay_cap.strftime("%d/%m/%Y"),
+            "so_phieu": self.txt_so_phieu.text().strip(),
+            "mat_hang": self.cbo_mat_hang.currentText().strip(),
+            "so_luong": tong_lit, "so_luong_text": so_luong_text, "so_phieu_count": tong_phieu,
+            "ghi_chu": self.txt_ghi_chu.text().strip(),
+            "phan_loai_so": self.cbo_phan_loai.currentText().strip(),
+        }
+        is_new = self._editing_record_id is None
+        if self._editing_record_id:
+            cap_xang_store.update_record(self._editing_record_id, fields)
+        else:
+            cap_xang_store.add_record(fields)
+        self._reload_allowance_and_history()
+        msg = (
+            f"✓ Đã cấp {tong_phieu} phiếu ({_fmt_so(tong_lit)} lít) lúc {datetime.now().strftime('%H:%M')}"
+            if is_new else "✓ Đã lưu thay đổi."
+        )
+        self._flash_submit_status(msg)
 
-        return commit
+    def _flash_submit_status(self, text):
+        """Hiện ngắn 1 dòng xác nhận đã lưu cạnh nút Cấp xăng rồi tự ẩn - để
+        người dùng biết chắc đã lưu mà không cần hộp thoại chặn thao tác tiếp."""
+        self.lbl_submit_status.setText(text)
+        QTimer.singleShot(4000, lambda: self.lbl_submit_status.setText(""))
 
-    def _on_delete(self, record_id):
+    def _on_history_row_clicked(self, row, _col):
+        if row < 0 or row >= len(self._history_records):
+            return
+        record = self._history_records[row]
+        self._select_history_record_xe(record)
+        self._load_record_into_form(record)
+
+    def _select_history_record_xe(self, record):
+        """Lịch sử giờ liệt kê phiếu của MỌI xe (xem _render_history) - bấm
+        vào 1 dòng dùng xe KHÁC xe đang chọn trên ô Biển số xe thì phải đổi
+        luôn ô đó sang đúng xe của phiếu này rồi giải quyết lại (Định mức/
+        cảnh báo override) - nếu không, lúc bấm "Lưu thay đổi" sẽ ghi NHẦM
+        phiếu này sang xe đang chọn trước đó (xem _on_submit dùng xe của
+        self._current_assignment)."""
+        xe = record.get("xe", "")
+        if attach_files.normalize_plate(xe) == attach_files.normalize_plate(self.cbo_xe.currentText()):
+            return
+        idx = self.cbo_xe.findText(xe)
+        if idx >= 0:
+            self.cbo_xe.setCurrentIndex(idx)
+        else:
+            # Biển số của phiếu cũ không còn trong danh sách hiện có (hiếm -
+            # vd gõ sai/xe đã thanh lý) - vẫn gán thẳng chữ để sửa/xóa được.
+            self.cbo_xe.blockSignals(True)
+            self.cbo_xe.setEditText(xe)
+            self.cbo_xe.blockSignals(False)
+        self._on_selector_changed("xe")
+
+    def _load_record_into_form(self, record):
+        self._editing_record_id = record["id"]
+        ngay = _parse_ngay(record.get("ngay_cap", ""))
+        self.date_edit.setDate(QDate(ngay.year, ngay.month, ngay.day) if ngay else QDate.currentDate())
+        self.txt_so_luong.setText(record.get("so_luong_text") or _fmt_so(record.get("so_luong")))
+        self.cbo_mat_hang.setCurrentText(record.get("mat_hang", ""))
+        self.cbo_phan_loai.setCurrentText(record.get("phan_loai_so", ""))
+        self.txt_so_phieu.setText(record.get("so_phieu", ""))
+        self.txt_ghi_chu.setText(record.get("ghi_chu", ""))
+        self.btn_submit.setText("Lưu thay đổi")
+        self.btn_cancel_edit.setVisible(True)
+        self.btn_delete_record.setVisible(True)
+
+    def _cancel_edit(self):
+        self._editing_record_id = None
+        self.date_edit.setDate(QDate.currentDate())
+        self.txt_so_luong.clear()
+        self.txt_so_phieu.clear()
+        self.txt_ghi_chu.clear()
+        mat_hang_goi_y = cap_xang_store.distinct_values("mat_hang")
+        phan_loai_goi_y = cap_xang_store.distinct_values("phan_loai_so")
+        self.cbo_mat_hang.set_suggestions(mat_hang_goi_y)
+        self.cbo_mat_hang.setCurrentText(mat_hang_goi_y[0] if mat_hang_goi_y else "")
+        self.cbo_phan_loai.set_suggestions(phan_loai_goi_y)
+        self.cbo_phan_loai.setCurrentText(phan_loai_goi_y[0] if phan_loai_goi_y else "")
+        self.btn_submit.setText("Cấp xăng")
+        self.btn_cancel_edit.setVisible(False)
+        self.btn_delete_record.setVisible(False)
+        # Đưa con trỏ sẵn vào ô Số lượng - đúng ô cần gõ tiếp theo trong luồng
+        # thao tác nhanh (chọn xong giáo viên/khóa/xe -> gõ số lượng -> Enter),
+        # khỏi phải bấm chuột vào ô mỗi lần cấp. HOÃN LẠI (singleShot 0) chứ
+        # không setFocus() ngay: _cancel_edit() này chạy TRONG LÚC
+        # _on_selector_changed đang xử lý (vd người dùng vừa gõ xong tên giáo
+        # viên, ô đó đang có focus) - setFocus() ngay lập tức làm ô giáo viên
+        # mất focus, phát editingFinished NGAY, gọi đệ quy lại
+        # _on_selector_changed trong khi vòng gọi ngoài chưa chạy xong, làm
+        # self._current_assignment bị set về None giữa chừng -> crash ở
+        # _render_history ngay sau đó (đã gặp lúc kiểm tra).
+        QTimer.singleShot(0, self.txt_so_luong.setFocus)
+
+    def _on_delete_current(self):
+        if not self._editing_record_id:
+            return
         confirm = QMessageBox.question(self, "Xác nhận", "Xóa phiếu cấp xăng này?")
         if confirm != QMessageBox.StandardButton.Yes:
             return
-        cap_xang_store.delete_record(record_id)
-        self._reload()
+        cap_xang_store.delete_record(self._editing_record_id)
+        self._reload_allowance_and_history()
+
+    # ---------------- lịch sử ----------------
+    def _render_history(self):
+        """Lịch sử hiện TOÀN BỘ phiếu của (giáo viên, khóa học) đang chọn -
+        KHÔNG lọc theo biển số xe nữa (khác hành vi cũ) - để quản lý dễ theo
+        dõi khi giáo viên tạm mượn xe khác (vd xe quen hỏng vài bữa): mọi
+        phiếu của đúng giáo viên/khóa này đều nằm chung 1 danh sách, không bị
+        tách rời theo từng xe. Cột "Biển số" cho biết từng phiếu dùng xe
+        nào."""
+        a = self._current_assignment
+        gv_norm = attach_files.normalize_name(a["giao_vien"])
+        all_records = cap_xang_store.load()["records"]
+        records = [
+            r for r in all_records
+            if r.get("ma_khoa", "") == a["ma_khoa"]
+            and attach_files.normalize_name(r.get("giao_vien", "")) == gv_norm
+        ]
+        records.sort(key=lambda r: _parse_ngay(r.get("ngay_cap", "")) or date.min)
+        self._history_records = records
+
+        self.tbl_history.setRowCount(len(records))
+        for row_idx, r in enumerate(records):
+            so_luong_display = r.get("so_luong_text") or _fmt_so(r.get("so_luong"))
+            values = [
+                r.get("ngay_cap", ""), r.get("xe", ""), r.get("so_phieu", ""), r.get("mat_hang", ""),
+                so_luong_display, r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
+            ]
+            for c, val in enumerate(values):
+                item = QTableWidgetItem(val)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                if c == 0:
+                    item.setData(Qt.ItemDataRole.UserRole, r["id"])
+                self.tbl_history.setItem(row_idx, c, item)
+
+        if records:
+            tong = sum(r.get("so_luong") or 0 for r in records)
+            self.lbl_history_total.setText(f"Tổng: {_fmt_so(tong)} lít ({len(records)} dòng).")
+        else:
+            self.lbl_history_total.setText("Chưa có lần cấp nào cho giáo viên/khóa học này.")
+        self.btn_export.setEnabled(bool(records))
 
     # ---------------- xuất Excel ----------------
     def _on_export(self):
-        if not self._export_state:
-            QMessageBox.information(self, "Không có dữ liệu", "Chọn giáo viên để có bảng cần xuất.")
+        if not self._current_assignment or not self._history_records:
+            QMessageBox.information(self, "Không có dữ liệu", "Chưa có phiếu nào để xuất cho lựa chọn hiện tại.")
             return
-        name = self._export_state[1]
-        mode = self.cbo_view_mode.currentText().split(" (")[0].replace(" ", "")
-        safe_name = re.sub(r"[^\w]+", "_", name, flags=re.UNICODE).strip("_")
-        default_name = f"CapXang_{safe_name}_{mode}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+        a = self._current_assignment
+        safe_name = re.sub(r"[^\w]+", "_", a["giao_vien"], flags=re.UNICODE).strip("_")
+        default_name = f"CapXang_{safe_name}_{a['ma_khoa']}_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
         path, _ = QFileDialog.getSaveFileName(self, "Xuất Excel", default_name, "Excel Files (*.xlsx)")
         if not path:
             return
+
+        rows = []
+        for r in self._history_records:
+            so_luong_display = r.get("so_luong_text") or _fmt_so(r.get("so_luong"))
+            rows.append([
+                _parse_ngay(r.get("ngay_cap", "")) or r.get("ngay_cap", ""), r.get("xe", ""),
+                r.get("so_phieu", ""), r.get("mat_hang", ""), so_luong_display,
+                r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
+            ])
+        vuot = _vuot(self._current_allowance)
         try:
-            n = self._write_export(path)
+            report = ReportWorkbook()
+            report.add_sheet("Lich su cap xang", HISTORY_COLUMNS, rows, highlight=[vuot] * len(rows))
+            report.save(path)
         except Exception as exc:
             QMessageBox.warning(self, "Không xuất được", str(exc))
             return
-        QMessageBox.information(
-            self, "Hoàn tất", f"Đã xuất {n} dòng phiếu của '{name}' ra:\n{path}\n\n{GHI_CHU_TO_DO}"
-        )
-
-    @staticmethod
-    def _phieu_row(g, allowance, r):
-        return [
-            g["ma_khoa"], g["lop"], g["xe"], g.get("tu_ngay", ""), g.get("den_ngay", ""),
-            allowance["con_lai"] if allowance else None,
-            _parse_ngay(r.get("ngay_cap", "")) or r.get("ngay_cap", ""),
-            r.get("so_phieu", ""), r.get("mat_hang", ""), r.get("so_luong") or 0,
-            r.get("so_phieu_count") or 1, r.get("phan_loai_so", ""), r.get("ghi_chu", ""),
-        ]
-
-    _PHIEU_COLUMNS = [
-        "Khóa học", "Lớp", "Biển số", "Từ ngày", "Đến ngày", "Còn lại (lít)", "Ngày cấp",
-        "Số phiếu/Quyển", "Mặt hàng", "Số lượng (lít)", "Số phiếu", "Phân loại sổ", "Ghi chú",
-    ]
-    _KHOA_XE_COLUMNS = [
-        "Khóa học", "Lớp", "Biển số", "Từ ngày", "Đến ngày", "Số HV tính xăng",
-        "Định mức/HV (lít)", "Tổng định mức (lít)", "Đã cấp (lít)", "Còn lại (lít)",
-    ]
-
-    @staticmethod
-    def _khoa_xe_row(g, allowance):
-        a = allowance or {}
-        return [
-            g["ma_khoa"], g["lop"], g["xe"], g.get("tu_ngay", ""), g.get("den_ngay", ""),
-            a.get("so_hv"), a.get("dinh_muc"), a.get("tong"), a.get("da_cap", 0), a.get("con_lai"),
-        ]
-
-    def _write_export(self, path):
-        """Trả về số dòng phiếu đã xuất. Dòng của khóa/xe đã cấp vượt định
-        mức (Còn lại âm) được tô đỏ ở mọi sheet."""
-        report = ReportWorkbook()
-        state = self._export_state
-        if state[0] == "grid":
-            _, _name, row_specs, allowances = state
-            phieu, phieu_vuot = [], []
-            for g, r in row_specs:
-                if r is None:
-                    continue
-                allowance = allowances.get((g["ma_khoa"], g["xe"]))
-                phieu.append(self._phieu_row(g, allowance, r))
-                phieu_vuot.append(_vuot(allowance))
-            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu, highlight=phieu_vuot)
-            seen, khoa_xe, khoa_xe_vuot = set(), [], []
-            for g, _r in row_specs:
-                key = (g["ma_khoa"], g["xe"])
-                if key not in seen:
-                    seen.add(key)
-                    khoa_xe.append(self._khoa_xe_row(g, allowances.get(key)))
-                    khoa_xe_vuot.append(_vuot(allowances.get(key)))
-            report.add_sheet("Theo khoa-xe", self._KHOA_XE_COLUMNS, khoa_xe, highlight=khoa_xe_vuot)
-        else:
-            _, _name, rows_spec, dates, rec_by_key, allowances = state
-            date_keys = [d.strftime("%d/%m/%Y") for d in dates]
-            matrix_rows, matrix_vuot, phieu, phieu_vuot = [], [], [], []
-            for g in rows_spec:
-                allowance = allowances.get((g["ma_khoa"], g["xe"]))
-                vuot = _vuot(allowance)
-                cells, tong_ky = [], 0.0
-                for dk in date_keys:
-                    matched = rec_by_key.get((g["ma_khoa"], g["xe"], dk), [])
-                    lit = sum(r.get("so_luong") or 0 for r in matched)
-                    cells.append(lit if matched else None)
-                    tong_ky += lit
-                    phieu.extend(self._phieu_row(g, allowance, r) for r in matched)
-                    phieu_vuot.extend(vuot for _ in matched)
-                matrix_rows.append([
-                    g["ma_khoa"], g["lop"], g["xe"], allowance["con_lai"] if allowance else None,
-                    *cells, tong_ky,
-                ])
-                matrix_vuot.append(vuot)
-            report.add_sheet(
-                "Ma tran ngay",
-                ["Khóa học", "Lớp", "Biển số", "Còn lại (lít)",
-                 *(f"{_WEEKDAY_VN[d.weekday()]} {d.strftime('%d/%m')}" for d in dates), "Tổng kỳ (lít)"],
-                matrix_rows, highlight=matrix_vuot,
-            )
-            report.add_sheet("Chi tiet phieu", self._PHIEU_COLUMNS, phieu, highlight=phieu_vuot)
-        report.save(path)
-        return len(phieu)
-
-    # ---------------- ma trận ngày (theo khóa/tuần/tháng) ----------------
-    def _clear_matrix(self):
-        self.frozen_table.setRowCount(0)
-        self.frozen_table.setColumnCount(0)
-        self.date_table.setRowCount(0)
-        self.date_table.setColumnCount(0)
-
-    def _populate_khoa_selector(self, name):
-        current = self.cbo_khoa_matrix.currentData()
-        by_khoa = {}
-        for g in self.model.courses_of_teacher(name):
-            by_khoa.setdefault(g["ma_khoa"], g)
-        items = sorted(by_khoa.values(), key=lambda g: g["ma_khoa"])
-
-        self.cbo_khoa_matrix.blockSignals(True)
-        self.cbo_khoa_matrix.clear()
-        for g in items:
-            label = f"{g['ma_khoa']} ({g['lop']})"
-            if g.get("tu_ngay") and g.get("den_ngay"):
-                label += f" [{g['tu_ngay']} → {g['den_ngay']}]"
-            else:
-                label += " [chưa có ngày bắt đầu/kết thúc]"
-            self.cbo_khoa_matrix.addItem(label, g["ma_khoa"])
-        if current is not None:
-            idx = self.cbo_khoa_matrix.findData(current)
-            if idx >= 0:
-                self.cbo_khoa_matrix.setCurrentIndex(idx)
-        self.cbo_khoa_matrix.blockSignals(False)
-
-    def _render_matrix_khoa(self, name, records):
-        self._populate_khoa_selector(name)
-        ma_khoa = self.cbo_khoa_matrix.currentData()
-        if not ma_khoa:
-            self._clear_matrix()
-            self.lbl_total.setText("")
-            self.lbl_summary.setText(
-                f"Giáo viên '{name}' chưa được phân công khóa học/xe nào trong dữ liệu."
-            )
-            return
-
-        rows_spec = [g for g in self._unique_assignments(name) if g["ma_khoa"] == ma_khoa]
-        tu = _parse_ngay(rows_spec[0].get("tu_ngay", "")) if rows_spec else None
-        den = _parse_ngay(rows_spec[0].get("den_ngay", "")) if rows_spec else None
-        if not tu or not den:
-            self._clear_matrix()
-            self.lbl_total.setText("")
-            self.lbl_summary.setText(
-                f"Khóa '{ma_khoa}' chưa có ngày bắt đầu/kết thúc nên không hiển thị được "
-                "theo ngày - dùng chế độ 'Chi tiết (nhập liệu)' để nhập."
-            )
-            return
-
-        dates = [tu + timedelta(days=i) for i in range((den - tu).days + 1)]
-        self._render_matrix(name, records, rows_spec, dates)
-
-    def _render_matrix_tuan(self, name, records):
-        monday = self._week_start
-        sunday = monday + timedelta(days=6)
-        iso_year, iso_week, _ = monday.isocalendar()
-        self.lbl_tuan.setText(
-            f"Tuần {iso_week}/{iso_year}  ({monday.strftime('%d/%m/%Y')} → {sunday.strftime('%d/%m/%Y')})"
-        )
-        dates = [monday + timedelta(days=i) for i in range(7)]
-        rows_spec = [g for g in self._unique_assignments(name) if _overlaps_period(g, monday, sunday)]
-        self._render_matrix(name, records, rows_spec, dates)
-
-    def _render_matrix_thang(self, name, records):
-        y, m = self._month
-        self.lbl_thang.setText(f"Tháng {m:02d}/{y}")
-        n_days = calendar.monthrange(y, m)[1]
-        start, end = date(y, m, 1), date(y, m, n_days)
-        dates = [date(y, m, d) for d in range(1, n_days + 1)]
-        rows_spec = [g for g in self._unique_assignments(name) if _overlaps_period(g, start, end)]
-        self._render_matrix(name, records, rows_spec, dates)
-
-    def _render_matrix(self, name, records, rows_spec, dates):
-        if not rows_spec or not dates:
-            self._clear_matrix()
-            self.lbl_total.setText("")
-            if not rows_spec:
-                self.lbl_summary.setText(
-                    f"Giáo viên '{name}' không có khóa/xe nào liên quan tới kỳ đang xem."
-                )
-            return
-        self.lbl_summary.setText(
-            "Gõ số lượng vào từng ô ngày để cấp xăng cho khóa/xe đó (để trống nếu ngày đó "
-            "không cấp) - ô xám là ngoài thời gian học của khóa, không gõ được. "
-            "Mặt hàng/Phân loại sổ dùng giá trị gần nhất, sửa chi tiết ở chế độ 'Chi tiết "
-            "(nhập liệu)'. " + _GHI_CHU_SO_LUONG
-        )
-
-        rec_by_key = {}
-        for r in records:
-            key = (r.get("ma_khoa", ""), r.get("xe", ""), r.get("ngay_cap", ""))
-            rec_by_key.setdefault(key, []).append(r)
-
-        mat_hang_goi_y = cap_xang_store.distinct_values("mat_hang")
-        phan_loai_goi_y = cap_xang_store.distinct_values("phan_loai_so")
-        mat_hang_mac_dinh = mat_hang_goi_y[0] if mat_hang_goi_y else ""
-        phan_loai_mac_dinh = phan_loai_goi_y[0] if phan_loai_goi_y else ""
-
-        self.frozen_table.setRowCount(0)
-        self.frozen_table.setColumnCount(len(MATRIX_FROZEN_COLUMNS))
-        self.frozen_table.setHorizontalHeaderLabels(MATRIX_FROZEN_COLUMNS)
-        self.frozen_table.setRowCount(len(rows_spec))
-
-        self.date_table.setRowCount(0)
-        self.date_table.setColumnCount(len(dates))
-        self.date_table.setHorizontalHeaderLabels(
-            [f"{_WEEKDAY_VN[d.weekday()]}\n{d.strftime('%d/%m')}" for d in dates]
-        )
-
-        # Cột cố định chỉ có tiêu đề 1 dòng ("Khóa học"...) còn cột ngày có
-        # tiêu đề 2 dòng ("T2\n27/11") -> Qt tự tính chiều cao mỗi tiêu đề
-        # khác nhau, làm 2 bảng lệch nhau ở hàng đầu. Ép cả 2 header dùng
-        # chung 1 chiều cao (lấy chiều cao lớn nhất cần) để luôn thẳng hàng.
-        header_h = max(
-            self.frozen_table.horizontalHeader().sizeHint().height(),
-            self.date_table.horizontalHeader().sizeHint().height(),
-        )
-        self.frozen_table.horizontalHeader().setFixedHeight(header_h)
-        self.date_table.horizontalHeader().setFixedHeight(header_h)
-        self.date_table.setRowCount(len(rows_spec))
-
-        allowances = self.model.allowances_for_teacher(name)
-        tong_so_luong = 0.0
-        tong_so_phieu = 0
-        for row_idx, g in enumerate(rows_spec):
-            for col, text in enumerate([g["ma_khoa"], g["lop"], g["xe"]]):
-                item = QTableWidgetItem(text)
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-                self.frozen_table.setItem(row_idx, col, item)
-            allowance = allowances.get((g["ma_khoa"], g["xe"]))
-            self.frozen_table.setItem(row_idx, 3, _con_lai_item(allowance))
-
-            tu = _parse_ngay(g.get("tu_ngay", ""))
-            den = _parse_ngay(g.get("den_ngay", ""))
-            for col, d in enumerate(dates):
-                trong_pham_vi = (not tu or d >= tu) and (not den or d <= den)
-                if not trong_pham_vi:
-                    item = QTableWidgetItem("")
-                    item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
-                    item.setBackground(_MAU_NGOAI_PHAM_VI)
-                    self.date_table.setItem(row_idx, col, item)
-                    continue
-
-                key = (g["ma_khoa"], g["xe"], d.strftime("%d/%m/%Y"))
-                matched = rec_by_key.get(key, [])
-                cell_text = ", ".join(
-                    r.get("so_luong_text") or _fmt_so(r.get("so_luong")) for r in matched
-                )
-                cell = QLineEdit(cell_text)
-                cell.setValidator(QRegularExpressionValidator(_SO_LUONG_KY_TU_RE))
-                cell.setToolTip(_GHI_CHU_SO_LUONG)
-                cell.setAlignment(Qt.AlignCenter)
-                if d.weekday() >= 5:
-                    cell.setStyleSheet("background-color: #fff6e0;")
-                matched_ids = [r["id"] for r in matched]
-                old_lit = sum(r.get("so_luong") or 0 for r in matched)
-                cell.editingFinished.connect(
-                    self._make_matrix_commit_handler(
-                        name, g, d, matched_ids, cell, mat_hang_mac_dinh, phan_loai_mac_dinh,
-                        allowance, old_lit,
-                    )
-                )
-                self.date_table.setCellWidget(row_idx, col, cell)
-                for r in matched:
-                    tong_so_luong += r.get("so_luong") or 0
-                    tong_so_phieu += r.get("so_phieu_count") or 1
-
-            h = max(self.date_table.rowHeight(row_idx), self.frozen_table.rowHeight(row_idx))
-            self.date_table.setRowHeight(row_idx, h)
-            self.frozen_table.setRowHeight(row_idx, h)
-
-        self._export_state = ("matrix", name, rows_spec, dates, rec_by_key, allowances)
-        self.frozen_table.resizeColumnsToContents()
-        self.date_table.horizontalHeader().setDefaultSectionSize(76)
-        self.lbl_total.setText(f"Tổng cộng: {_fmt_so(tong_so_luong)} lít ({tong_so_phieu} phiếu)")
-
-    def _make_matrix_commit_handler(self, name, assignment, ngay, matched_ids, widget,
-                                     mat_hang_mac_dinh, phan_loai_mac_dinh,
-                                     allowance=None, old_lit=0):
-        def commit():
-            text = widget.text().strip()
-            tong_lit, tong_phieu = parse_so_luong(text)
-            if tong_lit is None:
-                QMessageBox.warning(self, "Số lượng không đúng định dạng", _GHI_CHU_SO_LUONG)
-                return
-
-            if not text:
-                if matched_ids:
-                    for rid in matched_ids:
-                        cap_xang_store.delete_record(rid)
-                    QTimer.singleShot(0, self._reload)
-                return
-
-            if tong_lit == old_lit and len(matched_ids) == 1:
-                return  # không đổi số lít - khỏi hỏi vượt định mức/ghi lại
-            if not self._confirm_vuot_dinh_muc(assignment, allowance, tong_lit, old_lit):
-                QTimer.singleShot(0, self._reload)  # trả ô về giá trị đã lưu
-                return
-
-            if len(matched_ids) == 1:
-                cap_xang_store.update_record(matched_ids[0], {
-                    "so_luong": tong_lit,
-                    "so_luong_text": text,
-                    "so_phieu_count": tong_phieu,
-                })
-            else:
-                for rid in matched_ids:
-                    cap_xang_store.delete_record(rid)
-                cap_xang_store.add_record({
-                    "giao_vien": name,
-                    "ma_khoa": assignment["ma_khoa"],
-                    "lop": assignment["lop"],
-                    "xe": assignment["xe"],
-                    "ngay_cap": ngay.strftime("%d/%m/%Y"),
-                    "so_phieu": "",
-                    "mat_hang": mat_hang_mac_dinh,
-                    "so_luong": tong_lit,
-                    "so_luong_text": text,
-                    "so_phieu_count": tong_phieu,
-                    "ghi_chu": "",
-                    "phan_loai_so": phan_loai_mac_dinh,
-                })
-            # Dựng lại ma trận ngay sau khi tín hiệu hiện tại xử lý xong - tránh
-            # xóa widget đang phát tín hiệu ngay trong lúc nó chưa chạy xong.
-            QTimer.singleShot(0, self._reload)
-
-        return commit
+        QMessageBox.information(self, "Hoàn tất", f"Đã xuất {len(rows)} dòng ra:\n{path}\n\n{GHI_CHU_TO_DO}")
