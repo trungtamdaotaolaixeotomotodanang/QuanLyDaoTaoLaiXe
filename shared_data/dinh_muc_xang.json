@@ -1,0 +1,383 @@
+{
+  "source_file": "D:/QuanLyDaoTaoLaiXe/quanlycapxang/data/BẢNG ĐỊNH MỨC NL.xlsx",
+  "rows": [
+    {
+      "stt": 1,
+      "so_xe": "43A29325",
+      "ho_ten": "Nguyễn Hữu Bin",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 2,
+      "so_xe": "43A27493",
+      "ho_ten": "Trương Công Sỹ",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 3,
+      "so_xe": "43A29261",
+      "ho_ten": "Huỳnh Quốc Bảo",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 4,
+      "so_xe": "92A39094",
+      "ho_ten": "Huỳnh Bá Đăng Khoa",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 5,
+      "so_xe": "43A67165",
+      "ho_ten": "Lê Văn Đông",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 6,
+      "so_xe": "43A29272",
+      "ho_ten": "Huỳnh Trường Giang",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 7,
+      "so_xe": "43A29288",
+      "ho_ten": "Hồ Minh Tin",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 8,
+      "so_xe": "43A29259",
+      "ho_ten": "Nguyễn Đức Ngự",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 9,
+      "so_xe": "43A27590",
+      "ho_ten": "Huỳnh Bá Đăng Khoa",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 10,
+      "so_xe": "92A09884",
+      "ho_ten": "Lê Huỳnh Đức",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 11,
+      "so_xe": "43A29282",
+      "ho_ten": "Giao Thanh Tùng",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 12,
+      "so_xe": "43A29360",
+      "ho_ten": "Tạ Minh Thuận",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 13,
+      "so_xe": "43A32035",
+      "ho_ten": "Nguyễn Như Hiếu",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 14,
+      "so_xe": "43A29274",
+      "ho_ten": "Trần Ngô Đông Phương",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 15,
+      "so_xe": "43A29358",
+      "ho_ten": "Lê Thành Nhân",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 16,
+      "so_xe": "43A29259",
+      "ho_ten": "Lê Thành Nhân",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 17,
+      "so_xe": "43A01510",
+      "ho_ten": "Trần Ngọc Tuấn",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 18,
+      "so_xe": "43A03136",
+      "ho_ten": "Võ Phan Chung",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 19,
+      "so_xe": "43A34074",
+      "ho_ten": "Nguyễn Đình Ánh",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 20,
+      "so_xe": "43A34074",
+      "ho_ten": "Nguyễn Đình Ánh",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 21,
+      "so_xe": "43A29301",
+      "ho_ten": "Võ Thành Trung",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 22,
+      "so_xe": "43B30483",
+      "ho_ten": "Nguyễn Thành Công",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 23,
+      "so_xe": "43A29337",
+      "ho_ten": "Hoàng Minh Đức",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 24,
+      "so_xe": "43A29211",
+      "ho_ten": "Trần Thanh Hùng",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 25,
+      "so_xe": "43A90278",
+      "ho_ten": "Huỳnh Ngọc Tân",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 26,
+      "so_xe": "43A27209",
+      "ho_ten": "Nguyễn Văn Cường",
+      "dinh_muc": 4.0
+    },
+    {
+      "stt": 27,
+      "so_xe": "43A27272",
+      "ho_ten": "Nguyễn Như Hiếu",
+      "dinh_muc": 4.0
+    },
+    {
+      "stt": 28,
+      "so_xe": "43A82518",
+      "ho_ten": "Nguyễn Văn Mỹ",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 29,
+      "so_xe": "43A38936",
+      "ho_ten": "Trần Minh Hải",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 30,
+      "so_xe": "43A28637",
+      "ho_ten": "Trần Quốc Khánh",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 31,
+      "so_xe": "92A39094",
+      "ho_ten": "Lê Trương Lai",
+      "dinh_muc": 101.0
+    },
+    {
+      "stt": 32,
+      "so_xe": "43A87749",
+      "ho_ten": "Lê Quang Nghĩa",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 33,
+      "so_xe": "43A36395",
+      "ho_ten": "Nguyễn Việt Lâm",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 34,
+      "so_xe": "43B31663",
+      "ho_ten": "Nguyễn Thành Trung",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 35,
+      "so_xe": "43A90903",
+      "ho_ten": "Nguyễn Bá Quýnh",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 36,
+      "so_xe": "43C16569",
+      "ho_ten": "Nguyễn Đăng Trường",
+      "dinh_muc": 205.0
+    },
+    {
+      "stt": 37,
+      "so_xe": "43C15870",
+      "ho_ten": "Vương Văn Tiến",
+      "dinh_muc": 205.0
+    },
+    {
+      "stt": 38,
+      "so_xe": "43C16506",
+      "ho_ten": "Nguyễn Nam Phương",
+      "dinh_muc": 85.0
+    },
+    {
+      "stt": 39,
+      "so_xe": "43B08917",
+      "ho_ten": "Phùng Trần Ngọc",
+      "dinh_muc": 110.0
+    },
+    {
+      "stt": 40,
+      "so_xe": "43C16531",
+      "ho_ten": "Trần Viết Duy",
+      "dinh_muc": 28.0
+    },
+    {
+      "stt": 41,
+      "so_xe": "43C15844",
+      "ho_ten": "Lê Bá Kiệt",
+      "dinh_muc": 205.0
+    },
+    {
+      "stt": 42,
+      "so_xe": "43B25295",
+      "ho_ten": "Nguyễn Văn Cường",
+      "dinh_muc": 195.0
+    },
+    {
+      "stt": 43,
+      "so_xe": "43C15886",
+      "ho_ten": "Phạm Tấn Thịnh",
+      "dinh_muc": 205.0
+    },
+    {
+      "stt": 44,
+      "so_xe": "43C16558",
+      "ho_ten": "Lê Ngọc Hoà",
+      "dinh_muc": 205.0
+    },
+    {
+      "stt": 45,
+      "so_xe": "43C16443",
+      "ho_ten": "Hồ Duy Dũng",
+      "dinh_muc": 205.0
+    },
+    {
+      "stt": 46,
+      "so_xe": "43B25265",
+      "ho_ten": "Đặng Hoàng Phương",
+      "dinh_muc": 195.0
+    },
+    {
+      "stt": 47,
+      "so_xe": "43B09963",
+      "ho_ten": "Trần Thế Hải",
+      "dinh_muc": 190.0
+    },
+    {
+      "stt": 48,
+      "so_xe": "43B03568",
+      "ho_ten": "Bùi Kiến Quốc",
+      "dinh_muc": 62.0
+    },
+    {
+      "stt": 49,
+      "so_xe": "43B03568",
+      "ho_ten": "Bùi Kiến Quốc",
+      "dinh_muc": 104.0
+    },
+    {
+      "stt": 50,
+      "so_xe": "43B03568",
+      "ho_ten": "Bùi Kiến Quốc",
+      "dinh_muc": 52.0
+    },
+    {
+      "stt": 51,
+      "so_xe": "43B03765",
+      "ho_ten": "Đoàn Công Minh",
+      "dinh_muc": 62.0
+    },
+    {
+      "stt": 52,
+      "so_xe": "43B26084",
+      "ho_ten": "Lê Văn Long",
+      "dinh_muc": 57.0
+    },
+    {
+      "stt": 53,
+      "so_xe": "43B19466",
+      "ho_ten": "Đinh Văn Thảo",
+      "dinh_muc": 85.0
+    },
+    {
+      "stt": 54,
+      "so_xe": "43A04152",
+      "ho_ten": "Lê Quốc Việt",
+      "dinh_muc": 115.0
+    },
+    {
+      "stt": 55,
+      "so_xe": "43B03663",
+      "ho_ten": "Lương Văn Quang",
+      "dinh_muc": 110.0
+    },
+    {
+      "stt": 56,
+      "so_xe": "43A29358",
+      "ho_ten": "Huỳnh Tấn Lai",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 57,
+      "so_xe": "43A81627",
+      "ho_ten": "Tạ Minh Thuận",
+      "dinh_muc": 105.0
+    },
+    {
+      "stt": 58,
+      "so_xe": "43C16531",
+      "ho_ten": "Nguyễn Văn Cường",
+      "dinh_muc": 28.0
+    },
+    {
+      "stt": 59,
+      "so_xe": "43C15832",
+      "ho_ten": "Lê Bá Kiệt",
+      "dinh_muc": 28.0
+    },
+    {
+      "stt": 60,
+      "so_xe": "43C15832",
+      "ho_ten": "Hồ Duy Dũng",
+      "dinh_muc": 28.0
+    },
+    {
+      "stt": 61,
+      "so_xe": "43A29325",
+      "ho_ten": "Nguyễn Hữu Bin",
+      "dinh_muc": 106.5
+    },
+    {
+      "stt": 62,
+      "so_xe": "43A27590",
+      "ho_ten": "ĐINH SỸ LIÊM",
+      "dinh_muc": 112.0
+    },
+    {
+      "stt": 63,
+      "so_xe": "43A27209",
+      "ho_ten": "Nguyễn văn Cương",
+      "dinh_muc": 4.0
+    }
+  ]
+}
