@@ -15629,6 +15629,36 @@
       "so_phieu_count": 1,
       "ghi_chu": "",
       "phan_loai_so": ""
+    },
+    {
+      "id": "458e6485ef3348f4b0570d16ac26d6e9",
+      "giao_vien": "Huỳnh Quốc Bảo",
+      "ma_khoa": "48002K262045",
+      "lop": "BK0926",
+      "xe": "43A29261",
+      "ngay_cap": "23/11/2026",
+      "so_phieu": "2,3,4",
+      "mat_hang": "Dầu 0.5S",
+      "so_luong": 150.0,
+      "so_luong_text": "3x50",
+      "so_phieu_count": 3,
+      "ghi_chu": "",
+      "phan_loai_so": "50"
+    },
+    {
+      "id": "d2437696762f4c2aaf2cae1b9a1be0db",
+      "giao_vien": "Nguyễn Hữu Bin",
+      "ma_khoa": "48002K262032",
+      "lop": "BK0826",
+      "xe": "43A29325",
+      "ngay_cap": "23/11/2026",
+      "so_phieu": "2,3,4",
+      "mat_hang": "Xăng",
+      "so_luong": 90.0,
+      "so_luong_text": "3x30",
+      "so_phieu_count": 3,
+      "ghi_chu": "",
+      "phan_loai_so": "Xăng 30 lít"
     }
   ]
 }
