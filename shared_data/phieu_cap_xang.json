@@ -15659,6 +15659,21 @@
       "so_phieu_count": 3,
       "ghi_chu": "",
       "phan_loai_so": "Xăng 30 lít"
+    },
+    {
+      "id": "140862f6f3ca411f8a2951c75c4914bd",
+      "giao_vien": "Nguyễn Hữu Bin",
+      "ma_khoa": "48002K262032",
+      "lop": "BK0826",
+      "xe": "43A29325",
+      "ngay_cap": "24/11/2026",
+      "so_phieu": "1",
+      "mat_hang": "Xăng",
+      "so_luong": 20.0,
+      "so_luong_text": "20",
+      "so_phieu_count": 1,
+      "ghi_chu": "",
+      "phan_loai_so": "Xăng 20 lít"
     }
   ]
 }
