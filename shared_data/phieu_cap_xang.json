@@ -15674,6 +15674,21 @@
       "so_phieu_count": 1,
       "ghi_chu": "",
       "phan_loai_so": "Xăng 20 lít"
+    },
+    {
+      "id": "2579ce8a0ac2407485e7af4392a1ee0a",
+      "giao_vien": "Nguyễn Thành Công",
+      "ma_khoa": "48002K262045",
+      "lop": "BK0926",
+      "xe": "43B30483",
+      "ngay_cap": "24/11/2026",
+      "so_phieu": "",
+      "mat_hang": "Xăng",
+      "so_luong": 23.0,
+      "so_luong_text": "23",
+      "so_phieu_count": 1,
+      "ghi_chu": "",
+      "phan_loai_so": "Xăng 20 lít"
     }
   ]
 }
