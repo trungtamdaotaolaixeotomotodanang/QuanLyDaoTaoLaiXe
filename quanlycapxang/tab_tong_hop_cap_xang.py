@@ -28,10 +28,11 @@ giáo viên) trong 1 bảng, không giới hạn theo 1 giáo viên như tab C�
   cam đã đủ nổi bật để nhận ra khi rà soát, không cần ẩn bớt các phiếu khác).
 - "Xuất Excel...": xuất theo đúng bộ lọc đang chọn, nhiều sheet (chi tiết +
   tổng theo giáo viên/khóa-xe/biển số/tháng + bảng giáo viên x tháng + định
-  mức), mỗi sheet là bảng Excel có nút lọc/sort sẵn."""
+  mức), mỗi sheet là bảng Excel có nút lọc/sort sẵn + 1 dòng chú thích ngay
+  trên tiêu đề cho biết đang sắp xếp theo cột nào."""
 from datetime import date, datetime, timedelta
 
-from PySide6.QtCore import QDate, Qt, QTimer
+from PySide6.QtCore import QDate, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QTextDocument
 from PySide6.QtPrintSupport import QPrinter
 from PySide6.QtWidgets import (
@@ -215,6 +216,11 @@ def _aggregate(records, key_fn):
 
 
 class TongHopCapXangTab(QWidget):
+    # Phát ra sau khi XÓA/SỬA phiếu trực tiếp trên bảng ở tab này (lưu vào
+    # shared_data cục bộ) - main.py nghe tín hiệu này để TỰ đẩy lên GitHub
+    # ngay (xem _on_delete_selected/_on_undo_delete/_on_item_changed).
+    du_lieu_da_doi = Signal()
+
     def __init__(self, model, parent=None):
         super().__init__(parent)
         self.model = model
@@ -724,6 +730,7 @@ class TongHopCapXangTab(QWidget):
         cap_xang_store.delete_records(ids)
         self._show_undo(len(ids))
         self._render()
+        self.du_lieu_da_doi.emit()
 
     def _show_undo(self, n):
         self.lbl_undo.setText(f"Đã xóa {n} phiếu." if n > 1 else "Đã xóa 1 phiếu.")
@@ -740,6 +747,7 @@ class TongHopCapXangTab(QWidget):
             self._hide_undo()
             self._populate_filters()
             self._render()
+            self.du_lieu_da_doi.emit()
         else:
             QMessageBox.information(self, "Không có gì để hoàn tác", "Không tìm thấy bản sao để khôi phục.")
 
@@ -792,6 +800,7 @@ class TongHopCapXangTab(QWidget):
 
         cap_xang_store.update_record(record_id, fields)
         record.update(fields)
+        self.du_lieu_da_doi.emit()
         # Dựng lại ngay sau khi tín hiệu hiện tại (itemChanged) xử lý xong -
         # tránh sửa cây đang phát tín hiệu ngay trong lúc nó chưa chạy xong,
         # giống cách các tab khác xử lý (xem tab_cap_xang.py _make_commit_handler).
@@ -869,6 +878,18 @@ class TongHopCapXangTab(QWidget):
         printer.setOutputFileName(path)
         doc.print_(printer)
 
+    def _chi_tiet_sort_note(self):
+        """Mô tả đúng thứ tự sắp xếp ĐANG DÙNG ở bảng trên màn hình (người
+        dùng tự chọn bằng cách bấm vào tiêu đề cột, xem _on_header_clicked) -
+        sheet "Chi tiết phiếu" xuất RA ĐÚNG thứ tự đó nên cần ghi rõ, kẻo mở
+        file sau rồi quên đã lọc/sắp theo gì."""
+        label_by_field = dict(zip(_COLUMN_FIELDS, _COLUMN_LABELS))
+        parts = [
+            f"{label_by_field.get(field, field)} ({'tăng dần' if asc else 'giảm dần'})"
+            for field, asc in self._sort_keys
+        ]
+        return "Sắp xếp theo: " + ", ".join(parts) if parts else None
+
     def _write_report(self, path, records):
         report = ReportWorkbook()
 
@@ -891,6 +912,7 @@ class TongHopCapXangTab(QWidget):
                 for diag in (self._orphan_reasons.get(r["id"]),)
             ],
             highlight=[bool(self._orphan_reasons.get(r["id"])) for r in records],
+            sort_note=self._chi_tiet_sort_note(),
         )
 
         by_gv = _aggregate(records, lambda r: r.get("giao_vien", ""))
@@ -901,6 +923,7 @@ class TongHopCapXangTab(QWidget):
                 [gv, a["n"], a["phieu"], a["lit"]]
                 for gv, a in sorted(by_gv.items(), key=lambda kv: attach_files.given_name_sort_key(kv[0]))
             ],
+            sort_note="Sắp xếp theo: Giáo viên (tên, A→Z - không theo họ).",
         )
 
         by_khoa = _aggregate(
@@ -916,6 +939,7 @@ class TongHopCapXangTab(QWidget):
             ["Khóa học", "Lớp", "Biển số", "Giáo viên", "Số dòng", "Số phiếu", "Tổng (lít)"],
             [[*key, by_khoa[key]["n"], by_khoa[key]["phieu"], by_khoa[key]["lit"]] for key in khoa_keys],
             highlight=[key in orphan_keys for key in khoa_keys],
+            sort_note="Sắp xếp theo: Khóa học → Lớp → Biển số → Giáo viên (A→Z).",
         )
 
         by_xe = _aggregate(records, lambda r: r.get("xe", ""))
@@ -923,6 +947,7 @@ class TongHopCapXangTab(QWidget):
             "Theo bien so",
             ["Biển số", "Số dòng", "Số phiếu", "Tổng (lít)"],
             [[xe, a["n"], a["phieu"], a["lit"]] for xe, a in sorted(by_xe.items())],
+            sort_note="Sắp xếp theo: Biển số (A→Z).",
         )
 
         months = sorted({_month_key(r) for r in records}, key=lambda k: (k is None, k))
@@ -931,6 +956,7 @@ class TongHopCapXangTab(QWidget):
             "Theo thang",
             ["Tháng", "Số dòng", "Số phiếu", "Tổng (lít)"],
             [[_month_label(m), by_thang[m]["n"], by_thang[m]["phieu"], by_thang[m]["lit"]] for m in months],
+            sort_note="Sắp xếp theo: Tháng (tăng dần, tháng/năm trống xếp cuối).",
         )
 
         by_gv_thang = _aggregate(records, lambda r: (r.get("giao_vien", ""), _month_key(r)))
@@ -942,6 +968,7 @@ class TongHopCapXangTab(QWidget):
             "GV theo thang (lit)",
             ["Giáo viên", *(_month_label(m) for m in months), "Tổng (lít)"],
             pivot_rows,
+            sort_note="Sắp xếp theo: Giáo viên (tên, A→Z); các cột tháng tăng dần từ trái qua phải.",
         )
 
         teacher = self.cbo_teacher.currentText().strip()
@@ -953,6 +980,7 @@ class TongHopCapXangTab(QWidget):
             _DINH_MUC_COLUMNS,
             [dinh_muc_export_row(r) for r in dinh_muc_rows],
             highlight=[is_vuot(r) for r in dinh_muc_rows],
+            sort_note="Không sắp xếp lại - giữ theo thứ tự khóa học trong dữ liệu gốc.",
         )
 
         report.save(path)

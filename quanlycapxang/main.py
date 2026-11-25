@@ -3,36 +3,34 @@ import sys
 from PySide6.QtCore import QThread, QTimer, Signal
 from PySide6.QtWidgets import (
     QApplication,
-    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMainWindow,
-    QMessageBox,
-    QPushButton,
     QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
 import git_sync
-import phieu_import
 from cap_xang_model import CapXangModel
 from runtime_paths import app_dir
 from style import apply_style
 from tab_cap_xang import CapXangTab
 from tab_dinh_muc_xang import DinhMucXangTab
 from tab_tong_hop_cap_xang import TongHopCapXangTab
-from tab_tong_quan import TongQuanTab
 
 APP_DIR = app_dir()
 REPO_ROOT = APP_DIR.parent
 CAP_XANG_DATA_JSON = REPO_ROOT / "docs" / "cap_xang_data.json"
-SHARED_DATA_DIR = REPO_ROOT / "shared_data"
+
+# Không còn nút bấm tay - cứ 10 phút tự kiểm tra GitHub có gì mới 1 lần (xem
+# MainWindow._queue_sync), cộng với lúc mở app (QTimer.singleShot(0, ...)).
+_SYNC_INTERVAL_MS = 10 * 60 * 1000
 
 
 class _SyncWorker(QThread):
     """Chạy git_sync.sync_from_remote() ở thread riêng để không treo UI -
-    xem MainWindow._on_sync_clicked."""
+    xem MainWindow._queue_sync."""
 
     finished_result = Signal(bool, str)
 
@@ -46,7 +44,7 @@ class _SyncWorker(QThread):
 
 class _PushWorker(QThread):
     """Chạy git_sync.push_shared_data() ở thread riêng - xem
-    MainWindow._on_push_clicked."""
+    MainWindow._queue_push."""
 
     finished_result = Signal(bool, str)
 
@@ -70,28 +68,18 @@ class MainWindow(QMainWindow):
         self.tab_tong_hop_cap_xang = TongHopCapXangTab(model)
 
         tabs = QTabWidget()
-        self.tab_tong_quan = TongQuanTab(
-            model, tabs=tabs, tab_dinh_muc=self.tab_dinh_muc_xang, tab_tong_hop=self.tab_tong_hop_cap_xang,
-        )
-        tabs.addTab(self.tab_tong_quan, "TỔNG QUAN")
-        tabs.addTab(self.tab_dinh_muc_xang, "ĐỊNH MỨC XĂNG")
         tabs.addTab(self.tab_cap_xang, "CẤP XĂNG")
+        tabs.addTab(self.tab_dinh_muc_xang, "ĐỊNH MỨC XĂNG")
         tabs.addTab(self.tab_tong_hop_cap_xang, "TỔNG HỢP CẤP XĂNG")
 
-        self.lbl_unpushed = QLabel("")
-        self.lbl_unpushed.setStyleSheet("color: #b3261e; font-weight: 600;")
-        self.btn_sync = QPushButton("🔄 Lấy dữ liệu mới nhất")
-        self.btn_sync.clicked.connect(self._on_sync_clicked)
-        self.btn_import = QPushButton("⬇ Nhập phiếu từ JSON...")
-        self.btn_import.clicked.connect(self._on_import_clicked)
-        self.btn_push = QPushButton("⬆ Đẩy phiếu/định mức lên")
-        self.btn_push.clicked.connect(self._on_push_clicked)
+        # Không còn nút "🔄 Lấy dữ liệu mới nhất"/"⬆ Đẩy..." - cả 2 việc giờ
+        # TỰ chạy (xem _queue_sync/_queue_push) - chỉ giữ 1 dòng chữ báo nếu
+        # có sự cố (vd mất mạng khiến đẩy lên thất bại) để biết mà kiểm tra.
+        self.lbl_trang_thai = QLabel("")
+        self.lbl_trang_thai.setStyleSheet("color: #b3261e; font-weight: 600;")
         top_row = QHBoxLayout()
-        top_row.addWidget(self.lbl_unpushed)
+        top_row.addWidget(self.lbl_trang_thai)
         top_row.addStretch()
-        top_row.addWidget(self.btn_import)
-        top_row.addWidget(self.btn_push)
-        top_row.addWidget(self.btn_sync)
 
         central = QWidget()
         central_layout = QVBoxLayout(central)
@@ -100,122 +88,72 @@ class MainWindow(QMainWindow):
         central_layout.addWidget(tabs)
         self.setCentralWidget(central)
 
-        # Nhắc "còn phiếu chưa đẩy lên" - chỉ đọc git status cục bộ (không
-        # qua mạng) nên kiểm tra định kỳ vẫn nhẹ; tránh quên bấm "⬆ Đẩy..."
-        # rồi tưởng máy khác đã thấy dữ liệu mới.
-        self._unpushed_timer = QTimer(self)
-        self._unpushed_timer.setInterval(20000)
-        self._unpushed_timer.timeout.connect(self._check_unpushed)
-        self._unpushed_timer.start()
-        QTimer.singleShot(3000, self._check_unpushed)
+        # Hàng đợi 1 lệnh git tại 1 thời điểm (push HOẶC sync, không chạy
+        # song song - 2 lệnh git cùng lúc trên cùng 1 repo không an toàn).
+        # Push được ưu tiên hơn (đẩy thay đổi của máy này lên trước), sync
+        # định kỳ/lúc mở app xếp sau nếu đang có push chạy - xem _run_git_queue.
+        self._git_worker = None
+        self._dang_cho_sync = False
+        self._dang_cho_push = False
 
-    def _check_unpushed(self):
-        try:
-            has = git_sync.has_unpushed_changes()
-        except Exception:
-            return
-        self.lbl_unpushed.setText("⚠ Có phiếu/định mức chưa đẩy lên GitHub" if has else "")
+        # Thêm/sửa/xóa phiếu hoặc định mức ở tab CẤP XĂNG/TỔNG HỢP CẤP XĂNG
+        # -> tự đẩy lên GitHub NGAY (xem *.du_lieu_da_doi/_queue_push).
+        self.tab_cap_xang.du_lieu_da_doi.connect(self._queue_push)
+        self.tab_tong_hop_cap_xang.du_lieu_da_doi.connect(self._queue_push)
 
-    def _on_sync_clicked(self):
-        self.btn_sync.setEnabled(False)
-        self.btn_sync.setText("Đang lấy dữ liệu...")
-        self._sync_worker = _SyncWorker()
-        self._sync_worker.finished_result.connect(self._on_sync_done)
-        self._sync_worker.start()
+        # Lấy dữ liệu mới nhất ngay lúc mở app (hoãn 0ms để cửa sổ hiện ra
+        # trước, không chặn chờ mạng) + định kỳ 10 phút/lần sau đó.
+        QTimer.singleShot(0, self._queue_sync)
+        self._sync_timer = QTimer(self)
+        self._sync_timer.setInterval(_SYNC_INTERVAL_MS)
+        self._sync_timer.timeout.connect(self._queue_sync)
+        self._sync_timer.start()
 
-    def start_background_sync(self):
-        """Tự lấy dữ liệu mới nhất ngay lúc mở app - chạy NỀN (không chặn
-        cửa sổ chính) và ÂM THẦM (không hiện hộp thoại dù thành công hay lỗi
-        mạng/offline - đúng tinh thần "best-effort" lúc mở app, xem nút
-        "🔄 Lấy dữ liệu mới nhất" nếu muốn thử lại có báo kết quả rõ ràng).
-        Trước đây gọi git_sync.sync_from_remote() trực tiếp trong main() làm
-        cả app bị treo tới khi xong (hoặc treo vô thời hạn nếu mạng chập
-        chờn, do chưa có timeout) - giờ cửa sổ đã hiện ra ngay, sync chạy sau."""
-        self.btn_sync.setEnabled(False)
-        self.btn_sync.setText("Đang lấy dữ liệu...")
-        self._startup_sync_worker = _SyncWorker()
-        self._startup_sync_worker.finished_result.connect(self._on_startup_sync_done)
-        self._startup_sync_worker.start()
+    # ---------------- hàng đợi git (sync kéo về / push đẩy lên) ----------------
+    def _queue_sync(self):
+        self._dang_cho_sync = True
+        self._run_git_queue()
 
-    def _on_startup_sync_done(self, ok, _message):
-        self.btn_sync.setEnabled(True)
-        self.btn_sync.setText("🔄 Lấy dữ liệu mới nhất")
-        if ok:
-            self.model.reload()
-            self.tab_dinh_muc_xang.refresh()
-            self.tab_cap_xang.refresh()
-            self.tab_tong_hop_cap_xang.refresh()
-            self.tab_tong_quan.refresh()
+    def _queue_push(self):
+        self._dang_cho_push = True
+        self._run_git_queue()
 
-    def _on_sync_done(self, ok, message):
-        self.btn_sync.setEnabled(True)
-        self.btn_sync.setText("🔄 Lấy dữ liệu mới nhất")
-        if ok:
-            self.model.reload()
-            self.tab_dinh_muc_xang.refresh()
-            self.tab_cap_xang.refresh()
-            self.tab_tong_hop_cap_xang.refresh()
-            self.tab_tong_quan.refresh()
-            QMessageBox.information(
-                self, "Hoàn tất",
-                "Đã lấy dữ liệu khóa/xe/giáo viên + phiếu/định mức (máy khác "
-                "đã đẩy lên) mới nhất từ GitHub.\n\n"
-                "File dữ liệu đã tải về:\n"
-                f"{CAP_XANG_DATA_JSON}\n"
-                f"{SHARED_DATA_DIR / 'phieu_cap_xang.json'}\n"
-                f"{SHARED_DATA_DIR / 'dinh_muc_xang.json'}",
-            )
-        else:
-            QMessageBox.warning(self, "Không lấy được dữ liệu mới", message)
+    def _run_git_queue(self):
+        if self._git_worker is not None:
+            return  # đang có lệnh git chạy - lượt này tự chạy tiếp lúc lệnh đó xong (xem _on_git_done)
+        if self._dang_cho_push:
+            self._dang_cho_push = False
+            worker = _PushWorker()
+            self._git_worker = worker
+            worker.finished_result.connect(lambda ok, msg: self._on_git_done("push", ok, msg))
+            worker.start()
+        elif self._dang_cho_sync:
+            self._dang_cho_sync = False
+            worker = _SyncWorker()
+            self._git_worker = worker
+            worker.finished_result.connect(lambda ok, msg: self._on_git_done("sync", ok, msg))
+            worker.start()
 
-    def _on_import_clicked(self):
-        """Nhập phiếu từ file JSON do XacThucCapXang xuất (xem
-        phieu_import.py) - chạy đồng bộ (chỉ đọc file cục bộ, không qua
-        mạng/git nên không cần QThread như sync/push)."""
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Chọn file JSON phiếu cấp xăng", "", "JSON Files (*.json)"
-        )
-        if not path:
-            return
-        try:
-            added, skipped_trung, errors = phieu_import.import_from_file(path)
-        except Exception as exc:
-            QMessageBox.warning(self, "Không nhập được", str(exc))
-            return
-
-        if added:
-            self.model.reload()
-            self.tab_dinh_muc_xang.refresh()
-            self.tab_cap_xang.refresh()
-            self.tab_tong_hop_cap_xang.refresh()
-            self.tab_tong_quan.refresh()
-
-        msg = f"Đã nhập {added} phiếu mới, bỏ qua {skipped_trung} phiếu đã có."
-        if errors:
-            msg += f"\n\n{len(errors)} phiếu lỗi không nhập được:\n" + "\n".join(errors[:20])
-        QMessageBox.information(self, "Hoàn tất", msg)
-
-    def _on_push_clicked(self):
-        self.btn_push.setEnabled(False)
-        self.btn_push.setText("Đang đẩy lên...")
-        self._push_worker = _PushWorker()
-        self._push_worker.finished_result.connect(self._on_push_done)
-        self._push_worker.start()
-
-    def _on_push_done(self, ok, message):
-        self.btn_push.setEnabled(True)
-        self.btn_push.setText("⬆ Đẩy phiếu/định mức lên")
-        self._check_unpushed()
-        if ok:
-            QMessageBox.information(
-                self, "Hoàn tất",
-                f"{message}\n\n"
-                "File đã đẩy lên (máy khác bấm \"🔄 Lấy dữ liệu mới nhất\" sẽ thấy):\n"
-                f"{SHARED_DATA_DIR / 'phieu_cap_xang.json'}\n"
-                f"{SHARED_DATA_DIR / 'dinh_muc_xang.json'}",
-            )
-        else:
-            QMessageBox.warning(self, "Không đẩy lên được", message)
+    def _on_git_done(self, kind, ok, message):
+        self._git_worker = None
+        if kind == "sync":
+            if ok:
+                self.model.reload()
+                self.tab_dinh_muc_xang.refresh()
+                self.tab_cap_xang.refresh()
+                self.tab_tong_hop_cap_xang.refresh()
+            # Lỗi lúc tự sync (vd mất mạng) - BỎ QUA ÂM THẦM, đúng kiểu
+            # "best-effort": còn lượt định kỳ 10 phút sau tự thử lại.
+        else:  # push
+            if ok:
+                self.lbl_trang_thai.setText("")
+            else:
+                self.lbl_trang_thai.setText(
+                    "⚠ Không tự đẩy phiếu/định mức lên GitHub được (xem chi tiết) - "
+                    "dữ liệu vẫn được lưu ở máy này, app sẽ tự thử lại."
+                )
+                self.lbl_trang_thai.setToolTip(message)
+        self._run_git_queue()
 
 
 def main():
@@ -225,10 +163,6 @@ def main():
     model = CapXangModel(CAP_XANG_DATA_JSON)
     window = MainWindow(model)
     window.show()
-    # Hiện cửa sổ với dữ liệu cục bộ hiện có TRƯỚC, rồi mới âm thầm lấy dữ
-    # liệu mới nhất ở nền (xem start_background_sync) - không chặn app chờ
-    # mạng như trước đây.
-    window.start_background_sync()
     sys.exit(app.exec())
 
 

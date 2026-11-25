@@ -19,7 +19,7 @@ trận ngày) - gộp lại còn đúng 1 luồng nhập duy nhất cho đơn gi
 import re
 from datetime import date, datetime
 
-from PySide6.QtCore import QDate, QRegularExpression, Qt, QTimer
+from PySide6.QtCore import QDate, QRegularExpression, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QComboBox,
@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFileDialog,
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
@@ -49,11 +50,43 @@ from cap_xang_model import contrib_sub_tong, format_allowance_tooltip
 from excel_export import GHI_CHU_TO_DO, ReportWorkbook
 from style import icon as _icon
 
-HISTORY_COLUMNS = ["Ngày cấp", "Biển số", "Số phiếu/Quyển", "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú"]
+HISTORY_COLUMNS = ["Ngày cấp", "Biển số", "Số phiếu", "Mặt hàng", "Số lượng", "Phân loại sổ", "Ghi chú"]
 
 _SO_LUONG_KY_TU_RE = QRegularExpression(r"^[0-9xX, ]*$")
 _SO_LUONG_PHAN_RE = re.compile(r"^(\d+)(?:\s*[xX]\s*(\d+))?$")
 _SO_LUONG_MOI_RE = QRegularExpression(r"^\d*[.,]?\d*$")
+# Số phiếu: cho nhập NHIỀU số (khi Số lượng có nhiều phiếu, vd "3x20") - liệt
+# kê bằng dấu phẩy ("2,3,4") hoặc khoảng ("2-4"), mỗi số 1-100 - chỉ chặn ký
+# tự không hợp lệ lúc gõ, còn ĐỦ SỐ LƯỢNG khớp với Số lượng thì kiểm tra lúc
+# bấm "Cấp xăng" (xem parse_so_phieu/_on_submit - báo warning nếu sai).
+_SO_PHIEU_KY_TU_RE = QRegularExpression(r"^[0-9, \-]*$")
+_SO_PHIEU_PHAN_RE = re.compile(r"^(\d+)\s*-\s*(\d+)$")
+
+# KHÔNG còn ô "Mặt hàng" riêng (Phân loại sổ dưới đây đã đủ cho biết mặt
+# hàng gì, vd "Xăng 20 lít") - danh sách Phân loại sổ CỐ ĐỊNH: mỗi mệnh giá
+# (lít) là 1 LOẠI SỔ RIÊNG (vd "Xăng" có 3 loại sổ - 20/25/30 lít, KHÔNG phải
+# 1 loại sổ "Xăng" dùng chung cho cả 3 mệnh giá), "Dầu 0.01S" chỉ có đúng 1
+# loại sổ (50 lít). Vẫn gõ tự do được, không ràng buộc gì lên Số lượng (xem
+# _GHI_CHU_SO_LUONG). Trường "mat_hang" lưu trong phiếu vẫn giữ (các tab
+# khác đang hiển thị cột này) - suy thẳng từ Phân loại sổ đang chọn, xem
+# _mat_hang_tu_phan_loai_so.
+_PHAN_LOAI_SO_THEO_MAT_HANG = {
+    "Xăng": ["20", "25", "30"],
+    "Dầu 0.05S": ["30", "35", "50", "100"],
+    "Dầu 0.01S": ["50"],
+}
+PHAN_LOAI_SO_OPTIONS = [
+    f"{mat_hang} {lit} lít"
+    for mat_hang, lits in _PHAN_LOAI_SO_THEO_MAT_HANG.items()
+    for lit in lits
+]
+_MAT_HANG_TU_PHAN_LOAI_RE = re.compile(r"\s*\d+(?:[.,]\d+)?\s*l[íi]t\s*$", re.IGNORECASE)
+
+
+def _mat_hang_tu_phan_loai_so(text):
+    """Tách Mặt hàng từ chữ Phân loại sổ đang chọn (vd "Xăng 20 lít" ->
+    "Xăng") - không còn ô Mặt hàng riêng để gõ tay (xem PHAN_LOAI_SO_OPTIONS)."""
+    return _MAT_HANG_TU_PHAN_LOAI_RE.sub("", text or "").strip()
 
 _GHI_CHU_SO_LUONG = (
     "Nhập 1 số (vd 50) hoặc SỐ PHIẾUxSỐ LÍT (vd 2x30 = 2 phiếu, mỗi phiếu 30 "
@@ -61,10 +94,31 @@ _GHI_CHU_SO_LUONG = (
     "Vd: 2x30, 4x20, 20, 50  =  2 phiếu 30 lít + 4 phiếu 20 lít + 1 phiếu 20 "
     "lít + 1 phiếu 50 lít (8 phiếu, tổng 210 lít)."
 )
+_GHI_CHU_SO_PHIEU = (
+    "Số phiếu tương ứng với Số lượng - nếu Số lượng có nhiều phiếu (vd \"3x20\" "
+    "= 3 phiếu), nhập đủ 3 số phiếu: liệt kê bằng dấu phẩy (vd \"2,3,4\") hoặc "
+    "khoảng (vd \"2-4\"), mỗi số từ 1 đến 100. Để trống nếu không cần ghi số phiếu."
+)
 
 _MAU_CHU_VUOT = "#b3261e"  # "Còn lại" âm - đã cấp vượt định mức
 _MAU_CHU_SAP_HET = "#b26a00"  # "Còn lại" còn dưới 10% định mức
 _MAU_KHOA_HET_HAN = QColor("#b3261e")  # chữ đỏ: khóa "Đã đào tạo" (combobox Khóa học) / xe không chính thức phân công (combobox Biển số xe)
+
+# Chiều rộng cố định cho MỌI nhãn (label) trong box "Chọn giáo viên/khóa học"
+# + "Cấp xăng" - để nhãn/ô nhập thẳng hàng theo lưới (QGridLayout), thay vì
+# mỗi hàng 1 chiều rộng khác nhau như trước (xem _nhan_form).
+_NHAN_RONG = 96
+
+
+def _nhan_form(text):
+    """1 QLabel đã canh phải + rộng cố định (_NHAN_RONG) - dùng trong
+    QGridLayout dạng form (nhãn cột 0/2, ô nhập cột 1/3) để mọi hàng thẳng
+    cột, dễ nhìn hơn nhiều so với nối chuỗi QHBoxLayout (mỗi hàng rộng khác
+    nhau tùy độ dài chữ nhãn)."""
+    lbl = QLabel(text)
+    lbl.setMinimumWidth(_NHAN_RONG)
+    lbl.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+    return lbl
 
 
 def _fmt_so(value):
@@ -109,6 +163,35 @@ def parse_so_luong(text):
         tong_lit += so_phieu * lit
         tong_phieu += so_phieu
     return tong_lit, tong_phieu
+
+
+def parse_so_phieu(text):
+    """Phân tích chuỗi Số phiếu kiểu "2,3,4" hoặc khoảng "2-4" (trộn được, vd
+    "2-4,7") -> trả về list số phiếu (int, giữ đúng thứ tự nhập, có thể trùng
+    nếu người dùng gõ trùng - không tự loại bỏ). Chuỗi rỗng -> []. Sai định
+    dạng, khoảng lùi (vd "5-3"), hoặc có số ngoài 1-100 -> None (xem
+    _GHI_CHU_SO_PHIEU, _on_submit kiểm tra khớp số lượng phiếu)."""
+    text = (text or "").strip()
+    if not text:
+        return []
+    result = []
+    for phan in text.split(","):
+        phan = phan.strip()
+        if not phan:
+            continue
+        m = _SO_PHIEU_PHAN_RE.match(phan)
+        if m:
+            start, end = int(m.group(1)), int(m.group(2))
+            if start > end:
+                return None
+            result.extend(range(start, end + 1))
+        elif phan.isdigit():
+            result.append(int(phan))
+        else:
+            return None
+    if any(n < 1 or n > 100 for n in result):
+        return None
+    return result
 
 
 class _EditableCombo(QComboBox):
@@ -162,6 +245,12 @@ class _StatChip(QWidget):
 
 
 class CapXangTab(QWidget):
+    # Phát ra sau khi THÊM/SỬA/XÓA phiếu HOẶC sửa định mức (lưu vào
+    # shared_data cục bộ) - main.py nghe tín hiệu này để TỰ đẩy lên GitHub
+    # ngay, không còn nút "⬆ Đẩy..." để bấm tay (xem _on_submit/_on_delete_
+    # current/_on_sua_dinh_muc/_on_dung_dinh_muc_goc).
+    du_lieu_da_doi = Signal()
+
     def __init__(self, model, parent=None):
         super().__init__(parent)
         self.model = model
@@ -173,6 +262,7 @@ class CapXangTab(QWidget):
         self._editing_record_id = None
         self._updating_selectors = False
         self._last_teacher_text = ""
+        self._last_xe_text = ""
         self._build_ui()
         self._load_all_assignments()
         self._on_selector_changed()
@@ -271,16 +361,17 @@ class CapXangTab(QWidget):
 
     def _build_selector_box(self):
         box = QGroupBox("Chọn giáo viên / khóa học")
-        row = QHBoxLayout(box)
+        grid = QGridLayout(box)
+        grid.setHorizontalSpacing(10)
 
-        row.addWidget(QLabel("Giáo viên:"))
+        grid.addWidget(_nhan_form("Giáo viên:"), 0, 0)
         self.cbo_teacher = self._make_searchable_combo()
         self.cbo_teacher.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
         self.cbo_teacher.activated.connect(lambda _i: self._on_selector_changed("giao_vien"))
         self.cbo_teacher.lineEdit().editingFinished.connect(lambda: self._on_selector_changed("giao_vien"))
-        row.addWidget(self.cbo_teacher, 1)
+        grid.addWidget(self.cbo_teacher, 0, 1)
 
-        row.addWidget(QLabel("Khóa học:"))
+        grid.addWidget(_nhan_form("Khóa học:"), 0, 2)
         # editable để gõ tìm (giống Giáo viên/Biển số xe) - khác 2 ô kia ở
         # chỗ giá trị thật đọc qua currentData() (mã khóa), không phải chữ
         # hiển thị - xem _on_khoa_editing_finished (chặn gõ sai lệch dữ liệu).
@@ -288,7 +379,10 @@ class CapXangTab(QWidget):
         self.cbo_khoa.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
         self.cbo_khoa.currentIndexChanged.connect(lambda _i: self._on_selector_changed("khoa"))
         self.cbo_khoa.lineEdit().editingFinished.connect(self._on_khoa_editing_finished)
-        row.addWidget(self.cbo_khoa, 1)
+        grid.addWidget(self.cbo_khoa, 0, 3)
+
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(3, 1)
 
         # Biển số xe ĐẶT Ở Ô "Cấp xăng" (_build_entry_box), ngay cạnh Ngày
         # cấp - vẫn là `self.cbo_xe`, chỉ đổi VỊ TRÍ hiển thị, không đổi gì
@@ -327,73 +421,108 @@ class CapXangTab(QWidget):
 
     def _build_entry_box(self):
         box = QGroupBox("Cấp xăng")
-        v = QVBoxLayout(box)
+        grid = QGridLayout(box)
+        grid.setHorizontalSpacing(10)
+        grid.setVerticalSpacing(8)
 
-        row1 = QHBoxLayout()
-        row1.addWidget(QLabel("Ngày cấp:"))
+        # Lưới 2 cột nhãn:ô, xếp từng CẶP liên quan cùng 1 hàng cho dễ đọc
+        # (khác layout cũ: nối liền 3-4 ô/hàng không theo quy luật, mỗi hàng
+        # rộng khác nhau) - Ngày/Biển số (khi nào, xe nào), Phân loại sổ/Số
+        # lượng (loại gì, bao nhiêu), Số phiếu/Ghi chú (sổ sách).
+        grid.addWidget(_nhan_form("Ngày cấp:"), 0, 0)
         self.date_edit = QDateEdit()
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDisplayFormat("dd/MM/yyyy")
         self.date_edit.setDate(QDate.currentDate())
-        row1.addWidget(self.date_edit)
-        row1.addSpacing(16)
+        grid.addWidget(self.date_edit, 0, 1)
 
-        row1.addWidget(QLabel("Biển số xe:"))
+        grid.addWidget(_nhan_form("Biển số xe:"), 0, 2)
         self.cbo_xe = self._make_searchable_combo()
         self.cbo_xe.lineEdit().setPlaceholderText("Nhập hoặc chọn...")
         self.cbo_xe.activated.connect(lambda _i: self._on_selector_changed("xe"))
         self.cbo_xe.lineEdit().editingFinished.connect(lambda: self._on_selector_changed("xe"))
-        row1.addWidget(self.cbo_xe, 1)
-        row1.addSpacing(16)
+        grid.addWidget(self.cbo_xe, 0, 3)
 
-        row1.addWidget(QLabel("Số lượng:"))
+        grid.addWidget(_nhan_form("Phân loại sổ:"), 1, 0)
+        self.cbo_phan_loai = _EditableCombo(PHAN_LOAI_SO_OPTIONS, PHAN_LOAI_SO_OPTIONS[0])
+        grid.addWidget(self.cbo_phan_loai, 1, 1)
+
+        grid.addWidget(_nhan_form("Số lượng:"), 1, 2)
         self.txt_so_luong = QLineEdit()
         self.txt_so_luong.setValidator(QRegularExpressionValidator(_SO_LUONG_KY_TU_RE))
         self.txt_so_luong.setPlaceholderText("vd: 2x30, 4x20, 20, 50")
         self.txt_so_luong.setToolTip(_GHI_CHU_SO_LUONG)
         self.txt_so_luong.returnPressed.connect(self._on_submit)
-        row1.addWidget(self.txt_so_luong, 1)
-        v.addLayout(row1)
+        grid.addWidget(self.txt_so_luong, 1, 3)
 
-        row2 = QHBoxLayout()
-        row2.addWidget(QLabel("Mặt hàng:"))
-        self.cbo_mat_hang = _EditableCombo([], "")
-        row2.addWidget(self.cbo_mat_hang, 1)
-        row2.addWidget(QLabel("Phân loại sổ:"))
-        self.cbo_phan_loai = _EditableCombo([], "")
-        row2.addWidget(self.cbo_phan_loai, 1)
-        row2.addWidget(QLabel("Số phiếu/Quyển:"))
+        grid.addWidget(_nhan_form("Số phiếu:"), 2, 0)
         self.txt_so_phieu = QLineEdit()
-        row2.addWidget(self.txt_so_phieu, 1)
-        row2.addWidget(QLabel("Ghi chú:"))
-        self.txt_ghi_chu = QLineEdit()
-        row2.addWidget(self.txt_ghi_chu, 1)
-        v.addLayout(row2)
+        self.txt_so_phieu.setValidator(QRegularExpressionValidator(_SO_PHIEU_KY_TU_RE))
+        self.txt_so_phieu.setPlaceholderText("vd: 2,3,4 hoặc 2-4")
+        self.txt_so_phieu.setToolTip(_GHI_CHU_SO_PHIEU)
+        grid.addWidget(self.txt_so_phieu, 2, 1)
 
-        row3 = QHBoxLayout()
+        grid.addWidget(_nhan_form("Ghi chú:"), 2, 2)
+        self.txt_ghi_chu = QLineEdit()
+        grid.addWidget(self.txt_ghi_chu, 2, 3)
+
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(3, 1)
+
+        row_nut = QHBoxLayout()
         self.btn_submit = QPushButton(_icon(self, QStyle.StandardPixmap.SP_DialogApplyButton), "Cấp xăng")
         self.btn_submit.setObjectName("primary")
         self.btn_submit.clicked.connect(self._on_submit)
-        row3.addWidget(self.btn_submit)
+        row_nut.addWidget(self.btn_submit)
         self.btn_cancel_edit = QPushButton("Hủy sửa")
         self.btn_cancel_edit.clicked.connect(self._cancel_edit)
         self.btn_cancel_edit.setVisible(False)
-        row3.addWidget(self.btn_cancel_edit)
+        row_nut.addWidget(self.btn_cancel_edit)
         self.btn_delete_record = QPushButton("Xóa phiếu")
         self.btn_delete_record.clicked.connect(self._on_delete_current)
         self.btn_delete_record.setVisible(False)
-        row3.addWidget(self.btn_delete_record)
+        row_nut.addWidget(self.btn_delete_record)
         self.lbl_submit_status = QLabel("")
         self.lbl_submit_status.setStyleSheet("color: #1a7f37; font-weight: 600;")
-        row3.addWidget(self.lbl_submit_status)
-        row3.addStretch(1)
-        v.addLayout(row3)
+        row_nut.addWidget(self.lbl_submit_status)
+        row_nut.addStretch(1)
+        grid.addLayout(row_nut, 3, 0, 1, 4)
         return box
 
     # ---------------- 3 combobox liên kết ----------------
     def _on_selector_changed(self, source=None):
         if self._updating_selectors:
             return
+
+        # Gõ tự do ra 1 cái tên/biển số KHÔNG có trong hệ thống (khác lúc
+        # BỊ lọc hẹp còn 0 lựa chọn vì chọn kèm 1 ô khác - đây là ô người
+        # dùng VỪA gõ xong, so với TOÀN BỘ dữ liệu, không lọc theo 2 ô kia) -
+        # báo ngay rồi TRẢ VỀ GIÁ TRỊ CŨ, không để lọt vào luồng lọc liên kết
+        # bên dưới (sẽ chỉ làm Khóa học/Biển số xe trống trơn mà không rõ vì
+        # sao, như lúc trước khi có kiểm tra này).
+        if source == "giao_vien":
+            gv_text = self.cbo_teacher.currentText().strip()
+            if gv_text and gv_text != self._last_teacher_text and not self._la_giao_vien_hop_le(gv_text):
+                QMessageBox.warning(
+                    self, "Giáo viên không có trong danh sách",
+                    f"Không tìm thấy giáo viên '{gv_text}' - gõ lại tên hoặc chọn 1 tên có sẵn trong danh sách.",
+                )
+                self.cbo_teacher.blockSignals(True)
+                self.cbo_teacher.setCurrentText(self._last_teacher_text)
+                self.cbo_teacher.blockSignals(False)
+                return
+        elif source == "xe":
+            xe_text = self.cbo_xe.currentText().strip()
+            if xe_text and xe_text != self._last_xe_text and not self._la_bien_so_hop_le(xe_text):
+                QMessageBox.warning(
+                    self, "Biển số không có trong danh sách",
+                    f"Không tìm thấy biển số '{xe_text}' - gõ lại hoặc chọn 1 biển số có sẵn trong danh sách.",
+                )
+                self.cbo_xe.blockSignals(True)
+                self.cbo_xe.setCurrentText(self._last_xe_text)
+                self.cbo_xe.blockSignals(False)
+                return
+
         self._updating_selectors = True
         try:
             if source == "giao_vien":
@@ -425,6 +554,7 @@ class CapXangTab(QWidget):
             self._updating_selectors = False
 
         self._last_teacher_text = self.cbo_teacher.currentText().strip()
+        self._last_xe_text = self.cbo_xe.currentText().strip()
         self._resolve_and_reload_detail()
 
     def _snapshot_matches(self):
@@ -531,9 +661,17 @@ class CapXangTab(QWidget):
         gõ để tìm (completer) nhưng gõ xong mà KHÔNG khớp đúng mục nào đang
         chọn thì phải trả chữ hiển thị về đúng mục đang chọn (currentIndex
         không đổi) - nếu không, chữ hiển thị sẽ lệch khỏi mã khóa thật đang
-        dùng (currentData), gây nhầm lẫn/chọn sai khóa."""
+        dùng (currentData), gây nhầm lẫn/chọn sai khóa. Gõ ra chữ khác hẳn
+        (không rỗng) thì báo luôn, khỏi để người dùng tưởng đã chọn xong mà
+        thực ra app vừa âm thầm trả lại giá trị cũ."""
         idx = self.cbo_khoa.currentIndex()
         dung_text = self.cbo_khoa.itemText(idx) if idx >= 0 else ""
+        typed = self.cbo_khoa.lineEdit().text().strip()
+        if typed and typed != dung_text.strip():
+            QMessageBox.warning(
+                self, "Khóa học không có trong danh sách",
+                f"Không tìm thấy khóa học khớp với '{typed}' - gõ lại hoặc chọn 1 khóa có sẵn trong danh sách.",
+            )
         if self.cbo_khoa.lineEdit().text() != dung_text:
             self.cbo_khoa.lineEdit().setText(dung_text)
 
@@ -755,6 +893,7 @@ class CapXangTab(QWidget):
             return
         self.model.set_dinh_muc_override(a["ma_khoa"], a["xe"], a["giao_vien"], tong_lit, edit_ghi_chu.text())
         self._reload_allowance_and_history()
+        self.du_lieu_da_doi.emit()
 
     def _on_dung_dinh_muc_goc(self):
         a = self._current_assignment
@@ -762,8 +901,26 @@ class CapXangTab(QWidget):
             return
         self.model.clear_dinh_muc_override(a["ma_khoa"], a["xe"], a["giao_vien"])
         self._reload_allowance_and_history()
+        self.du_lieu_da_doi.emit()
+
+    def _la_giao_vien_hop_le(self, gv):
+        """Tương tự _la_bien_so_hop_le nhưng cho ô "Giáo viên" - gõ tự do để
+        tìm/chọn, nhưng phải khớp (sau chuẩn hóa) 1 giáo viên ĐÃ CÓ trong hệ
+        thống (_all_assignments)."""
+        gv_norm = attach_files.normalize_name(gv)
+        return any(attach_files.normalize_name(a["giao_vien"]) == gv_norm for a in self._all_assignments if a["giao_vien"])
 
     # ---------------- nhập/sửa phiếu ----------------
+    def _la_bien_so_hop_le(self, xe):
+        """Biển số ô "Biển số xe" cho gõ tự do (để tìm/chọn, hoặc mượn xe
+        KHÁC xe chính thức phân công - xem _repopulate_xe_combo/_resolve_
+        and_reload_detail) - nhưng KHÔNG cho tự bịa biển số mới lúc lưu
+        phiếu: phải khớp (sau chuẩn hóa) 1 biển số ĐÃ CÓ trong hệ thống
+        (_all_assignments, không cần đúng xe chính thức của giáo viên/khóa
+        đang chọn)."""
+        xe_norm = attach_files.normalize_plate(xe)
+        return any(attach_files.normalize_plate(x["xe"]) == xe_norm for x in self._all_assignments if x["xe"])
+
     def _confirm_vuot_dinh_muc(self, assignment, allowance, new_lit, old_lit):
         if not allowance or allowance["tong"] is None:
             return True
@@ -788,6 +945,14 @@ class CapXangTab(QWidget):
         a = self._current_assignment
         if not a:
             return
+        if not self._la_bien_so_hop_le(a["xe"]):
+            QMessageBox.warning(
+                self, "Biển số không có trong danh sách",
+                f"Biển số '{a['xe']}' không có trong danh sách xe hiện có - gõ/chọn lại "
+                "đúng 1 biển số đã có trong hệ thống (ô Biển số xe cho gõ tự do để tìm, "
+                "nhưng phải khớp 1 biển số đã có, không tự thêm biển số mới ở đây).",
+            )
+            return
         so_luong_text = self.txt_so_luong.text().strip()
         if not so_luong_text:
             QMessageBox.information(self, "Thiếu số lượng", "Nhập số lít cần cấp.")
@@ -798,6 +963,20 @@ class CapXangTab(QWidget):
             return
         if tong_lit <= 0:
             QMessageBox.information(self, "Số lượng không hợp lệ", "Số lượng phải lớn hơn 0.")
+            return
+
+        so_phieu_text = self.txt_so_phieu.text().strip()
+        so_phieu_list = parse_so_phieu(so_phieu_text)
+        if so_phieu_list is None:
+            QMessageBox.warning(self, "Số phiếu không đúng định dạng", _GHI_CHU_SO_PHIEU)
+            return
+        if so_phieu_text and len(so_phieu_list) != tong_phieu:
+            QMessageBox.warning(
+                self, "Số phiếu không khớp Số lượng",
+                f"Số lượng \"{so_luong_text}\" ứng với {tong_phieu} phiếu, nhưng Số phiếu "
+                f"đang nhập {len(so_phieu_list)} số. Nhập đúng {tong_phieu} số, vd liệt kê "
+                f"bằng dấu phẩy hoặc khoảng (xem gợi ý ở ô Số phiếu).",
+            )
             return
 
         ngay_cap = self.date_edit.date().toPython()
@@ -826,14 +1005,15 @@ class CapXangTab(QWidget):
         if not self._confirm_vuot_dinh_muc(a, self._current_allowance, tong_lit, old_lit):
             return
 
+        phan_loai_so = self.cbo_phan_loai.currentText().strip()
         fields = {
             "giao_vien": a["giao_vien"], "ma_khoa": a["ma_khoa"], "lop": a["lop"], "xe": a["xe"],
             "ngay_cap": ngay_cap.strftime("%d/%m/%Y"),
             "so_phieu": self.txt_so_phieu.text().strip(),
-            "mat_hang": self.cbo_mat_hang.currentText().strip(),
+            "mat_hang": _mat_hang_tu_phan_loai_so(phan_loai_so),
             "so_luong": tong_lit, "so_luong_text": so_luong_text, "so_phieu_count": tong_phieu,
             "ghi_chu": self.txt_ghi_chu.text().strip(),
-            "phan_loai_so": self.cbo_phan_loai.currentText().strip(),
+            "phan_loai_so": phan_loai_so,
         }
         is_new = self._editing_record_id is None
         if self._editing_record_id:
@@ -841,6 +1021,7 @@ class CapXangTab(QWidget):
         else:
             cap_xang_store.add_record(fields)
         self._reload_allowance_and_history()
+        self.du_lieu_da_doi.emit()
         msg = (
             f"✓ Đã cấp {tong_phieu} phiếu ({_fmt_so(tong_lit)} lít) lúc {datetime.now().strftime('%H:%M')}"
             if is_new else "✓ Đã lưu thay đổi."
@@ -886,7 +1067,6 @@ class CapXangTab(QWidget):
         ngay = _parse_ngay(record.get("ngay_cap", ""))
         self.date_edit.setDate(QDate(ngay.year, ngay.month, ngay.day) if ngay else QDate.currentDate())
         self.txt_so_luong.setText(record.get("so_luong_text") or _fmt_so(record.get("so_luong")))
-        self.cbo_mat_hang.setCurrentText(record.get("mat_hang", ""))
         self.cbo_phan_loai.setCurrentText(record.get("phan_loai_so", ""))
         self.txt_so_phieu.setText(record.get("so_phieu", ""))
         self.txt_ghi_chu.setText(record.get("ghi_chu", ""))
@@ -900,12 +1080,8 @@ class CapXangTab(QWidget):
         self.txt_so_luong.clear()
         self.txt_so_phieu.clear()
         self.txt_ghi_chu.clear()
-        mat_hang_goi_y = cap_xang_store.distinct_values("mat_hang")
-        phan_loai_goi_y = cap_xang_store.distinct_values("phan_loai_so")
-        self.cbo_mat_hang.set_suggestions(mat_hang_goi_y)
-        self.cbo_mat_hang.setCurrentText(mat_hang_goi_y[0] if mat_hang_goi_y else "")
-        self.cbo_phan_loai.set_suggestions(phan_loai_goi_y)
-        self.cbo_phan_loai.setCurrentText(phan_loai_goi_y[0] if phan_loai_goi_y else "")
+        self.cbo_phan_loai.set_suggestions(PHAN_LOAI_SO_OPTIONS)
+        self.cbo_phan_loai.setCurrentText(PHAN_LOAI_SO_OPTIONS[0])
         self.btn_submit.setText("Cấp xăng")
         self.btn_cancel_edit.setVisible(False)
         self.btn_delete_record.setVisible(False)
@@ -929,6 +1105,7 @@ class CapXangTab(QWidget):
             return
         cap_xang_store.delete_record(self._editing_record_id)
         self._reload_allowance_and_history()
+        self.du_lieu_da_doi.emit()
 
     # ---------------- lịch sử ----------------
     def _render_history(self):
