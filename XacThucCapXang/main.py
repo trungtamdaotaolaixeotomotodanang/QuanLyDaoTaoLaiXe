@@ -35,7 +35,18 @@ Chạy: python main.py (từ thư mục XacThucCapXang/)."""
 import sys
 from pathlib import Path
 
-_QUANLYCAPXANG_DIR = Path(__file__).resolve().parent.parent / "quanlycapxang"
+
+def _this_app_dir():
+    """Thư mục thật chứa main.py nguồn, hoặc thư mục chứa main.exe khi đóng
+    gói (__file__ trỏ sai vào thư mục giải nén tạm lúc PyInstaller --onefile
+    chạy - cùng lý do/cách sửa với quanlycapxang/runtime_paths.app_dir)."""
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        return exe_dir.parent if exe_dir.name == "dist" else exe_dir
+    return Path(__file__).resolve().parent
+
+
+_QUANLYCAPXANG_DIR = _this_app_dir().parent / "quanlycapxang"
 if str(_QUANLYCAPXANG_DIR) not in sys.path:
     sys.path.insert(0, str(_QUANLYCAPXANG_DIR))
 
